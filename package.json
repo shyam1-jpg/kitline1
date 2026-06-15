@@ -1,0 +1,32 @@
+{
+  "name": "kiteline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kiteline — the command line for professional kitchens. HACCP, temperature monitoring, allergen menus, food labels, recipes, suppliers, training, incidents and waste tracking in one platform.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "reset": "node server/reset.js",
+    "tunnel": "npx cloudflared tunnel --url http://localhost:4001",
+    "tunnel:lt": "npx localtunnel --port 4001",
+    "sensors:sim": "node server/sensor-sim.js"
+  },
+  "keywords": [
+    "haccp",
+    "food-safety",
+    "kitchen",
+    "allergens",
+    "labelling",
+    "temperature-monitoring",
+    "pwa"
+  ],
+  "author": "Kiteline Kitchen Systems",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  }
+}

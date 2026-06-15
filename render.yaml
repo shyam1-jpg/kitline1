@@ -1,0 +1,51 @@
+# Kiteline — deploy to Render (https://render.com)
+# Connect this repo → Blueprint → kiteline.uk custom domain + free SSL
+# Set APP_URL=https://kiteline.uk in Render env + Stripe webhook on /api/billing/webhook
+services:
+  - type: web
+    name: kiteline
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: node server/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RENDER
+        value: "true"
+      - key: DATA_DIR
+        value: /var/data
+      - key: OWNER_EMAIL
+        value: shyam_1@hotmail.co.uk
+      - key: OWNER_NAME
+        value: Shyam Prasad
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: INGEST_KEY
+        generateValue: true
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: NOTIFY_TO
+        sync: false
+      - key: APP_URL
+        value: https://kiteline.uk
+      - key: DEMO_MODE
+        value: "false"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+    disk:
+      name: kiteline-data
+      mountPath: /var/data
+      sizeGB: 1

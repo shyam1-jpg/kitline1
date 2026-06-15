@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hardware & Supplies — Kiteline</title>
+  <meta name="description" content="Kiteline-approved temperature sensors, label printers, and rolls — coming soon. Register interest; we only stock what kitchens ask for." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{brand:{50:'#f0fdfa',100:'#ccfbf1',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},ink:{50:'#f8fafc',100:'#f1f5f9',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',700:'#334155',800:'#1e293b',900:'#0f172a',950:'#020617'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>body{font-family:Inter,system-ui,sans-serif}.gradient{background:linear-gradient(135deg,#0f766e 0%,#0b1220 100%)}</style>
+</head>
+<body class="text-ink-900 antialiased bg-white">
+
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-ink-100">
+    <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
+      <a href="/" class="brand-lockup brand-lockup--light">
+        <img src="/kiteline-logo.png?v=k" alt="" class="brand-mark" width="32" height="32">
+        <span class="brand-name">Kit<em>eline</em></span>
+      </a>
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-ink-700">
+        <a href="product-haccp.html" class="hover:text-brand-700">SafeServe</a>
+        <a href="pricing.html" class="hover:text-brand-700">Pricing</a>
+        <a href="hardware.html" class="text-brand-700">Hardware</a>
+      </nav>
+      <a href="/app" class="px-4 py-2 text-sm font-semibold rounded-lg bg-brand-600 text-white hover:bg-brand-700">Try the app</a>
+    </div>
+  </header>
+
+  <section class="gradient text-white py-16 px-5 text-center">
+    <span class="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-200 text-sm font-semibold mb-4">Coming soon — no stock held yet</span>
+    <h1 class="text-4xl lg:text-5xl font-black max-w-3xl mx-auto">Kiteline Hardware & Supplies</h1>
+    <p class="mt-4 text-white/75 max-w-2xl mx-auto">Sensors, label printers, and rolls that plug straight into Kiteline. We are not holding inventory until enough kitchens register interest — tell us what you want and we will batch-order for pilot customers.</p>
+    <p class="mt-3 text-sm text-white/50" id="interestSummary">Loading interest counts…</p>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-5 py-16">
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col">
+        <span class="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-50 inline-block px-2 py-1 rounded-full w-fit">Coming soon</span>
+        <h2 class="font-bold text-xl mt-3">SafeServe Sensor Kit</h2>
+        <p class="text-sm text-ink-500 mt-2 flex-1">Wireless fridge/freezer probes + gateway, pre-mapped to your Kiteline dashboard. Install support included for pilot sites.</p>
+        <ul class="mt-4 space-y-1 text-sm text-ink-600">
+          <li>✓ Works with Kiteline /api/ingest</li>
+          <li>✓ Email + SMS alerts when out of range</li>
+          <li>○ Model & price confirmed after pilot tests</li>
+        </ul>
+        <p class="text-xs text-ink-400 mt-3">Typical kit: 3–6 probes + 1 gateway per site</p>
+        <button class="mt-5 w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm interest-btn" data-product="sensor-kit">Register interest</button>
+        <p class="text-center text-xs text-ink-400 mt-2"><span data-count="sensor-kit">—</span> registered</p>
+      </div>
+      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col">
+        <span class="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-50 inline-block px-2 py-1 rounded-full w-fit">Coming soon</span>
+        <h2 class="font-bold text-xl mt-3">LabelSmart Printer Bundle</h2>
+        <p class="text-sm text-ink-500 mt-2 flex-1">Brother QL label printer (62 mm) set up for Kiteline prep labels — use-by dates, allergens, QR codes.</p>
+        <ul class="mt-4 space-y-1 text-sm text-ink-600">
+          <li>✓ 62 mm continuous roll format</li>
+          <li>✓ Print from Kiteline LabelSmart</li>
+          <li>○ Bundle price when we know demand volume</li>
+        </ul>
+        <p class="text-xs text-ink-400 mt-3">Recommended: Brother QL-810W or QL-800</p>
+        <button class="mt-5 w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm interest-btn" data-product="printer-bundle">Register interest</button>
+        <p class="text-center text-xs text-ink-400 mt-2"><span data-count="printer-bundle">—</span> registered</p>
+      </div>
+      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col">
+        <span class="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-50 inline-block px-2 py-1 rounded-full w-fit">Coming soon</span>
+        <h2 class="font-bold text-xl mt-3">Label Rolls (62 mm)</h2>
+        <p class="text-sm text-ink-500 mt-2 flex-1">Food-safe thermal rolls matched to the printer bundle. Re-order from Kiteline when you run low.</p>
+        <ul class="mt-4 space-y-1 text-sm text-ink-600">
+          <li>✓ 62 mm × continuous</li>
+          <li>✓ Compatible with LabelSmart layouts</li>
+          <li>○ Multi-pack pricing TBC</li>
+        </ul>
+        <p class="text-xs text-ink-400 mt-3">Estimate: rolls of 30 m — kitchen usage varies</p>
+        <button class="mt-5 w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm interest-btn" data-product="label-rolls">Register interest</button>
+        <p class="text-center text-xs text-ink-400 mt-2"><span data-count="label-rolls">—</span> registered</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-ink-50 py-16">
+    <div class="max-w-xl mx-auto px-5">
+      <h2 class="text-2xl font-extrabold text-center mb-2">Register your interest</h2>
+      <p class="text-center text-ink-500 text-sm mb-8">No payment today. We email you when kits are ready to order. Helps us know how much stock to buy.</p>
+      <form id="waitlistForm" class="bg-white rounded-2xl border border-ink-100 p-6 space-y-4">
+        <input type="hidden" id="product" name="product" value="sensor-kit">
+        <div>
+          <label class="block text-sm font-semibold mb-1">I'm interested in</label>
+          <select id="productSel" class="w-full border border-ink-200 rounded-lg px-3 py-2 text-sm">
+            <option value="sensor-kit">SafeServe Sensor Kit</option>
+            <option value="printer-bundle">LabelSmart Printer Bundle</option>
+            <option value="label-rolls">62 mm Label Rolls</option>
+            <option value="full-bundle">Full bundle (software + sensors + printer)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Your name</label>
+          <input required id="name" class="w-full border border-ink-200 rounded-lg px-3 py-2 text-sm" placeholder="Kitchen or contact name">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Email</label>
+          <input required type="email" id="email" class="w-full border border-ink-200 rounded-lg px-3 py-2 text-sm" placeholder="you@restaurant.com">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Mobile (optional)</label>
+          <input id="phone" class="w-full border border-ink-200 rounded-lg px-3 py-2 text-sm" placeholder="+44 7…">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Kitchens / sites</label>
+          <select id="sites" class="w-full border border-ink-200 rounded-lg px-3 py-2 text-sm">
+            <option value="1">1 site</option>
+            <option value="2-3">2–3 sites</option>
+            <option value="4-10">4–10 sites</option>
+            <option value="10+">10+ sites</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Notes (optional)</label>
+          <textarea id="note" rows="2" class="w-full border border-ink-200 rounded-lg px-3 py-2 text-sm" placeholder="e.g. 4 fridges, need install help"></textarea>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-lg bg-brand-600 text-white font-bold text-sm">Join waitlist — no charge</button>
+        <p id="formMsg" class="text-sm text-center hidden"></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-5 py-12 text-center text-sm text-ink-500">
+    <p><b>Why “coming soon”?</b> We test every sensor and printer with Kiteline before we sell it. Registering interest tells us what to stock — we will not take your money until products are confirmed and priced.</p>
+    <p class="mt-4">Software works today → <a href="/app" class="text-brand-700 font-semibold">Try the app</a> · <a href="pricing.html" class="text-brand-700 font-semibold">Software pricing</a></p>
+  </section>
+
+  <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm">
+    © 2026 Kiteline · <a href="/" class="hover:text-white">Home</a> · <a href="pricing.html" class="hover:text-white">Pricing</a>
+  </footer>
+
+  <script>
+    (function () {
+      const form = document.getElementById('waitlistForm');
+      const productSel = document.getElementById('productSel');
+      const productHidden = document.getElementById('product');
+      const formMsg = document.getElementById('formMsg');
+
+      document.querySelectorAll('.interest-btn').forEach(btn => {
+        btn.onclick = () => {
+          productSel.value = btn.dataset.product;
+          productHidden.value = btn.dataset.product;
+          document.getElementById('waitlistForm').scrollIntoView({ behavior: 'smooth' });
+        };
+      });
+      productSel.onchange = () => { productHidden.value = productSel.value; };
+
+      function renderCounts(data) {
+        const c = data.counts || {};
+        document.querySelectorAll('[data-count]').forEach(el => {
+          const n = c[el.dataset.count] || 0;
+          el.textContent = n === 1 ? '1 kitchen' : n + ' kitchens';
+        });
+        const total = data.total || 0;
+        document.getElementById('interestSummary').textContent = total
+          ? total + ' kitchen' + (total === 1 ? '' : 's') + ' on the waitlist so far — join them below.'
+          : 'Be the first to register interest.';
+      }
+
+      fetch('/api/waitlist/summary').then(r => r.json()).then(renderCounts).catch(() => {
+        document.getElementById('interestSummary').textContent = 'Register below — no obligation.';
+      });
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        formMsg.classList.remove('hidden');
+        formMsg.className = 'text-sm text-center text-ink-500';
+        formMsg.textContent = 'Sending…';
+        try {
+          const res = await fetch('/api/waitlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              product: productSel.value,
+              name: document.getElementById('name').value.trim(),
+              email: document.getElementById('email').value.trim(),
+              phone: document.getElementById('phone').value.trim(),
+              sites: document.getElementById('sites').value,
+              note: document.getElementById('note').value.trim(),
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed');
+          formMsg.className = 'text-sm text-center text-brand-700 font-semibold';
+          formMsg.textContent = 'Thanks — you\'re on the list. We\'ll email when ' + productSel.options[productSel.selectedIndex].text + ' is ready to order.';
+          form.reset();
+          if (data.summary) renderCounts(data.summary);
+        } catch (err) {
+          formMsg.className = 'text-sm text-center text-red-600';
+          formMsg.textContent = err.message || 'Could not submit — email shyam_1@hotmail.co.uk instead.';
+        }
+      };
+    })();
+  </script>
+</body>
+</html>

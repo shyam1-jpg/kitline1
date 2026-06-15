@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kiteline — The Command Line for Professional Kitchens</title>
+  <meta name="description" content="Kiteline — early-access kitchen operations software. HACCP, allergens, labelling, and waste in one app. Try the demo free." />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest?v=8" />
+  <meta name="theme-color" content="#0d9488" />
+  <link rel="icon" type="image/png" href="/kiteline-logo.png?v=k" />
+  <link rel="apple-touch-icon" href="/kiteline-logo.png?v=k" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Kiteline" />
+
+  <!-- Tailwind (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',
+              400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',
+              800:'#115e59',900:'#134e4a',950:'#042f2e'
+            },
+            ink: {
+              50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',
+              400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',
+              800:'#1e293b',900:'#0f172a',950:'#020617'
+            }
+          },
+          fontFamily: { sans: ['Inter','system-ui','sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- QR code generator -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css?v=11" />
+</head>
+<body class="bg-ink-100 text-ink-900 font-sans antialiased">
+  <!-- App mounts here -->
+  <div id="root"></div>
+
+  <!-- Toast + modal layers -->
+  <div id="toast-layer" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
+  <div id="modal-layer" class="fixed inset-0 z-[90] hidden"></div>
+
+  <!-- Scripts (classic, file:// friendly) -->
+  <script src="/js/i18n.js?v=11"></script>
+  <script src="/js/api.js?v=11"></script>
+  <script src="/js/recipe-seeds.js?v=4"></script>
+  <script src="/js/store.js?v=14"></script>
+  <script src="/js/ui.js?v=11"></script>
+  <script src="/js/recipe-nutrition.js?v=3"></script>
+  <script src="/js/recipe-media.js?v=1"></script>
+  <script src="/js/views.js?v=15"></script>
+  <script src="/js/app.js?v=13"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>
