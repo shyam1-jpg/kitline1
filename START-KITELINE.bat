@@ -14,8 +14,8 @@ for %%P in (4000 4001 4002) do (
 )
 
 if not exist "kiteline-logo.png" (
-  if exist "..\Sattva-Kitchen-Business-Plan\assets\kiteline-logo.png" (
-    copy /Y "..\Sattva-Kitchen-Business-Plan\assets\kiteline-logo.png" "kiteline-logo.png" >nul
+  if exist "..\Sattva-Kitchen-Business-Plan\assets\kiteline-mark.png" (
+    copy /Y "..\Sattva-Kitchen-Business-Plan\assets\kiteline-mark.png" "kiteline-logo.png" >nul
   )
 )
 

@@ -41,7 +41,7 @@ services:
       - key: APP_URL
         value: https://kiteline.uk
       - key: DEMO_MODE
-        value: "false"
+        value: "true"
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET

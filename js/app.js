@@ -52,7 +52,7 @@
   const t = (k, fb) => (window.I18n ? window.I18n.t(k) : fb);
   const brandLogo = (size, light) =>
     `<div class="brand-lockup${size==='lg'?' brand-lockup--lg':''}${light?' brand-lockup--light':''}">
-      <img src="/kiteline-logo.png?v=k" alt="" class="brand-mark" width="36" height="36">
+      <img src="/kiteline-logo.png?v=mark" alt="" class="brand-mark" width="36" height="36">
       <span class="brand-name">Kit<em>eline</em></span>
     </div>`;
 

@@ -10,7 +10,7 @@ const ASSETS = [
   '/js/ui.js',
   '/js/views.js',
   '/js/app.js',
-  '/kiteline-logo.png?v=k',
+  '/kiteline-logo.png?v=mark',
   '/kiteline-wordmark.png?v=k',
   '/icon.svg',
   '/manifest.webmanifest',
