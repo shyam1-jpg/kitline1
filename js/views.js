@@ -811,6 +811,18 @@
   /* ---------------- ALLERQ ---------------- */
   function allerq() {
     const menus = S.db.menus;
+    const mod = window.RecipeNutrition;
+    function dishAllergens(d) {
+      if (d.recipeId && mod) {
+        const r = (S.db.recipes || []).find(x => x.id === d.recipeId);
+        if (r) {
+          const auto = mod.analyzeRecipe(r, r.servings || 1).allergens;
+          const extra = (d.allergens || []).filter(a => !auto.includes(a));
+          return [...new Set([...auto, ...extra])];
+        }
+      }
+      return d.allergens || [];
+    }
     const cards = menus.map(m=>`<div class="card card-pad fade-in">
       <div class="flex items-start justify-between mb-3">
         <div><div class="font-bold">${escapeHtml(m.name)}</div><div class="text-xs text-ink-400">${escapeHtml(S.site(m.site).name)} · ${m.languages.length} languages</div></div>
@@ -818,11 +830,11 @@
       </div>
       <div class="flex flex-wrap gap-1 mb-3">${m.languages.map(l=>`<span class="badge badge-gray">${l}</span>`).join('')}</div>
       <div class="space-y-2">
-        ${m.dishes.map(d=>`<div class="p-2.5 rounded-xl border border-ink-100">
-          <div class="font-semibold text-sm">${escapeHtml(d.name)}</div>
+        ${m.dishes.map(d=>{ const al = dishAllergens(d); return `<div class="p-2.5 rounded-xl border border-ink-100">
+          <div class="font-semibold text-sm">${escapeHtml(d.name)}${d.recipeId ? ' <span class="text-[10px] text-brand-600 font-normal">· linked recipe</span>' : ''}</div>
           <div class="text-xs text-ink-400 mb-1">${escapeHtml(d.desc)}</div>
-          <div class="flex flex-wrap gap-1">${d.allergens.map(a=>`<span class="badge badge-amber">${a}</span>`).join('')||'<span class="badge badge-green">No allergens</span>'}</div>
-        </div>`).join('')}
+          <div class="flex flex-wrap gap-1">${al.map(a=>`<span class="badge badge-amber">${a}</span>`).join('')||'<span class="badge badge-green">No allergens</span>'}</div>
+        </div>`; }).join('')}
       </div>
       <button class="btn btn-ghost btn-sm w-full mt-3" data-adddish="${m.id}">${icon('plus','ico')} Add dish</button>
     </div>`).join('');
@@ -844,14 +856,81 @@
           S.db.menus.push({id:S.uid('m'),name:n,site:S.db.currentSite,languages:['English'],dishes:[]}); S.persist(); closeModal(); window.App.render(); toast('Menu created'); };
       };
       function openDish(menuId){
-        const allCb = S.ALLERGENS.map(a=>`<label class="flex items-center gap-2 text-xs"><input type="checkbox" value="${a}" class="al accent-brand-600">${a}</label>`).join('');
-        modal('Add Dish',`<div class="space-y-3"><input id="dn" class="input" placeholder="Dish name"><input id="dd" class="input" placeholder="Description">
-          <div><label class="label">Allergens</label><div class="grid grid-cols-2 gap-1 max-h-48 overflow-auto p-2 border border-ink-100 rounded-lg">${allCb}</div></div>
+        const menu = S.db.menus.find(x=>x.id===menuId);
+        const mod = window.RecipeNutrition;
+        const recipes = (S.db.recipes || [])
+          .filter(r => !r.site || r.site === menu.site || r.site === S.db.currentSite)
+          .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        const recipeOpts = ['<option value="">— Pick a recipe (allergens auto-fill) —</option>']
+          .concat(recipes.map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.name)}</option>`)).join('');
+        const allCb = S.ALLERGENS.map(a=>`<label class="flex items-center gap-2 text-xs manual-al-row"><input type="checkbox" value="${a}" class="al accent-brand-600">${a}</label>`).join('');
+        modal('Add Dish',`<div class="space-y-3">
+          <div><label class="label">Link to recipe</label>
+          <select id="drecipe" class="input">${recipeOpts}</select>
+          <p class="text-xs text-ink-400 mt-1">Pick a recipe and allergens fill in automatically from its ingredients.</p></div>
+          <input id="dn" class="input" placeholder="Dish name (editable)">
+          <input id="dd" class="input" placeholder="Description (optional)">
+          <div id="autoAlSection" class="hidden">
+            <label class="label">Allergens from recipe</label>
+            <div id="autoAlBox" class="flex flex-wrap gap-1 p-2 border border-ink-100 rounded-lg min-h-[2.5rem]"></div>
+            <p class="text-xs text-ink-400 mt-1">Detected from linked recipe — updates if you change the recipe in Recipes.</p>
+          </div>
+          <div id="manualAlSection">
+            <label class="label">Allergens (manual)</label>
+            <div class="grid grid-cols-2 gap-1 max-h-48 overflow-auto p-2 border border-ink-100 rounded-lg">${allCb}</div>
+            <p class="text-xs text-ink-400 mt-1">Or tick manually if this dish is not linked to a recipe.</p>
+          </div>
+          <div id="extraAlSection" class="hidden">
+            <label class="label">Extra allergens (optional)</label>
+            <div id="extraAlBox" class="grid grid-cols-2 gap-1 max-h-32 overflow-auto p-2 border border-ink-100 rounded-lg"></div>
+          </div>
           <button class="btn btn-primary w-full" id="ds">Add dish</button></div>`,{wide:true});
+        let linkedRecipeId = '';
+        let autoAllergens = [];
+        function renderExtraAllergens() {
+          const box = document.getElementById('extraAlBox');
+          if (!box) return;
+          const extras = S.ALLERGENS.filter(a => !autoAllergens.includes(a));
+          box.innerHTML = extras.length
+            ? extras.map(a => `<label class="flex items-center gap-2 text-xs"><input type="checkbox" value="${a}" class="al-extra accent-brand-600">${a}</label>`).join('')
+            : '<p class="text-xs text-ink-400 col-span-2">All statutory allergens already covered by the recipe.</p>';
+        }
+        function applyRecipe(recipeId) {
+          linkedRecipeId = recipeId || '';
+          const r = recipes.find(x => x.id === recipeId);
+          const autoSec = document.getElementById('autoAlSection');
+          const manualSec = document.getElementById('manualAlSection');
+          const extraSec = document.getElementById('extraAlSection');
+          if (!r) {
+            autoAllergens = [];
+            autoSec.classList.add('hidden');
+            extraSec.classList.add('hidden');
+            manualSec.classList.remove('hidden');
+            document.getElementById('autoAlBox').innerHTML = '';
+            return;
+          }
+          document.getElementById('dn').value = r.name;
+          const desc = [r.category, r.servings ? r.servings + ' servings' : ''].filter(Boolean).join(' · ');
+          document.getElementById('dd').value = desc;
+          autoAllergens = mod ? mod.analyzeRecipe(r, r.servings || 1).allergens : (r.allergens || []);
+          document.getElementById('autoAlBox').innerHTML = autoAllergens.length
+            ? autoAllergens.map(a => `<span class="badge badge-amber">${escapeHtml(a)}</span>`).join('')
+            : '<span class="badge badge-green">No allergens detected</span>';
+          autoSec.classList.remove('hidden');
+          extraSec.classList.remove('hidden');
+          manualSec.classList.add('hidden');
+          renderExtraAllergens();
+        }
+        document.getElementById('drecipe').onchange = () => applyRecipe(document.getElementById('drecipe').value);
         document.getElementById('ds').onclick=()=>{ const n=document.getElementById('dn').value.trim(); if(!n)return toast('Enter a name','warn');
-          const al=[...document.querySelectorAll('.al:checked')].map(c=>c.value);
-          S.db.menus.find(x=>x.id===menuId).dishes.push({id:S.uid(),name:n,desc:document.getElementById('dd').value,allergens:al});
-          S.persist(); closeModal(); window.App.render(); toast('Dish added'); };
+          const manualAl = linkedRecipeId ? [] : [...document.querySelectorAll('.al:checked')].map(c=>c.value);
+          const extraAl = linkedRecipeId ? [...document.querySelectorAll('.al-extra:checked')].map(c=>c.value) : [];
+          const al = [...new Set([...autoAllergens, ...manualAl, ...extraAl])];
+          S.db.menus.find(x=>x.id===menuId).dishes.push({
+            id:S.uid(), name:n, desc:document.getElementById('dd').value, allergens:al,
+            recipeId: linkedRecipeId || null,
+          });
+          S.persist(); closeModal(); window.App.render(); toast(linkedRecipeId ? 'Dish added — allergens from recipe' : 'Dish added'); };
       }
     }};
   }
