@@ -41,7 +41,13 @@ services:
       - key: APP_URL
         value: https://kiteline.uk
       - key: DEMO_MODE
-        value: "true"
+        value: "false"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_IMAGE_MODEL
+        value: dall-e-3
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
