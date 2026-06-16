@@ -19,10 +19,9 @@ const PORT = process.env.PORT || 4000;
 // Shared secret that physical devices / gateways use to push readings.
 const INGEST_KEY = process.env.INGEST_KEY || 'kiteline-demo-key';
 const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
-// Demo on by default on Render (matches local PC). Set DEMO_MODE=false to disable.
-const DEMO_MODE = process.env.DEMO_MODE === 'false'
-  ? false
-  : (process.env.DEMO_MODE === 'true' || process.env.RENDER === 'true' || !isProd);
+// Demo only when explicitly enabled, or local dev. Production (Render) is secure by default.
+const DEMO_MODE = process.env.DEMO_MODE === 'true'
+  || (!isProd && process.env.DEMO_MODE !== 'false');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
@@ -85,20 +84,18 @@ function bootstrapProductionDb() {
   const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
   const ownerPass = process.env.OWNER_PASSWORD;
   if (!ownerPass) {
-    console.warn('  WARNING: Set OWNER_PASSWORD in env to create the owner account.');
+    console.warn('  WARNING: Set OWNER_PASSWORD in env — no one can sign in until it is set.');
     return;
   }
   const db = readDb();
-  if (!db.users[ownerEmail]) {
-    db.users[ownerEmail] = {
-      email: ownerEmail,
-      name: process.env.OWNER_NAME || 'Owner',
-      pass: hashPassword(ownerPass),
-      createdAt: new Date().toISOString(),
-    };
-    writeDb(db);
-    console.log('  Owner account ready: ' + ownerEmail);
-  }
+  db.users[ownerEmail] = {
+    email: ownerEmail,
+    name: process.env.OWNER_NAME || 'Owner',
+    pass: hashPassword(ownerPass),
+    createdAt: (db.users[ownerEmail] && db.users[ownerEmail].createdAt) || new Date().toISOString(),
+  };
+  writeDb(db);
+  console.log('  Production auth — owner: ' + ownerEmail);
 }
 
 // Load 100 demo recipes + full kitchen data on Render / fresh installs.

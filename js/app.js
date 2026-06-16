@@ -74,7 +74,7 @@
       if (/head chef|owner|director|admin|proprietor|gm|general manager/.test(title)) role = 'Admin';
       else if (/manager|compliance|supervisor|lead|head/.test(title)) role = 'Manager';
       else role = 'Staff';
-    } else role = 'Admin'; // unknown / demo owner accounts get full access
+    } else role = (window.App && window.App.config && window.App.config.demo) ? 'Admin' : 'Staff';
     return {
       email,
       name: member ? member.name : (email ? email.split('@')[0] : 'Owner'),
