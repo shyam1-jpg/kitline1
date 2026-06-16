@@ -107,13 +107,24 @@ function bootstrapDemoKitchen() {
   if (!fs.existsSync(seedFile)) return;
   const db = readDb();
   const recipes = db.state && Array.isArray(db.state.recipes) ? db.state.recipes.length : 0;
-  if (recipes >= 100) return;
-  try {
-    db.state = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
+  if (recipes < 100) {
+    try {
+      db.state = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
+      db.state.currentSite = 'site_grove';
+      writeDb(db);
+      console.log('  Demo kitchen loaded — ' + (db.state.recipes || []).length + ' recipes');
+    } catch (e) {
+      console.warn('  Demo seed failed:', e.message);
+    }
+    return;
+  }
+  // Wrong site selected → empty recipes page (e.g. Crown & Anchor has no recipes)
+  const site = db.state.currentSite || 'site_grove';
+  const forSite = db.state.recipes.filter((r) => r.site === site).length;
+  if (forSite === 0) {
+    db.state.currentSite = 'site_grove';
     writeDb(db);
-    console.log('  Demo kitchen loaded — ' + (db.state.recipes || []).length + ' recipes');
-  } catch (e) {
-    console.warn('  Demo seed failed:', e.message);
+    console.log('  Reset kitchen to The Grove Hotel (recipes live here)');
   }
 }
 function newToken() { return crypto.randomBytes(24).toString('hex'); }
@@ -318,6 +329,13 @@ async function handleApi(req, res, url) {
       db.state.org.name = 'Kiteline';
       db.state.org.plan = 'Complete Kiteline';
       writeDb(db);
+    }
+    if (db.state && Array.isArray(db.state.recipes)) {
+      const site = db.state.currentSite || 'site_grove';
+      if (!db.state.recipes.some((r) => r.site === site)) {
+        db.state.currentSite = 'site_grove';
+        writeDb(db);
+      }
     }
     return send(res, 200, { state: db.state });
   }
