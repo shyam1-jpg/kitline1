@@ -133,6 +133,7 @@
   <footer class="bg-ink-950 text-ink-400 py-8 text-center text-sm px-5 space-y-3">
     <div class="flex flex-wrap justify-center gap-x-5 gap-y-2">
       <a href="/" class="hover:text-white">Home</a>
+      <a href="contact.html" class="hover:text-white">Contact</a>
       <a href="terms.html" class="hover:text-white">Terms</a>
       <a href="privacy.html" class="hover:text-white">Privacy</a>
       <a href="pricing.html" class="hover:text-white">Pricing</a>
@@ -198,7 +199,7 @@
           if (data.summary) renderCounts(data.summary);
         } catch (err) {
           formMsg.className = 'text-sm text-center text-red-600';
-          formMsg.textContent = err.message || 'Could not submit — email shyam_1@hotmail.co.uk instead.';
+          formMsg.textContent = err.message || 'Could not submit — email contact@kiteline.co.uk instead.';
         }
       };
     })();
