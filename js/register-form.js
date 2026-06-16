@@ -354,6 +354,7 @@
           if (r.needsVerification) {
             sessionStorage.setItem('kiteline.pendingEmail', d.email);
             if (r.verifyUrl) sessionStorage.setItem('kiteline.pendingVerifyUrl', r.verifyUrl);
+            if (r.message) sessionStorage.setItem('kiteline.pendingVerifyMsg', r.message);
             location.hash = 'verify-pending';
             app.renderVerifyPending();
             return;

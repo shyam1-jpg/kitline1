@@ -405,6 +405,7 @@
     renderVerifyPending() {
       const email = sessionStorage.getItem('kiteline.pendingEmail') || '';
       const verifyUrl = sessionStorage.getItem('kiteline.pendingVerifyUrl') || '';
+      const serverMsg = sessionStorage.getItem('kiteline.pendingVerifyMsg') || '';
       const linkBlock = verifyUrl ? `
               <div class="rounded-xl border-2 border-brand-300 bg-brand-50 p-4 mb-4 text-left">
                 <p class="text-sm font-bold text-brand-900 mb-2">Tap to activate your account:</p>
@@ -421,6 +422,7 @@
             <div class="w-full max-w-sm">
               <div class="lg:hidden mb-6 text-center">${brandLogo('lg', true)}</div>
               <h2 class="text-2xl font-extrabold text-center">Verify your email</h2>
+              ${serverMsg ? `<p class="text-sm text-ink-600 mb-4 text-center mt-3">${escapeHtml(serverMsg)}</p>` : ''}
               <p class="text-ink-500 mb-4 text-center">We sent a verification link to:</p>
               <p class="font-semibold text-brand-700 mb-4 text-center">${escapeHtml(email || 'your email')}</p>
               ${linkBlock}
@@ -478,6 +480,7 @@
       window.Api.verifyEmail(token).then(async (r) => {
         sessionStorage.removeItem('kiteline.pendingEmail');
         sessionStorage.removeItem('kiteline.pendingVerifyUrl');
+        sessionStorage.removeItem('kiteline.pendingVerifyMsg');
         document.getElementById('verifyStatus').textContent = r.message || 'Email verified!';
         const trialMsg = r.trial && r.trial.active ? ' — ' + r.trial.daysLeft + ' days left on your free trial' : '';
         toast('Email verified — welcome to Kiteline' + trialMsg);
