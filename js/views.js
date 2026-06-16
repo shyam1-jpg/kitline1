@@ -2225,6 +2225,35 @@
       <span class="text-xs font-medium text-center text-ink-600 leading-tight">${q.l}</span>
     </button>`).join('');
 
+    const siteObj = S.site(site);
+    const recipeCount = (db.recipes || []).filter(r => r.site === site).length;
+    const hasChecklistDone = (db.checklists || []).some(c => c.site === site && (c.items || []).some(it => it.done));
+    const siteTeam = (db.team || []).filter(t => t.siteId === site).length;
+    const milestones = [
+      { label: 'Sign in to Kiteline', done: true, route: '' },
+      { label: 'Select kitchen — ' + (siteObj.legalName ? siteObj.legalName + ' · ' + siteObj.name : siteObj.name), done: !!site, route: 'sites' },
+      { label: 'Open recipes library', done: recipeCount >= 10, route: 'recipes' },
+      { label: 'Complete opening / HACCP checks', done: hasChecklistDone, route: 'haccp' },
+      { label: 'Set PIN in Settings (security)', done: window.Security && window.Security.hasPin(), route: 'settings' },
+      { label: 'Add a team member', done: siteTeam > 1, route: 'team' },
+    ];
+    const msDone = milestones.filter(m => m.done).length;
+    const milestonesHtml = `
+      <div class="card card-pad mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold flex items-center gap-2">${icon('check','w-5 h-5 text-brand-600')} Setup milestones</h2>
+          <span class="badge badge-green">${msDone}/${milestones.length} complete</span>
+        </div>
+        <div class="h-2 rounded-full bg-ink-100 overflow-hidden mb-4"><div class="h-full bg-brand-500 transition-all" style="width:${Math.round(msDone / milestones.length * 100)}%"></div></div>
+        <div class="space-y-2">
+          ${milestones.map(m => `<div class="flex items-center gap-3 text-sm py-1">
+            <span class="w-5 text-center ${m.done ? 'text-brand-600 font-bold' : 'text-ink-300'}">${m.done ? '✓' : '○'}</span>
+            <span class="flex-1 ${m.done ? 'text-ink-500' : 'font-medium text-ink-800'}">${escapeHtml(m.label)}</span>
+            ${!m.done && m.route ? `<button class="btn btn-ghost btn-sm" data-go="${m.route}">Go →</button>` : ''}
+          </div>`).join('')}
+        </div>
+      </div>`;
+
     const html = `
       <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -2245,6 +2274,7 @@
       ${openAlerts?`<div class="card card-pad mb-5 flex items-center gap-3 border-l-4 border-red-500 bg-red-50">
         ${icon('alert','w-5 h-5 text-red-600')}<div class="text-sm"><b>${openAlerts} open alert(s)</b> at this site.</div>
         <button class="btn btn-ghost btn-sm ml-auto" data-go="alerts">View alerts</button></div>`:''}
+      ${milestonesHtml}
 
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
         <a href="#wflive" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Happening now</div><div class="v text-amber-600">${live.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">View all pages →</div></a>

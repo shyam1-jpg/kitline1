@@ -203,17 +203,25 @@ const MIME = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript',
   '.webmanifest':'application/manifest+json' };
 
 function serveFile(res, filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
-  if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
-    headers['Cache-Control'] = 'public, max-age=86400';
-  }
-  const stream = fs.createReadStream(filePath);
-  stream.on('open', () => {
+  try {
+    const ext = path.extname(filePath).toLowerCase();
+    const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
+    if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
+      headers['Cache-Control'] = 'public, max-age=86400';
+    }
+    const buf = fs.readFileSync(filePath);
     res.writeHead(200, headers);
-    stream.pipe(res);
-  });
-  stream.on('error', () => send(res, 404, { error: 'Not found' }));
+    res.end(buf);
+  } catch {
+    send(res, 404, { error: 'Not found' });
+  }
+}
+function isExistingFile(filePath) {
+  try {
+    return filePath && fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+  } catch {
+    return false;
+  }
 }
 // Prevent path traversal
 function safeJoin(base, target) {
@@ -626,11 +634,10 @@ const server = http.createServer(async (req, res) => {
 
     // Static files (css, js, marketing pages). Try root first.
     let target = safeJoin(ROOT, url.pathname);
-    if (target && fs.existsSync(target) && fs.statSync(target).isFile()) return serveFile(res, target);
+    if (isExistingFile(target)) return serveFile(res, target);
 
-    // Then try the site/ folder (so /pricing.html works)
     let siteTarget = safeJoin(path.join(ROOT, 'site'), url.pathname);
-    if (siteTarget && fs.existsSync(siteTarget) && fs.statSync(siteTarget).isFile()) return serveFile(res, siteTarget);
+    if (isExistingFile(siteTarget)) return serveFile(res, siteTarget);
 
     return send(res, 404, { error: 'Not found' });
   } catch (e) {
