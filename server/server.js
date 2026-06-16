@@ -162,7 +162,7 @@ async function sendVerificationEmail(db, email, baseUrl) {
     </div>`,
   };
   await notify.sendRawEmail(email, msg);
-  const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.emailEnabled();
+  const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
   return { verifyUrl: showLink ? verifyUrl : undefined };
 }
 
@@ -306,7 +306,7 @@ async function handleApi(req, res, url) {
     return send(res, 200, {
       ok: true,
       needsVerification: true,
-      message: notify.emailEnabled()
+      message: notify.smtpConfigured()
         ? 'Account created — check your email and click Verify to activate your account.'
         : 'Account created — use the verification link below (email not configured on server).',
       verifyUrl: mail.verifyUrl,
@@ -348,7 +348,7 @@ async function handleApi(req, res, url) {
     const mail = await sendVerificationEmail(db, email, base);
     return send(res, 200, {
       ok: true,
-      message: notify.emailEnabled()
+      message: notify.smtpConfigured()
         ? 'Verification email sent — check your inbox (and spam folder).'
         : 'Use the verification link below.',
       verifyUrl: mail.verifyUrl,
@@ -361,7 +361,11 @@ async function handleApi(req, res, url) {
     if (!email) return send(res, 400, { error: 'Email required' });
     const user = db.users[email];
     if (!user) {
-      return send(res, 200, { ok: true, message: 'If that email is registered, we sent reset instructions.' });
+      return send(res, 200, {
+        ok: true,
+        message: 'No account found for that email. Try shyam_1@hotmail.co.uk or create a new account.',
+        emailSent: false,
+      });
     }
     const resetToken = crypto.randomBytes(24).toString('hex');
     db.passwordResets = db.passwordResets || {};
@@ -379,12 +383,13 @@ async function handleApi(req, res, url) {
       </div>`,
     };
     await notify.sendRawEmail(email, msg);
-    const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.emailEnabled();
+    const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
     return send(res, 200, {
       ok: true,
-      message: notify.emailEnabled()
-        ? 'If that email is registered, we sent reset instructions.'
-        : 'Email not configured — use the reset link below (also saved on server).',
+      emailSent: notify.smtpConfigured(),
+      message: notify.smtpConfigured()
+        ? 'Reset link sent — check your inbox and spam folder.'
+        : 'Email is not set up yet — use the reset link on screen (copy and open it).',
       resetUrl: showLink ? resetUrl : undefined,
     });
   }

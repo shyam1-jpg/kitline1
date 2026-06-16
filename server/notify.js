@@ -80,7 +80,11 @@ function sensorName(state, sensorId) {
 }
 
 function emailEnabled(state) {
-  return !!(state.org && state.org.channels && state.org.channels.email);
+  return !!(state && state.org && state.org.channels && state.org.channels.email);
+}
+
+function smtpConfigured() {
+  return !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
 function smsEnabled(state) {
@@ -352,6 +356,7 @@ module.exports = {
   emailRecipients,
   smsRecipients,
   emailEnabled,
+  smtpConfigured,
   smsEnabled,
   channelStatus,
   normalizePhone,

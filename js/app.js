@@ -415,7 +415,7 @@
             <div class="w-full max-w-sm">
               <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
               <h2 class="text-2xl font-extrabold">Reset password</h2>
-              <p class="text-ink-500 mb-6">Enter your email — we will send a reset link (check spam).</p>
+              <p class="text-ink-500 mb-6">Enter the email you used to register. If email is not set up, the reset link will appear on screen.</p>
               <label class="label">Email address</label>
               <input id="email" class="input mb-5" placeholder="you@restaurant.com" autocomplete="username">
               <button class="btn btn-primary w-full mb-3" id="sendReset">Send reset link</button>
@@ -432,14 +432,17 @@
         try {
           const r = await window.Api.forgotPassword(email);
           if (r.resetUrl) {
-            modal('Reset link', `<p class="text-sm text-ink-600 mb-3">${escapeHtml(r.message || 'Use this link to set a new password:')}</p>
-              <a href="${r.resetUrl}" class="text-brand-600 font-semibold break-all">${escapeHtml(r.resetUrl)}</a>
-              <p class="text-xs text-ink-400 mt-3">Link expires in 1 hour. Copy and open in this browser.</p>`, { wide: true });
+            modal('Your reset link', `<p class="text-sm text-ink-600 mb-3">${escapeHtml(r.message || 'Tap or copy this link to set a new password:')}</p>
+              <a href="${r.resetUrl}" class="btn btn-primary w-full text-center mb-3" style="display:block">Open reset page</a>
+              <p class="text-xs text-ink-500 break-all">${escapeHtml(r.resetUrl)}</p>
+              <p class="text-xs text-ink-400 mt-3">Link expires in 1 hour. No email needed — use this link directly.</p>`, { wide: true });
           } else {
-            toast(r.message || 'Check your email for the reset link');
+            toast(r.message || 'Check your email for the reset link', r.emailSent ? 'info' : 'warn');
           }
-          location.hash = '';
-          this.renderLogin();
+          if (!r.resetUrl) {
+            location.hash = '';
+            this.renderLogin();
+          }
         } catch (e) {
           toast(e.message || 'Could not send reset email', 'error');
           btn.disabled = false; btn.textContent = 'Send reset link';
