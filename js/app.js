@@ -440,6 +440,8 @@
         };
       }
       document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
+      const pendingLogin = document.getElementById('verifyPendingLogin');
+      if (pendingLogin) pendingLogin.onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
       document.getElementById('resendVerify').onclick = async () => {
         const em = email || prompt('Enter your email');
         if (!em) return toast('Enter your email', 'warn');
