@@ -97,6 +97,22 @@ function bootstrapProductionDb() {
     console.log('  Owner account ready: ' + ownerEmail);
   }
 }
+
+// Load 100 demo recipes + full kitchen data on Render / fresh installs.
+function bootstrapDemoKitchen() {
+  const seedFile = path.join(__dirname, 'demo-state.json');
+  if (!fs.existsSync(seedFile)) return;
+  const db = readDb();
+  const recipes = db.state && Array.isArray(db.state.recipes) ? db.state.recipes.length : 0;
+  if (recipes >= 100) return;
+  try {
+    db.state = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
+    writeDb(db);
+    console.log('  Demo kitchen loaded — ' + (db.state.recipes || []).length + ' recipes');
+  } catch (e) {
+    console.warn('  Demo seed failed:', e.message);
+  }
+}
 function newToken() { return crypto.randomBytes(24).toString('hex'); }
 
 function userFromReq(db, req) {
@@ -421,6 +437,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+bootstrapDemoKitchen();
 bootstrapProductionDb();
 
 // Listen on several ports locally; single PORT in production (Render, Railway, etc.)
