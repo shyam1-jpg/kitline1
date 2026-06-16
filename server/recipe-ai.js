@@ -4,7 +4,7 @@ const OPENAI_KEY = (process.env.OPENAI_API_KEY || '').trim();
 const OPENAI_BASE = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
 const CHAT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'dall-e-3';
-const ENABLED = process.env.RECIPE_AI_ENABLED !== 'false';
+const ENABLED = process.env.RECIPE_AI_ENABLED === 'true';
 
 function configured() {
   return ENABLED && !!OPENAI_KEY;
