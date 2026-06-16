@@ -28,6 +28,7 @@ const APP_URL = (process.env.APP_URL || '').replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
+const { mergeExtraSites } = require('./extra-sites');
 
 function ensureBreachAlerts(state) {
   if (!state || !Array.isArray(state.sensors)) return [];
@@ -129,6 +130,10 @@ function bootstrapDemoKitchen() {
     db.state.currentSite = 'site_grove';
     writeDb(db);
     console.log('  Reset kitchen to The Grove Hotel (recipes live here)');
+  }
+  if (mergeExtraSites(db.state)) {
+    writeDb(db);
+    console.log('  Extra sites merged (Vedanta Kitchen + hotels)');
   }
 }
 function newToken() { return crypto.randomBytes(24).toString('hex'); }

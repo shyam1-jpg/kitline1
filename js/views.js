@@ -614,7 +614,7 @@
     const orgSensors = S.db.sensors;
     const orgBreaches = orgSensors.filter(x=>sensorStatus(x)==='breach').length;
     const orgTeam = S.db.team.length;
-    const typeIcon = (t) => ({ Hotel:'🏨', Restaurant:'🍽️', Pub:'🍺', Café:'☕', 'Ghost Kitchen':'👻', Education:'🎓', Seafood:'🐟', 'Food Court':'🛫', Steakhouse:'🥩' }[t] || '🏪');
+    const typeIcon = (t) => ({ Hotel:'🏨', Restaurant:'🍽️', Pub:'🍺', Café:'☕', Kitchen:'🍳', 'Ghost Kitchen':'👻', Education:'🎓', Seafood:'🐟', 'Food Court':'🛫', Steakhouse:'🥩' }[t] || '🏪');
     const cards = allSites.map(s=>{
       const sens=S.db.sensors.filter(x=>x.siteId===s.id);
       const breaches=sens.filter(x=>sensorStatus(x)==='breach').length;
@@ -630,6 +630,7 @@
               ${s.status==='Seasonal'?'<span class="badge badge-amber">Seasonal</span>':''}
             </div>
             <div class="font-bold text-lg">${escapeHtml(s.name)}</div>
+            ${s.legalName ? `<div class="text-xs text-brand-600 font-semibold">${escapeHtml(s.legalName)}</div>` : ''}
             <div class="text-sm text-ink-400">${escapeHtml(s.address||'')}, ${escapeHtml(s.city)} ${escapeHtml(s.postcode||'')}</div>
             ${stars?`<div class="text-amber-500 text-sm mt-1">${stars} <span class="text-ink-400 text-xs">FHRS</span></div>`:''}
           </div>
@@ -666,7 +667,7 @@
     }).join('');
     const types = [...new Set(allSites.map(s=>s.type||'Other'))];
     const html = `
-      ${sectionHeader('Multi-Site Management','10 kitchens · one command centre · centralised compliance & live sensor oversight', `
+      ${sectionHeader('Multi-Site Management','All kitchens · one command centre · switch site from the top bar or here', `
         <button class="btn btn-primary btn-sm" data-act="addsite">${icon('plus','ico')} Add site</button>`)}
       <div class="grid sm:grid-cols-4 gap-4 mb-5">
         <div class="kpi"><div class="text-xs text-ink-500">Total sites</div><div class="v">${allSites.length}</div></div>
