@@ -352,6 +352,10 @@
           const r = await window.Api.register(d.email, pw, `${d.firstName} ${d.lastName}`.trim(), profile);
           clearDraft();
           if (r.needsVerification) {
+            if (r.verifyUrl) {
+              location.href = app.normalizeVerifyUrl ? app.normalizeVerifyUrl(r.verifyUrl) : r.verifyUrl;
+              return;
+            }
             toast('Account created — sign in with your password');
             app.clearVerifyPending && app.clearVerifyPending();
             location.hash = '';

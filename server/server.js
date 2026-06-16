@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-16-no-verify';
+const APP_BUILD = '2026-06-16-activate';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
@@ -185,7 +185,7 @@ async function sendVerificationEmail(db, email, baseUrl) {
   db.emailVerifications = db.emailVerifications || {};
   db.emailVerifications[verifyToken] = { email, expires: Date.now() + 48 * 3600000 };
   writeDb(db);
-  const verifyUrl = `${baseUrl}/app#verify-email?token=${verifyToken}`;
+  const verifyUrl = `${baseUrl}/activate?token=${verifyToken}`;
   const msg = {
     subject: 'Verify your Kiteline email',
     text: `Welcome to Kiteline!\n\nVerify your email to activate your account:\n\n${verifyUrl}\n\nThis link expires in 48 hours.`,
@@ -200,6 +200,57 @@ async function sendVerificationEmail(db, email, baseUrl) {
   await notify.sendRawEmail(email, msg);
   const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
   return { verifyUrl: showLink ? verifyUrl : undefined };
+}
+
+function completeEmailVerification(db, verifyToken, emailHint, ip) {
+  db.emailVerifications = db.emailVerifications || {};
+  const entry = db.emailVerifications[verifyToken];
+  if (!entry || entry.expires < Date.now()) {
+    const fallbackEmail = (emailHint || (entry && entry.email) || '').toLowerCase().trim();
+    const existing = fallbackEmail && db.users[fallbackEmail];
+    if (existing && existing.emailVerified !== false) {
+      billing.ensureTrial(existing);
+      billing.syncOrgAccess(db, fallbackEmail);
+      const token = security.issueToken(db, fallbackEmail);
+      writeDb(db);
+      return {
+        ok: true,
+        token,
+        user: publicUser(existing),
+        trial: billing.getTrialInfo(existing),
+        alreadyVerified: true,
+        message: 'Your email is already verified — signing you in.',
+      };
+    }
+    return { ok: false, error: 'Verification link expired or invalid — use Forgot password to sign in.' };
+  }
+  const email = entry.email;
+  const user = db.users[email];
+  if (!user) return { ok: false, error: 'Account not found' };
+  user.emailVerified = true;
+  delete db.emailVerifications[verifyToken];
+  billing.ensureTrial(user);
+  billing.syncOrgAccess(db, email);
+  const token = security.issueToken(db, email);
+  security.audit(db, 'email_verified', { ip, email });
+  writeDb(db);
+  return {
+    ok: true,
+    token,
+    user: publicUser(user),
+    trial: billing.getTrialInfo(user),
+    message: 'Email verified — welcome to Kiteline!',
+  };
+}
+
+function activateHtml(result) {
+  if (!result.ok) {
+    const msg = String(result.error || 'Activation failed').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Kiteline activation</title></head><body style="font-family:system-ui,sans-serif;padding:2rem;max-width:480px;margin:auto"><h1 style="color:#0f766e">Could not activate</h1><p>${msg}</p><p><a href="/app" style="color:#0d9488;font-weight:bold">Sign in</a> · <a href="/app#forgot-password" style="color:#0d9488">Forgot password</a></p></body></html>`;
+  }
+  const tokenJson = JSON.stringify(result.token);
+  const emailJson = JSON.stringify((result.user && result.user.email) || '');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing in…</title></head><body style="font-family:system-ui,sans-serif;padding:3rem;text-align:center"><p>Signing you in to Kiteline…</p><script>localStorage.setItem('kiteline.token',${tokenJson});localStorage.setItem('kiteline.email',${emailJson});location.replace('/app#home');</script></body></html>`;
 }
 
 function userFromReq(db, req) {
@@ -491,51 +542,21 @@ async function handleApi(req, res, url) {
       return apiSend(404, { error: 'Account not found — register first' });
     }
     if (!verifyToken) return apiSend( 400, { error: 'Verification token required' });
-    db.emailVerifications = db.emailVerifications || {};
-    const entry = db.emailVerifications[verifyToken];
-    if (!entry || entry.expires < Date.now()) {
-      const fallbackEmail = emailHint || (entry && entry.email) || '';
-      const existing = fallbackEmail && db.users[fallbackEmail];
-      if (existing && existing.emailVerified !== false) {
-        billing.ensureTrial(existing);
-        billing.syncOrgAccess(db, fallbackEmail);
-        const token = security.issueToken(db, fallbackEmail);
-        writeDb(db);
-        return apiSend(200, {
-          ok: true,
-          token,
-          user: publicUser(existing),
-          trial: billing.getTrialInfo(existing),
-          alreadyVerified: true,
-          message: 'Your email is already verified — signing you in.',
-        });
-      }
-      return apiSend(400, {
-        error: 'Verification link expired or invalid — use Forgot password to sign in, or register again.',
-        code: 'token_invalid',
-      });
+    const result = completeEmailVerification(db, verifyToken, emailHint, ip);
+    if (!result.ok) {
+      return apiSend(400, { error: result.error, code: 'token_invalid' });
     }
-    const email = entry.email;
-    const user = db.users[email];
-    if (!user) return apiSend( 404, { error: 'Account not found' });
-    user.emailVerified = true;
-    delete db.emailVerifications[verifyToken];
-    billing.ensureTrial(user);
-    billing.syncOrgAccess(db, email);
-    const token = security.issueToken(db, email);
-    security.audit(db, 'email_verified', { ip, email });
-    writeDb(db);
-    const trial = billing.getTrialInfo(user);
-    return apiSend( 200, {
+    return apiSend(200, {
       ok: true,
-      token,
-      user: publicUser(user),
-      trial,
-      message: 'Email verified — your ' + billing.TRIAL_DAYS + '-day free trial is active',
+      token: result.token,
+      user: result.user,
+      trial: result.trial,
+      alreadyVerified: result.alreadyVerified,
+      message: result.message,
     });
   }
 
-  // POST /api/resend-verification
+  // POST /api/resend-verification — placeholder removed duplicate verify block below
   if (route === '/resend-verification' && req.method === 'POST') {
     const rl = security.checkRateLimit(req, 'resend');
     if (!rl.ok) return apiSend(429, { error: 'Too many requests. Try again later.', code: 'rate_limited', retryAfter: rl.retryAfter });
@@ -956,6 +977,17 @@ const server = http.createServer(async (req, res) => {
     // Health check (for uptime monitors / load balancers)
     if (url.pathname === '/health' || url.pathname === '/api/health') {
       return send(res, 200, { ok: true, service: 'kiteline', build: APP_BUILD, uptime: Math.round(process.uptime()), now: new Date().toISOString() }, null, req);
+    }
+
+    // One-click email activation (no JavaScript router needed)
+    if (url.pathname === '/activate' && req.method === 'GET') {
+      const db = readDb();
+      const token = url.searchParams.get('token') || '';
+      const emailHint = url.searchParams.get('email') || '';
+      const ip = security.clientIp(req);
+      const result = completeEmailVerification(db, token, emailHint, ip);
+      res.writeHead(200, security.securityHeaders({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }));
+      return res.end(activateHtml(result));
     }
 
     // Stripe webhook needs raw body (before JSON parser in handleApi)

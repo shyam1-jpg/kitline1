@@ -55,6 +55,32 @@
   <div id="toast-layer" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
   <div id="modal-layer" class="fixed inset-0 z-[90] hidden"></div>
 
+  <!-- Auto-activate email verification links (works even if app.js is cached) -->
+  <script>
+  (function () {
+    try {
+      var h = location.hash || '';
+      if (h.indexOf('#/') === 0) history.replaceState(null, '', location.pathname + '#' + h.slice(2));
+      if (location.pathname === '/activate') return;
+      var token = (location.search.match(/[?&]token=([^&]+)/) || h.match(/token=([^&]+)/) || [])[1];
+      if (!token || h.indexOf('verify-email') < 0) return;
+      fetch('/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token })
+      }).then(function (r) {
+        return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+      }).then(function (x) {
+        if (x.ok && x.d && x.d.token) {
+          localStorage.setItem('kiteline.token', x.d.token);
+          if (x.d.user && x.d.user.email) localStorage.setItem('kiteline.email', x.d.user.email);
+          location.replace('/app#home');
+        }
+      }).catch(function () {});
+    } catch (e) {}
+  })();
+  </script>
+
   <!-- Scripts (classic, file:// friendly) -->
   <script src="/js/i18n.js?v=12"></script>
   <script src="/js/api.js?v=15"></script>
@@ -65,9 +91,9 @@
   <script src="/js/recipe-nutrition.js?v=3"></script>
   <script src="/js/recipe-media.js?v=1"></script>
   <script src="/js/recipe-ai.js?v=1"></script>
-  <script src="/js/register-form.js?v=4"></script>
+  <script src="/js/register-form.js?v=5"></script>
   <script src="/js/views.js?v=19"></script>
-  <script src="/js/app.js?v=22"></script>
+  <script src="/js/app.js?v=23"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));

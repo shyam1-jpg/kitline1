@@ -173,7 +173,13 @@
 
     normalizeVerifyUrl(url) {
       if (!url) return url;
-      return String(url).replace('/app#/', '/app#').replace(/^http:\/\//i, 'https://');
+      let u = String(url).replace('/app#/', '/app#').replace(/^http:\/\//i, 'https://');
+      const m = u.match(/token=([^&]+)/);
+      if (m && (u.includes('verify-email') || u.includes('/activate'))) {
+        const base = u.match(/^https?:\/\/[^/]+/);
+        return (base ? base[0] : 'https://kiteline.uk') + '/activate?token=' + m[1];
+      }
+      return u;
     },
 
     authTokenFromUrl(param) {
