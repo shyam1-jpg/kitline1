@@ -145,6 +145,18 @@ function newToken() { return crypto.randomBytes(32).toString('hex'); }
 
 const REQUIRE_EMAIL_VERIFY = process.env.REQUIRE_EMAIL_VERIFY !== 'false' && !DEMO_MODE;
 
+function emailVerificationRequired() {
+  return REQUIRE_EMAIL_VERIFY && notify.smtpConfigured();
+}
+
+function ensureUserEmailVerified(db, user) {
+  if (!user || user.emailVerified !== false) return false;
+  if (emailVerificationRequired()) return false;
+  user.emailVerified = true;
+  writeDb(db);
+  return true;
+}
+
 function publicUser(user) {
   return { email: user.email, name: user.name, emailVerified: user.emailVerified !== false, lang: user.lang || 'en' };
 }
@@ -320,7 +332,7 @@ async function handleApi(req, res, url) {
     return apiSend( 200, {
       demo: DEMO_MODE,
       register: ALLOW_REGISTER,
-      emailVerification: REQUIRE_EMAIL_VERIFY && notify.smtpConfigured(),
+      emailVerification: emailVerificationRequired(),
       emailConfigured: notify.smtpConfigured(),
       billing: billing.isConfigured(),
       plans: billing.planCatalog(),
@@ -382,15 +394,18 @@ async function handleApi(req, res, url) {
     }
     if (db.users[email]) {
       const existing = db.users[email];
-      if (REQUIRE_EMAIL_VERIFY && existing.emailVerified === false) {
+      if (emailVerificationRequired() && existing.emailVerified === false) {
         return apiSend( 409, { error: 'Account exists but email not verified — check your inbox or resend the link.', code: 'email_not_verified' });
+      }
+      if (existing.emailVerified === false) {
+        ensureUserEmailVerified(db, existing);
       }
       return apiSend( 409, { error: 'Account already exists — sign in or reset your password' });
     }
     const name = profile
       ? `${profile.firstName} ${profile.lastName}`.trim()
       : (body.name || email.split('@')[0]).trim();
-    const skipVerify = DEMO_MODE || !REQUIRE_EMAIL_VERIFY || !notify.smtpConfigured();
+    const skipVerify = DEMO_MODE || !emailVerificationRequired();
     const now = Date.now();
     db.users[email] = {
       email,
@@ -436,6 +451,25 @@ async function handleApi(req, res, url) {
     if (!rl.ok) return apiSend(429, { error: 'Too many attempts. Try again later.', code: 'rate_limited', retryAfter: rl.retryAfter });
     const verifyToken = body.token || '';
     const emailHint = (body.email || '').toLowerCase().trim();
+    if (!verifyToken && emailHint && !emailVerificationRequired()) {
+      const user = db.users[emailHint];
+      if (user) {
+        ensureUserEmailVerified(db, user);
+        billing.ensureTrial(user);
+        billing.syncOrgAccess(db, emailHint);
+        const token = security.issueToken(db, emailHint);
+        writeDb(db);
+        return apiSend(200, {
+          ok: true,
+          token,
+          user: publicUser(user),
+          trial: billing.getTrialInfo(user),
+          alreadyVerified: true,
+          message: 'Account ready — signing you in.',
+        });
+      }
+      return apiSend(404, { error: 'Account not found — register first' });
+    }
     if (!verifyToken) return apiSend( 400, { error: 'Verification token required' });
     db.emailVerifications = db.emailVerifications || {};
     const entry = db.emailVerifications[verifyToken];
@@ -616,7 +650,8 @@ async function handleApi(req, res, url) {
         const mins = Math.ceil((user.lockUntil - Date.now()) / 60000);
         return apiSend(423, { error: 'Account temporarily locked. Try again in ' + mins + ' minute(s).', code: 'account_locked', retryAfter: Math.ceil((user.lockUntil - Date.now()) / 1000) });
       }
-      if (REQUIRE_EMAIL_VERIFY && user.emailVerified === false) {
+      ensureUserEmailVerified(db, user);
+      if (emailVerificationRequired() && user.emailVerified === false) {
         return apiSend( 403, {
           error: 'Verify your email before signing in — check your inbox or resend the verification link.',
           code: 'email_not_verified',
@@ -791,7 +826,7 @@ async function handleApi(req, res, url) {
       ingestKeySecure: INGEST_KEY !== 'kiteline-demo-key',
       demoKey: INGEST_KEY === 'kiteline-demo-key',
       rateLimitEnabled: true,
-      emailVerification: REQUIRE_EMAIL_VERIFY && notify.smtpConfigured(),
+      emailVerification: emailVerificationRequired(),
       emailConfigured: notify.smtpConfigured(),
       isOwner,
     });

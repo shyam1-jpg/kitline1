@@ -352,6 +352,13 @@
           const r = await window.Api.register(d.email, pw, `${d.firstName} ${d.lastName}`.trim(), profile);
           clearDraft();
           if (r.needsVerification) {
+            if (app.skipEmailVerification && app.skipEmailVerification()) {
+              app.clearVerifyPending();
+              toast('Account created — sign in with your password');
+              location.hash = '';
+              app.renderLogin();
+              return;
+            }
             sessionStorage.setItem('kiteline.pendingEmail', d.email);
             if (r.verifyUrl) sessionStorage.setItem('kiteline.pendingVerifyUrl', app.normalizeVerifyUrl ? app.normalizeVerifyUrl(r.verifyUrl) : r.verifyUrl);
             if (r.message) sessionStorage.setItem('kiteline.pendingVerifyMsg', r.message);

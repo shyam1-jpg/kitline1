@@ -190,7 +190,15 @@
       return token || '';
     },
 
-    authed() {
+    clearVerifyPending() {
+      sessionStorage.removeItem('kiteline.pendingEmail');
+      sessionStorage.removeItem('kiteline.pendingVerifyUrl');
+      sessionStorage.removeItem('kiteline.pendingVerifyMsg');
+    },
+
+    skipEmailVerification() {
+      return this.config && this.config.emailConfigured === false;
+    },
       if (S.remote && window.Api) return !!window.Api.token();
       return !!S.session();
     },
@@ -223,6 +231,13 @@
             const cfg = await fetch('/api/config').then(r => r.json());
             if (cfg) this.config = Object.assign(this.config, cfg);
           } catch {}
+          if (this.skipEmailVerification()) {
+            this.clearVerifyPending();
+            const authPath = this.authHashPath();
+            if (authPath === 'verify-pending' || authPath.startsWith('verify-email')) {
+              location.hash = '';
+            }
+          }
         }
       }
 
@@ -358,6 +373,11 @@
             if (data.trial) this.trial = data.trial;
             this.render();
           } catch (e) {
+            if (e.data && e.data.code === 'email_not_verified' && this.skipEmailVerification()) {
+              toast('Verification not needed — check your password and try again', 'warn');
+              btn.disabled = false; btn.textContent = 'Sign in';
+              return;
+            }
             if (e.data && e.data.code === 'email_not_verified') {
               sessionStorage.setItem('kiteline.pendingEmail', email);
               location.hash = 'verify-pending';
@@ -436,6 +456,12 @@
     },
 
     renderVerifyPending() {
+      if (this.skipEmailVerification()) {
+        this.clearVerifyPending();
+        toast('No email on server — sign in with your password');
+        location.hash = '';
+        return this.renderLogin();
+      }
       const email = sessionStorage.getItem('kiteline.pendingEmail') || '';
       const verifyUrl = this.normalizeVerifyUrl(sessionStorage.getItem('kiteline.pendingVerifyUrl') || '');
       const serverMsg = sessionStorage.getItem('kiteline.pendingVerifyMsg') || '';
@@ -460,6 +486,7 @@
               <p class="font-semibold text-brand-700 mb-4 text-center">${escapeHtml(email || 'your email')}</p>
               ${linkBlock}
               <button class="btn btn-primary w-full mb-3" id="resendVerify">Resend verification link</button>
+              ${this.skipEmailVerification() ? '' : `<button class="btn btn-ghost w-full mb-3" id="skipVerifySignIn">Skip — go to sign in</button>`}
               <p class="text-sm text-center mb-2"><a href="#" class="text-brand-600 font-semibold" id="verifyPendingLogin">Already verified? Sign in</a></p>
               <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
               ${authLegalFooter()}
@@ -474,7 +501,9 @@
       }
       document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
       const pendingLogin = document.getElementById('verifyPendingLogin');
-      if (pendingLogin) pendingLogin.onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
+      if (pendingLogin) pendingLogin.onclick = (e) => { e.preventDefault(); this.clearVerifyPending(); location.hash = ''; this.renderLogin(); };
+      const skipBtn = document.getElementById('skipVerifySignIn');
+      if (skipBtn) skipBtn.onclick = (e) => { e.preventDefault(); this.clearVerifyPending(); location.hash = ''; this.renderLogin(); };
       document.getElementById('resendVerify').onclick = async () => {
         const em = email || prompt('Enter your email');
         if (!em) return toast('Enter your email', 'warn');
