@@ -19,7 +19,10 @@ const PORT = process.env.PORT || 4000;
 // Shared secret that physical devices / gateways use to push readings.
 const INGEST_KEY = process.env.INGEST_KEY || 'kiteline-demo-key';
 const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
-const DEMO_MODE = process.env.DEMO_MODE === 'true' || (!isProd && process.env.DEMO_MODE !== 'false');
+// Demo on by default on Render (matches local PC). Set DEMO_MODE=false to disable.
+const DEMO_MODE = process.env.DEMO_MODE === 'false'
+  ? false
+  : (process.env.DEMO_MODE === 'true' || process.env.RENDER === 'true' || !isProd);
 const notify = require('./notify');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
