@@ -146,14 +146,28 @@
     },
 
     resolveRoute() {
-      // Support deep links like /app/temps → /app#temps (fixes mobile refresh & PWA)
+      // Support deep links like /app/verify-email?token=… → /app#verify-email?token=…
       const m = location.pathname.match(/^\/app\/([^/?#]+)\/?$/);
       if (m && !location.hash) {
         const page = decodeURIComponent(m[1]);
-        location.replace('/app#' + page);
-        return page;
+        const qs = location.search || '';
+        location.replace('/app#' + page + qs);
+        return qs ? page + qs.slice(1) : page;
       }
       return (location.hash || '#home').slice(1) || 'home';
+    },
+
+    authTokenFromUrl(param) {
+      const key = param || 'token';
+      const hash = (location.hash || '').slice(1);
+      let token = '';
+      const hashQ = hash.indexOf('?');
+      if (hashQ >= 0) token = new URLSearchParams(hash.slice(hashQ)).get(key) || '';
+      if (!token) token = new URLSearchParams(location.search).get(key) || '';
+      if (!token && hash.includes(key + '=')) {
+        token = (hash.split(key + '=')[1] || '').split('&')[0];
+      }
+      return token || '';
     },
 
     authed() {
@@ -463,8 +477,8 @@
     },
 
     renderVerifyEmail() {
-      const hash = (location.hash || '').slice(1);
-      const token = (hash.split('token=')[1] || '').split('&')[0];
+      const token = this.authTokenFromUrl('token');
+      const pendingEmail = sessionStorage.getItem('kiteline.pendingEmail') || '';
       document.getElementById('root').innerHTML = `
         <div class="min-h-screen grid lg:grid-cols-2">
           ${authSidePanel()}
@@ -480,7 +494,7 @@
         document.getElementById('verifyStatus').textContent = 'Invalid link — register again or resend verification.';
         return;
       }
-      window.Api.verifyEmail(token, sessionStorage.getItem('kiteline.pendingEmail') || '').then(async (r) => {
+      window.Api.verifyEmail(token, pendingEmail).then(async (r) => {
         sessionStorage.removeItem('kiteline.pendingEmail');
         sessionStorage.removeItem('kiteline.pendingVerifyUrl');
         sessionStorage.removeItem('kiteline.pendingVerifyMsg');
@@ -543,8 +557,7 @@
     },
 
     renderResetPassword() {
-      const hash = (location.hash || '').slice(1);
-      const token = (hash.split('token=')[1] || '').split('&')[0];
+      const token = this.authTokenFromUrl('token');
       document.getElementById('root').innerHTML = `
         <div class="min-h-screen grid lg:grid-cols-2">
           ${authSidePanel()}
