@@ -52,7 +52,7 @@
   const t = (k, fb) => (window.I18n ? window.I18n.t(k) : fb);
   const brandLogo = (size, light) =>
     `<div class="brand-lockup${size==='lg'?' brand-lockup--lg':''}${light?' brand-lockup--light':''}">
-      <img src="/kiteline-logo.png?v=mark" alt="" class="brand-mark" width="36" height="36">
+      <img src="/kiteline-logo.png?v=k2" alt="" class="brand-mark" width="36" height="36">
       <span class="brand-name">Kit<em>eline</em></span>
     </div>`;
 
@@ -171,7 +171,7 @@
       document.getElementById('root').innerHTML = `
         <div class="min-h-screen grid lg:grid-cols-2">
           <div class="hidden lg:flex flex-col justify-between p-12 text-white" style="background:linear-gradient(135deg,#0f766e,#0b1220)">
-            <div class="flex items-center"><img src="/kiteline-wordmark.png?v=k" alt="Kiteline" class="h-9"></div>
+            <div class="flex items-center">${brandLogo('lg', true)}</div>
             <div>
               <h1 class="text-4xl font-extrabold leading-tight">The Command Line for Professional Kitchens</h1>
               <p class="mt-4 text-white/70 text-lg">Food safety, allergen menus, labelling, and waste — in one early-access platform. Try the demo free; paid plans when we onboard your kitchen.</p>

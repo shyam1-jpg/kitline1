@@ -1,5 +1,5 @@
 /* Kiteline service worker — offline app shell caching */
-const CACHE = 'kiteline-v14';
+const CACHE = 'kiteline-v15';
 const ASSETS = [
   '/app',
   '/index.html',
@@ -10,9 +10,7 @@ const ASSETS = [
   '/js/ui.js',
   '/js/views.js',
   '/js/app.js',
-  '/kiteline-logo.png?v=mark',
-  '/kiteline-wordmark.png?v=k',
-  '/icon.svg',
+  '/kiteline-logo.png?v=k2',
   '/manifest.webmanifest',
 ];
 
@@ -36,8 +34,8 @@ self.addEventListener('fetch', (e) => {
   if (url.pathname.startsWith('/api/')) return;
   if (url.origin !== self.location.origin) return; // let CDN handle itself
 
-  // JS/CSS: network-first so nav labels and views update without hard refresh
-  const networkFirst = /^\/(js|css)\//.test(url.pathname);
+  // JS/CSS/logo: network-first so updates land without hard refresh
+  const networkFirst = /^\/(js|css)\//.test(url.pathname) || /kiteline-logo\.png/.test(url.pathname);
   e.respondWith(
     caches.match(req).then(cached => {
       const fetched = fetch(req).then(res => {
