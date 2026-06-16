@@ -4,7 +4,7 @@
 (function () {
   const S = window.Store;
   const V = window.Views;
-  const { icon, toast } = window.UI;
+  const { icon, toast, modal, escapeHtml } = window.UI;
 
   const NAV = [
     { id:'home', label:'Home', icon:'grid' },
@@ -50,9 +50,40 @@
   ];
 
   const t = (k, fb) => (window.I18n ? window.I18n.t(k) : fb);
+  function bindPasswordToggle() {
+    document.querySelectorAll('.pw-toggle').forEach(btn => {
+      btn.onclick = () => {
+        const inp = document.getElementById(btn.dataset.pw);
+        if (!inp) return;
+        const show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        btn.textContent = show ? 'Hide' : 'Show';
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      };
+    });
+  }
+
+  function authSidePanel() {
+    return `<div class="hidden lg:flex flex-col justify-between p-12 text-white" style="background:linear-gradient(135deg,#0f766e,#0b1220)">
+      <div class="flex items-center">${brandLogo('lg', true)}</div>
+      <div>
+        <h1 class="text-4xl font-extrabold leading-tight">The Command Line for Professional Kitchens</h1>
+        <p class="mt-4 text-white/70 text-lg">Food safety, allergen menus, labelling, and waste — in one early-access platform.</p>
+      </div>
+      <div class="text-white/50 text-sm">SafeServe · MenuGuard · LabelSmart · WasteWise</div>
+    </div>`;
+  }
+
+  function passwordField(id, value, autocomplete) {
+    return `<div class="pw-field relative mb-4">
+      <input id="${id}" type="password" class="input pr-16" value="${value || ''}" placeholder="••••••••" autocomplete="${autocomplete || 'current-password'}">
+      <button type="button" class="pw-toggle absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-brand-600 hover:text-brand-700" data-pw="${id}" aria-label="Show password">Show</button>
+    </div>`;
+  }
+
   const brandLogo = (size, light) =>
     `<div class="brand-lockup${size==='lg'?' brand-lockup--lg':''}${light?' brand-lockup--light':''}">
-      <img src="/kiteline-logo.png?v=k2" alt="" class="brand-mark" width="36" height="36">
+      <img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="36" height="36">
       <span class="brand-name">Kit<em>eline</em></span>
     </div>`;
 
@@ -124,12 +155,17 @@
     async signOut() {
       if (S.remote && window.Api) { await window.Api.logout(); } else { S.logout(); }
       toast('Signed out');
-      this.renderLogin();
+      location.hash = '';
+      this.renderAuthScreen();
     },
 
     async boot() {
       this.route = this.resolveRoute();
-      window.addEventListener('hashchange', () => { this.route = location.hash.slice(1) || 'home'; this.render(); });
+      window.addEventListener('hashchange', () => {
+        if (!this.authed()) { this.renderAuthScreen(); return; }
+        this.route = location.hash.slice(1) || 'home';
+        this.render();
+      });
       window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); this.openPalette(); }
       });
@@ -140,7 +176,7 @@
         if (S.remote) {
           try {
             const cfg = await fetch('/api/config').then(r => r.json());
-            if (cfg && typeof cfg.demo === 'boolean') this.config = cfg;
+            if (cfg) this.config = Object.assign(this.config, cfg);
           } catch {}
         }
       }
@@ -152,10 +188,10 @@
           this.render();
         } catch (e) {
           window.Api.setToken(null);
-          this.renderLogin();
+          this.renderAuthScreen();
         }
       } else if (S.remote) {
-        this.renderLogin();
+        this.renderAuthScreen();
       } else {
         // offline / file:// mode
         if (!S.session()) this.renderLogin(); else this.render();
@@ -164,23 +200,24 @@
       this.startSimulation();
     },
 
+    renderAuthScreen() {
+      const hash = (location.hash || '').slice(1);
+      const q = hash.indexOf('?');
+      const path = q >= 0 ? hash.slice(0, q) : hash;
+      if (path === 'register') return this.renderRegister();
+      if (path === 'forgot-password') return this.renderForgotPassword();
+      if (path.startsWith('reset-password')) return this.renderResetPassword();
+      return this.renderLogin();
+    },
+
     /* ---------- LOGIN ---------- */
     renderLogin() {
       const demo = this.config.demo;
+      const canRegister = this.config.register;
       const demoDefaults = demo ? { email: 'shyam_1@hotmail.co.uk', pw: 'shyam' } : { email: '', pw: '' };
       document.getElementById('root').innerHTML = `
         <div class="min-h-screen grid lg:grid-cols-2">
-          <div class="hidden lg:flex flex-col justify-between p-12 text-white" style="background:linear-gradient(135deg,#0f766e,#0b1220)">
-            <div class="flex items-center">${brandLogo('lg', true)}</div>
-            <div>
-              <h1 class="text-4xl font-extrabold leading-tight">The Command Line for Professional Kitchens</h1>
-              <p class="mt-4 text-white/70 text-lg">Food safety, allergen menus, labelling, and waste — in one early-access platform. Try the demo free; paid plans when we onboard your kitchen.</p>
-              <div class="grid grid-cols-2 gap-4 mt-8">
-                ${[['Live','Software today'],['Beta','Menus & labels'],['Pilot','Sensors soon'],['Demo','Sample data']].map(([v,l])=>`<div><div class="text-2xl font-extrabold">${v}</div><div class="text-white/60 text-sm">${l}</div></div>`).join('')}
-              </div>
-            </div>
-            <div class="text-white/50 text-sm">SafeServe · Temperature Monitoring · MenuGuard · LabelSmart · WasteWise</div>
-          </div>
+          ${authSidePanel()}
           <div class="flex items-center justify-center p-6">
             <div class="w-full max-w-sm">
               <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
@@ -189,8 +226,14 @@
               <label class="label">Email address</label>
               <input id="email" class="input mb-4" value="${demoDefaults.email}" placeholder="you@restaurant.com" autocomplete="username">
               <label class="label">Password</label>
-              <input id="pw" type="password" class="input mb-5" value="${demoDefaults.pw}" placeholder="••••••••" autocomplete="current-password">
-              <button class="btn btn-primary w-full" id="signin">Sign in</button>
+              ${passwordField('pw', demoDefaults.pw, 'current-password')}
+              ${!demo ? '<p class="text-xs text-ink-400 mb-3">Tap <b>Show</b> next to password to see what you typed.</p>' : ''}
+              <button class="btn btn-primary w-full mb-3" id="signin">Sign in</button>
+              <div class="flex flex-wrap justify-between gap-2 text-sm">
+                ${canRegister ? '<a href="#register" class="text-brand-600 font-semibold">Create account</a>' : '<span></span>'}
+                <a href="#forgot-password" class="text-brand-600 font-semibold">Forgot password?</a>
+              </div>
+              ${!demo ? '<p class="text-xs text-ink-400 mt-4 text-center">Secured site — use your account password. Old demo password <b>shyam</b> no longer works unless you set it in Render.</p>' : ''}
               ${demo ? `<div class="mt-5">
                 <div class="text-xs text-ink-400 mb-2 text-center">Quick demo logins (different access levels)</div>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -200,10 +243,11 @@
                   <button class="btn btn-ghost btn-sm" data-demo="james@kiteline.uk" data-pw="demo1234">Staff</button>
                 </div>
               </div>
-              <p class="text-center text-ink-400 text-sm mt-4">Demo build — any credentials work. Admins see everything; Managers & Staff see less.</p>` : ''}
+              <p class="text-center text-ink-400 text-sm mt-4">Demo build — any credentials work.</p>` : ''}
             </div>
           </div>
         </div>`;
+      bindPasswordToggle();
       if (demo) {
         document.querySelectorAll('[data-demo]').forEach(b => b.onclick = () => {
           document.getElementById('email').value = b.dataset.demo;
@@ -220,9 +264,10 @@
           try {
             await window.Api.login(email, pw);
             await S.hydrateFromServer();
+            location.hash = 'home';
             toast('Signed in'); this.render();
           } catch (e) {
-            toast(e.message || 'Login failed', 'error');
+            toast((e.message || 'Login failed') + '. Try Forgot password or Create account.', 'error');
             btn.disabled = false; btn.textContent = 'Sign in';
           }
         } else {
@@ -232,9 +277,131 @@
       };
     },
 
+    renderRegister() {
+      if (!this.config.register) { location.hash = ''; return this.renderLogin(); }
+      document.getElementById('root').innerHTML = `
+        <div class="min-h-screen grid lg:grid-cols-2">
+          ${authSidePanel()}
+          <div class="flex items-center justify-center p-6">
+            <div class="w-full max-w-sm">
+              <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
+              <h2 class="text-2xl font-extrabold">Create account</h2>
+              <p class="text-ink-500 mb-6">Register for early access to Kiteline.</p>
+              <label class="label">Your name</label>
+              <input id="name" class="input mb-4" placeholder="Your name" autocomplete="name">
+              <label class="label">Email address</label>
+              <input id="email" class="input mb-4" placeholder="you@restaurant.com" autocomplete="username">
+              <label class="label">Password</label>
+              ${passwordField('pw', '', 'new-password')}
+              <p class="text-xs text-ink-400 mb-4">Tap <b>Show</b> to see what you typed. Minimum 4 characters.</p>
+              <button class="btn btn-primary w-full mb-3" id="register">Create account</button>
+              <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Already have an account? Sign in</a></p>
+            </div>
+          </div>
+        </div>`;
+      bindPasswordToggle();
+      document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
+      document.getElementById('register').onclick = async () => {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const pw = document.getElementById('pw').value;
+        const btn = document.getElementById('register');
+        if (!email || !pw) return toast('Email and password required', 'warn');
+        btn.disabled = true; btn.textContent = 'Creating…';
+        try {
+          await window.Api.register(email, pw, name);
+          await S.hydrateFromServer();
+          location.hash = 'home';
+          toast('Account created'); this.render();
+        } catch (e) {
+          toast(e.message || 'Registration failed', 'error');
+          btn.disabled = false; btn.textContent = 'Create account';
+        }
+      };
+    },
+
+    renderForgotPassword() {
+      document.getElementById('root').innerHTML = `
+        <div class="min-h-screen grid lg:grid-cols-2">
+          ${authSidePanel()}
+          <div class="flex items-center justify-center p-6">
+            <div class="w-full max-w-sm">
+              <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
+              <h2 class="text-2xl font-extrabold">Reset password</h2>
+              <p class="text-ink-500 mb-6">Enter your email — we will send a reset link (check spam).</p>
+              <label class="label">Email address</label>
+              <input id="email" class="input mb-5" placeholder="you@restaurant.com" autocomplete="username">
+              <button class="btn btn-primary w-full mb-3" id="sendReset">Send reset link</button>
+              <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
+      document.getElementById('sendReset').onclick = async () => {
+        const email = document.getElementById('email').value.trim();
+        if (!email) return toast('Enter your email', 'warn');
+        const btn = document.getElementById('sendReset');
+        btn.disabled = true; btn.textContent = 'Sending…';
+        try {
+          const r = await window.Api.forgotPassword(email);
+          if (r.resetUrl) {
+            modal('Reset link', `<p class="text-sm text-ink-600 mb-3">${escapeHtml(r.message || 'Use this link to set a new password:')}</p>
+              <a href="${r.resetUrl}" class="text-brand-600 font-semibold break-all">${escapeHtml(r.resetUrl)}</a>
+              <p class="text-xs text-ink-400 mt-3">Link expires in 1 hour. Copy and open in this browser.</p>`, { wide: true });
+          } else {
+            toast(r.message || 'Check your email for the reset link');
+          }
+          location.hash = '';
+          this.renderLogin();
+        } catch (e) {
+          toast(e.message || 'Could not send reset email', 'error');
+          btn.disabled = false; btn.textContent = 'Send reset link';
+        }
+      };
+    },
+
+    renderResetPassword() {
+      const hash = (location.hash || '').slice(1);
+      const token = (hash.split('token=')[1] || '').split('&')[0];
+      document.getElementById('root').innerHTML = `
+        <div class="min-h-screen grid lg:grid-cols-2">
+          ${authSidePanel()}
+          <div class="flex items-center justify-center p-6">
+            <div class="w-full max-w-sm">
+              <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
+              <h2 class="text-2xl font-extrabold">Choose new password</h2>
+              <p class="text-ink-500 mb-6">Enter your new password below.</p>
+              <label class="label">New password</label>
+              ${passwordField('pw', '', 'new-password')}
+              <p class="text-xs text-ink-400 mb-4">Tap <b>Show</b> to see what you typed.</p>
+              <button class="btn btn-primary w-full mb-3" id="savePw">Save password</button>
+              <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
+            </div>
+          </div>
+        </div>`;
+      bindPasswordToggle();
+      document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
+      document.getElementById('savePw').onclick = async () => {
+        const pw = document.getElementById('pw').value;
+        if (!token) return toast('Invalid reset link — request a new one', 'error');
+        if (!pw) return toast('Enter a new password', 'warn');
+        const btn = document.getElementById('savePw');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+          await window.Api.resetPassword(token, pw);
+          toast('Password updated — sign in now');
+          location.hash = '';
+          this.renderLogin();
+        } catch (e) {
+          toast(e.message || 'Reset failed', 'error');
+          btn.disabled = false; btn.textContent = 'Save password';
+        }
+      };
+    },
+
     /* ---------- APP SHELL ---------- */
     render() {
-      if (!this.authed()) return this.renderLogin();
+      if (!this.authed()) return this.renderAuthScreen();
       const me = currentUser();
       let r = this.route;
       // route guard: bounce to home if this role can't access the route

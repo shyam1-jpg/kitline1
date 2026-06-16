@@ -1376,7 +1376,7 @@
     return `<div class="recipe-print" id="recipePrintCard" data-base-yield="${base}" data-yield-unit="${escapeHtml(unit)}">
       <div class="recipe-card__topbar">
         <div class="recipe-card__brand">
-          <img src="/kiteline-logo.png?v=k2" alt="">
+          <img src="/kiteline-logo.png?v=mark3" alt="">
           <span>Kit<em style="font-style:italic;color:#5eead4">eline</em></span>
         </div>
         <span class="recipe-card__topbar-link no-print text-sm text-ink-500">${site}</span>

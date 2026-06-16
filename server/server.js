@@ -22,6 +22,9 @@ const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === '
 // Demo only when explicitly enabled, or local dev. Production (Render) is secure by default.
 const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
+// Early access: registration open unless explicitly disabled.
+const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+const APP_URL = (process.env.APP_URL || '').replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
@@ -83,19 +86,22 @@ function bootstrapProductionDb() {
   if (DEMO_MODE) return;
   const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
   const ownerPass = process.env.OWNER_PASSWORD;
+  const db = readDb();
+  db.passwordResets = db.passwordResets || {};
   if (!ownerPass) {
-    console.warn('  WARNING: Set OWNER_PASSWORD in env — no one can sign in until it is set.');
+    if (!db.users[ownerEmail]) {
+      console.warn('  WARNING: Set OWNER_PASSWORD in env to create the owner account.');
+    }
     return;
   }
-  const db = readDb();
   db.users[ownerEmail] = {
     email: ownerEmail,
-    name: process.env.OWNER_NAME || 'Owner',
+    name: process.env.OWNER_NAME || (db.users[ownerEmail] && db.users[ownerEmail].name) || 'Owner',
     pass: hashPassword(ownerPass),
     createdAt: (db.users[ownerEmail] && db.users[ownerEmail].createdAt) || new Date().toISOString(),
   };
   writeDb(db);
-  console.log('  Production auth — owner: ' + ownerEmail);
+  console.log('  Owner login ready: ' + ownerEmail + ' (password from OWNER_PASSWORD env)');
 }
 
 // Load 100 demo recipes + full kitchen data on Render / fresh installs.
@@ -163,12 +169,17 @@ const MIME = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript',
   '.webmanifest':'application/manifest+json' };
 
 function serveFile(res, filePath) {
-  fs.readFile(filePath, (err, buf) => {
-    if (err) return send(res, 404, { error: 'Not found' });
-    const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
-    res.end(buf);
+  const ext = path.extname(filePath).toLowerCase();
+  const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
+  if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
+    headers['Cache-Control'] = 'public, max-age=86400';
+  }
+  const stream = fs.createReadStream(filePath);
+  stream.on('open', () => {
+    res.writeHead(200, headers);
+    stream.pipe(res);
   });
+  stream.on('error', () => send(res, 404, { error: 'Not found' }));
 }
 // Prevent path traversal
 function safeJoin(base, target) {
@@ -186,7 +197,7 @@ async function handleApi(req, res, url) {
   if (route === '/config' && req.method === 'GET') {
     return send(res, 200, {
       demo: DEMO_MODE,
-      register: DEMO_MODE,
+      register: ALLOW_REGISTER,
       billing: billing.isConfigured(),
       plans: billing.planCatalog(),
     });
@@ -227,13 +238,67 @@ async function handleApi(req, res, url) {
 
   // POST /api/register
   if (route === '/register' && req.method === 'POST') {
-    if (!DEMO_MODE) return send(res, 403, { error: 'Registration disabled' });
+    if (!ALLOW_REGISTER) return send(res, 403, { error: 'Registration disabled' });
     const email = (body.email || '').toLowerCase().trim();
     if (!email || !body.password) return send(res, 400, { error: 'Email and password required' });
-    if (db.users[email]) return send(res, 409, { error: 'Account already exists' });
+    if (body.password.length < 4) return send(res, 400, { error: 'Password must be at least 4 characters' });
+    if (db.users[email]) return send(res, 409, { error: 'Account already exists — sign in or reset your password' });
     db.users[email] = { email, name: body.name || email.split('@')[0], pass: hashPassword(body.password), createdAt: new Date().toISOString() };
     const token = newToken(); db.tokens[token] = email; writeDb(db);
     return send(res, 200, { token, user: { email, name: db.users[email].name } });
+  }
+
+  // POST /api/forgot-password
+  if (route === '/forgot-password' && req.method === 'POST') {
+    const email = (body.email || '').toLowerCase().trim();
+    if (!email) return send(res, 400, { error: 'Email required' });
+    const user = db.users[email];
+    if (!user) {
+      return send(res, 200, { ok: true, message: 'If that email is registered, we sent reset instructions.' });
+    }
+    const resetToken = crypto.randomBytes(24).toString('hex');
+    db.passwordResets = db.passwordResets || {};
+    db.passwordResets[resetToken] = { email, expires: Date.now() + 3600000 };
+    writeDb(db);
+    const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
+    const resetUrl = `${base}/app#reset-password?token=${resetToken}`;
+    const msg = {
+      subject: 'Reset your Kiteline password',
+      text: `Reset your Kiteline password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you did not ask for this, ignore this email.`,
+      html: `<div style="font-family:Inter,system-ui,sans-serif;max-width:520px">
+        <h2 style="color:#0d9488">Reset your Kiteline password</h2>
+        <p><a href="${resetUrl}" style="color:#0d9488;font-weight:bold">Click here to choose a new password</a></p>
+        <p style="color:#64748b;font-size:13px">Link expires in 1 hour. If you did not ask for this, ignore this email.</p>
+      </div>`,
+    };
+    await notify.sendRawEmail(email, msg);
+    const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.emailEnabled();
+    return send(res, 200, {
+      ok: true,
+      message: notify.emailEnabled()
+        ? 'If that email is registered, we sent reset instructions.'
+        : 'Email not configured — use the reset link below (also saved on server).',
+      resetUrl: showLink ? resetUrl : undefined,
+    });
+  }
+
+  // POST /api/reset-password
+  if (route === '/reset-password' && req.method === 'POST') {
+    const resetToken = body.token || '';
+    const password = body.password || '';
+    if (!resetToken || !password) return send(res, 400, { error: 'Token and new password required' });
+    if (password.length < 4) return send(res, 400, { error: 'Password must be at least 4 characters' });
+    db.passwordResets = db.passwordResets || {};
+    const entry = db.passwordResets[resetToken];
+    if (!entry || entry.expires < Date.now()) {
+      return send(res, 400, { error: 'Reset link expired or invalid — request a new one' });
+    }
+    const email = entry.email;
+    if (!db.users[email]) return send(res, 404, { error: 'Account not found' });
+    db.users[email].pass = hashPassword(password);
+    delete db.passwordResets[resetToken];
+    writeDb(db);
+    return send(res, 200, { ok: true, message: 'Password updated — you can sign in now' });
   }
 
   // POST /api/login
