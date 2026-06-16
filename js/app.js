@@ -302,8 +302,17 @@
       if (path === 'register') return this.renderRegister();
       if (path === 'forgot-password') return this.renderForgotPassword();
       if (path.startsWith('reset-password')) return this.renderResetPassword();
-      if (path.startsWith('verify-email')) return this.renderVerifyEmail();
-      if (path === 'verify-pending') return this.renderVerifyPending();
+      if (path.startsWith('verify-email')) {
+        this.clearVerifyPending();
+        toast('Sign in with your email and password');
+        location.hash = '';
+        return this.renderLogin();
+      }
+      if (path === 'verify-pending') {
+        this.clearVerifyPending();
+        location.hash = '';
+        return this.renderLogin();
+      }
       return this.renderLogin();
     },
 
@@ -373,15 +382,9 @@
             if (data.trial) this.trial = data.trial;
             this.render();
           } catch (e) {
-            if (e.data && e.data.code === 'email_not_verified' && this.skipEmailVerification()) {
-              toast('Verification not needed — check your password and try again', 'warn');
-              btn.disabled = false; btn.textContent = 'Sign in';
-              return;
-            }
             if (e.data && e.data.code === 'email_not_verified') {
-              sessionStorage.setItem('kiteline.pendingEmail', email);
-              location.hash = 'verify-pending';
-              this.renderVerifyPending();
+              toast('Sign in with your password — verification is not required', 'warn');
+              btn.disabled = false; btn.textContent = 'Sign in';
               return;
             }
             if (e.data && e.data.code === 'trial_expired') {

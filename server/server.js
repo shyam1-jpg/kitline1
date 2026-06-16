@@ -27,6 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
+const APP_BUILD = '2026-06-16-no-verify';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
@@ -90,9 +91,10 @@ function verifyPassword(password, stored) {
 
 function bootstrapProductionDb() {
   if (DEMO_MODE) return;
+  const db = readDb();
+  bootstrapEmailVerification(db);
   const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
   const ownerPass = process.env.OWNER_PASSWORD;
-  const db = readDb();
   db.passwordResets = db.passwordResets || {};
   if (!ownerPass) {
     if (!db.users[ownerEmail]) {
@@ -143,10 +145,27 @@ function bootstrapDemoKitchen() {
 }
 function newToken() { return crypto.randomBytes(32).toString('hex'); }
 
-const REQUIRE_EMAIL_VERIFY = process.env.REQUIRE_EMAIL_VERIFY !== 'false' && !DEMO_MODE;
+// Early access: email verification OFF unless explicitly enabled AND SMTP works.
+const REQUIRE_EMAIL_VERIFY = process.env.REQUIRE_EMAIL_VERIFY === 'true' && !DEMO_MODE;
 
 function emailVerificationRequired() {
   return REQUIRE_EMAIL_VERIFY && notify.smtpConfigured();
+}
+
+function bootstrapEmailVerification(db) {
+  if (emailVerificationRequired()) return;
+  let changed = false;
+  Object.keys(db.users || {}).forEach((email) => {
+    const u = db.users[email];
+    if (u && u.emailVerified === false) {
+      u.emailVerified = true;
+      changed = true;
+    }
+  });
+  if (changed) {
+    writeDb(db);
+    console.log('  Email verification off — all accounts activated.');
+  }
 }
 
 function ensureUserEmailVerified(db, user) {
@@ -339,6 +358,7 @@ async function handleApi(req, res, url) {
       trialDays: billing.TRIAL_DAYS,
       trialMaxUsers: billing.TRIAL_MAX_USERS,
       recipeAi: recipeAi.configured(),
+      build: APP_BUILD,
     });
   }
 
@@ -935,7 +955,7 @@ const server = http.createServer(async (req, res) => {
   try {
     // Health check (for uptime monitors / load balancers)
     if (url.pathname === '/health' || url.pathname === '/api/health') {
-      return send(res, 200, { ok: true, service: 'kiteline', uptime: Math.round(process.uptime()), now: new Date().toISOString() }, null, req);
+      return send(res, 200, { ok: true, service: 'kiteline', build: APP_BUILD, uptime: Math.round(process.uptime()), now: new Date().toISOString() }, null, req);
     }
 
     // Stripe webhook needs raw body (before JSON parser in handleApi)
