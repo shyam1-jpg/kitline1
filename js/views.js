@@ -72,9 +72,10 @@
     if (cpBtn) cpBtn.onclick = () => { navigator.clipboard.writeText(id); toast('Device ID copied'); };
     const delBtn = document.getElementById('sdel');
     if (delBtn) delBtn.onclick = () => {
-      if (!confirm('Remove this sensor? Live readings for this ID will be ignored.')) return;
-      S.db.sensors = S.db.sensors.filter(x => x.id !== id);
-      S.persist(); closeModal(); toast('Sensor removed'); if (onSaved) onSaved();
+      window.Security.confirmDangerous('Remove sensor?', 'Enter your PIN or use biometrics to delete this sensor.', () => {
+        S.db.sensors = S.db.sensors.filter(x => x.id !== id);
+        S.persist(); closeModal(); toast('Sensor removed'); if (onSaved) onSaved();
+      });
     };
     document.getElementById('ssave').onclick = () => {
       const name = document.getElementById('sn').value.trim();
@@ -2946,8 +2947,30 @@
           <p class="text-xs text-ink-400 mt-3">ESP32 sketch: <code>server/hardware/esp32-ingest.ino</code> · Full guide: <code>IOT.md</code></p>
         </div>
         <div class="card card-pad lg:col-span-2">
+          <h3 class="font-bold mb-1">Security &amp; account</h3>
+          <p class="text-sm text-ink-500 mb-4">Set a PIN so deletes and reset need your approval. Optional Face ID / fingerprint on phone.</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="label">New PIN (4–6 digits)</label>
+              <input id="secNewPin" type="password" inputmode="numeric" maxlength="6" class="input mb-2" placeholder="••••" autocomplete="off">
+              <label class="label">Confirm PIN</label>
+              <input id="secConfPin" type="password" inputmode="numeric" maxlength="6" class="input mb-3" placeholder="••••" autocomplete="off">
+              <button class="btn btn-primary btn-sm w-full" id="secSavePin">Save PIN</button>
+              <p class="text-xs text-ink-400 mt-2" id="secPinStatus">No PIN set — required before any delete or reset.</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium mb-2">Biometric unlock</p>
+              <p class="text-xs text-ink-500 mb-3">Works on <b>kiteline.uk</b> and the public tunnel link on your phone (Face ID / fingerprint).</p>
+              <button class="btn btn-ghost btn-sm w-full mb-2" id="secBioOn">${icon('shield','w-4 h-4')} Enable Face ID / Fingerprint</button>
+              <button class="btn btn-ghost btn-sm w-full mb-3 hidden" id="secBioOff">Remove biometric</button>
+              <p class="text-xs text-ink-400 mb-4" id="secBioStatus"></p>
+              <button class="btn btn-ghost btn-sm w-full" id="settingsLogout">${icon('logout','w-4 h-4')} Sign out</button>
+            </div>
+          </div>
+        </div>
+        <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-2">Danger Zone</h3>
-          <p class="text-sm text-ink-500 mb-3">Reset all demo data back to the seeded state.</p>
+          <p class="text-sm text-ink-500 mb-3">Reset all demo data back to the seeded state. <b>PIN or biometric required.</b></p>
           <button class="btn btn-danger btn-sm" id="reset">Reset demo data</button>
         </div>
         <div class="card card-pad lg:col-span-2 hidden" id="waitlistCard">
@@ -3119,7 +3142,48 @@
           </tr>`).join('');
         }).catch(() => { /* not owner or server offline */ });
       }
-      document.getElementById('reset').onclick=()=>{ if(confirm('Reset all demo data?')){ S.reset(); toast('Data reset'); window.App.render(); } };
+      document.getElementById('reset').onclick = () => {
+        window.Security.confirmDangerous('Reset demo data?', 'This wipes all kitchen data and restores the demo. PIN or biometric required.', () => {
+          S.reset(); toast('Data reset'); window.App.render();
+        });
+      };
+      const pinStatus = document.getElementById('secPinStatus');
+      const bioStatus = document.getElementById('secBioStatus');
+      const bioOff = document.getElementById('secBioOff');
+      const refreshSec = () => {
+        if (pinStatus) pinStatus.textContent = window.Security.hasPin() ? 'PIN is set — deletes and reset are protected.' : 'No PIN set — required before any delete or reset.';
+        if (bioStatus) {
+          if (!window.Security.biometricAvailable()) bioStatus.textContent = 'Biometric not available on this address — use kiteline.uk or the tunnel link.';
+          else if (window.Security.hasBiometric()) bioStatus.textContent = 'Face ID / fingerprint enabled.';
+          else bioStatus.textContent = 'Biometric not set up yet.';
+        }
+        if (bioOff) bioOff.classList.toggle('hidden', !window.Security.hasBiometric());
+      };
+      refreshSec();
+      const savePin = document.getElementById('secSavePin');
+      if (savePin) savePin.onclick = async () => {
+        try {
+          await window.Security.setPin(document.getElementById('secNewPin').value, document.getElementById('secConfPin').value);
+          document.getElementById('secNewPin').value = '';
+          document.getElementById('secConfPin').value = '';
+          toast('PIN saved');
+          refreshSec();
+        } catch (e) { toast(e.message || 'Could not save PIN', 'error'); }
+      };
+      const bioOn = document.getElementById('secBioOn');
+      if (bioOn) bioOn.onclick = async () => {
+        if (!window.Security.hasPin()) { toast('Save a PIN first', 'warn'); return; }
+        bioOn.disabled = true;
+        try {
+          await window.Security.registerBiometric();
+          toast('Biometric enabled');
+          refreshSec();
+        } catch (e) { toast(e.message || 'Biometric setup failed', 'error'); }
+        bioOn.disabled = false;
+      };
+      if (bioOff) bioOff.onclick = () => { window.Security.clearBiometric(); toast('Biometric removed'); refreshSec(); };
+      const settingsLogout = document.getElementById('settingsLogout');
+      if (settingsLogout) settingsLogout.onclick = () => window.App.signOut();
     }};
   }
 
