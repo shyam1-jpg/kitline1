@@ -1422,6 +1422,17 @@
       getRows: () => { syncRows(); return rows; },
       refresh: () => refreshIngSummary(summaryEl, servingsInput),
       addRow: (row) => { rows.push(row || { name: '', qty: '', unit: 'g', notes: '', manualAllergens: [] }); render(); },
+      setRows: (newRows) => {
+        rows = (newRows && newRows.length ? newRows : [{ name: '', qty: '', unit: 'g', notes: '', manualAllergens: [] }])
+          .map((row) => ({
+            name: row.name || '',
+            qty: String(row.qty || ''),
+            unit: row.unit || 'g',
+            notes: row.notes || '',
+            manualAllergens: row.manualAllergens || [],
+          }));
+        render();
+      },
     };
   }
   function refreshIngSummary(summaryEl, servingsInput) {
@@ -1633,6 +1644,18 @@
     };
     reader.readAsDataURL(file);
   }
+  function resizeDataUrl(dataUrl, cb) {
+    const img = new Image();
+    img.onload = () => {
+      const max = 700; let w = img.width, h = img.height;
+      if (w > max) { h = Math.round(h * max / w); w = max; }
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL('image/jpeg', 0.75));
+    };
+    img.onerror = () => cb(dataUrl);
+    img.src = dataUrl;
+  }
 
   function recipes() {
     const list = (S.db.recipes || []).filter(r => r.site === S.db.currentSite);
@@ -1681,9 +1704,10 @@
               <input id="rimg" type="file" accept="image/*" class="text-sm">
               <div class="flex flex-wrap gap-2 mt-2">
                 <button type="button" class="btn btn-ghost btn-sm" id="rproimg">Create pro image</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="raiImage">${icon('image','ico')} AI photo</button>
                 <button type="button" class="btn btn-ghost btn-sm" id="rclearimg">Remove photo</button>
               </div>
-              <p class="text-xs text-ink-400 mt-1">Upload a photo or generate a Kiteline pro-style hero image.</p>
+              <p class="text-xs text-ink-400 mt-1">Upload a photo, generate a Kiteline style image, or create an AI food photo.</p>
             </div>
           </div>
           <div><label class="label">Name</label><input id="rn" class="input" value="${escapeHtml(r.name)}" placeholder="Recipe name"></div>
@@ -1696,6 +1720,23 @@
             <div><label class="label">Serves</label><input id="rs" type="number" class="input" value="${r.servings}"></div>
             <div><label class="label">Prep min</label><input id="rp" type="number" class="input" value="${r.prepMins}"></div>
             <div><label class="label">Cook min</label><input id="rk" type="number" class="input" value="${r.cookMins}"></div>
+          </div>
+          <div class="rounded-xl border border-brand-200 bg-brand-50/60 p-3 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-bold text-brand-800">${icon('rocket','ico')} AI recipe assistant</span>
+              <span id="raiStatus" class="text-xs text-ink-400"></span>
+            </div>
+            <input id="raiHint" class="input text-sm" placeholder="Optional hint: e.g. vegan Thai curry, nut-free, mild spice">
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="btn btn-ghost btn-sm" id="raiIngredients">Suggest ingredients</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="raiParseToggle">Paste &amp; parse text</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="raiMethod">Write method</button>
+            </div>
+            <div id="raiParseWrap" class="hidden space-y-2">
+              <textarea id="raiParseText" class="textarea text-sm" rows="2" placeholder="200g flour, 2 eggs, 100ml milk, pinch salt…"></textarea>
+              <button type="button" class="btn btn-primary btn-sm" id="raiParse">Parse into ingredient lines</button>
+            </div>
+            <p class="text-xs text-ink-500">AI fills ingredients, method, pro steps, and can create a hero photo. Sign in on the hosted app with AI enabled.</p>
           </div>
           <div><label class="label">Food cost (${S.db.org.currency})</label><input id="rcost" type="number" step="0.1" class="input" value="${r.cost||0}"></div>
           <div>
@@ -1771,6 +1812,81 @@
       );
       document.getElementById('ringAdd').onclick = () => builder.addRow();
       if (servingsInput) servingsInput.oninput = () => builder.refresh();
+
+      const aiPayload = () => ({
+        name: document.getElementById('rn').value.trim(),
+        category: document.getElementById('rc').value,
+        servings: Math.max(1, +document.getElementById('rs').value || 4),
+        description: document.getElementById('raiHint').value.trim(),
+      });
+      const withAi = async (btn, fn) => {
+        const ai = window.RecipeAi;
+        if (!ai) return toast('AI module not loaded', 'warn');
+        if (!(await ai.isConfigured())) return toast('Recipe AI not set up — add OPENAI_API_KEY on Render', 'warn');
+        const label = btn.innerHTML;
+        btn.disabled = true;
+        btn.textContent = 'Working…';
+        try { await fn(); } catch (e) { toast(e.message || 'AI failed', 'error'); }
+        finally { btn.disabled = false; btn.innerHTML = label; }
+      };
+      window.RecipeAi && window.RecipeAi.isConfigured().then((ok) => {
+        const el = document.getElementById('raiStatus');
+        if (el) el.textContent = ok ? 'Ready' : 'Not configured on server';
+      });
+      document.getElementById('raiParseToggle').onclick = () => {
+        document.getElementById('raiParseWrap').classList.toggle('hidden');
+      };
+      document.getElementById('raiIngredients').onclick = () => withAi(document.getElementById('raiIngredients'), async () => {
+        const payload = aiPayload();
+        if (!payload.name) return toast('Enter a recipe name first', 'warn');
+        toast('AI suggesting ingredients…');
+        const res = await window.RecipeAi.suggestIngredients(payload);
+        if (!res.ingredients || !res.ingredients.length) return toast('No ingredients returned', 'warn');
+        builder.setRows(res.ingredients);
+        toast('Ingredients added — review quantities');
+      });
+      document.getElementById('raiParse').onclick = () => withAi(document.getElementById('raiParse'), async () => {
+        const text = document.getElementById('raiParseText').value.trim();
+        if (!text) return toast('Paste ingredient text first', 'warn');
+        toast('AI parsing ingredients…');
+        const res = await window.RecipeAi.parseIngredients(Object.assign({ text }, aiPayload()));
+        if (!res.ingredients || !res.ingredients.length) return toast('Could not parse ingredients', 'warn');
+        builder.setRows(res.ingredients);
+        document.getElementById('raiParseWrap').classList.add('hidden');
+        toast('Ingredients parsed — check each line');
+      });
+      document.getElementById('raiMethod').onclick = () => withAi(document.getElementById('raiMethod'), async () => {
+        const payload = aiPayload();
+        if (!payload.name) return toast('Enter a recipe name first', 'warn');
+        const rows = builder.getRows().filter((row) => row.name.trim());
+        if (!rows.length) return toast('Add ingredients first (or use AI suggest)', 'warn');
+        toast('AI writing method…');
+        const res = await window.RecipeAi.generateMethod(Object.assign({ ingredients: rows }, payload));
+        if (res.subtitle) document.getElementById('rsub').value = res.subtitle;
+        if (res.prepMins) document.getElementById('rp').value = res.prepMins;
+        if (res.cookMins) document.getElementById('rk').value = res.cookMins;
+        if (res.method && res.method.length) {
+          document.getElementById('rmethod').value = res.method.join('\n');
+          if (document.getElementById('rstepmode').checked) stepBuilder.syncFromTextarea(res.method);
+        }
+        if (res.proMethod && res.proMethod.length) document.getElementById('rpro').value = res.proMethod.join('\n');
+        if (res.chefNotes) document.getElementById('rchef').value = res.chefNotes;
+        toast('Method written — review before saving');
+      });
+      document.getElementById('raiImage').onclick = () => withAi(document.getElementById('raiImage'), async () => {
+        const payload = aiPayload();
+        if (!payload.name) return toast('Enter a recipe name first', 'warn');
+        toast('AI creating photo — may take 20 seconds…');
+        const res = await window.RecipeAi.generateImage(payload);
+        if (!res.image) return toast('No image returned', 'warn');
+        resizeDataUrl(res.image, (data) => {
+          imgData = data;
+          proImgData = null;
+          document.getElementById('imgPrev').innerHTML = `<img src="${data}" class="w-full h-24 object-cover">`;
+          toast('AI photo ready');
+        });
+      });
+
       document.getElementById('rimg').onchange = (e) => {
         const f = e.target.files[0]; if (!f) return;
         resizeImage(f, (data) => { imgData = data; document.getElementById('imgPrev').innerHTML = `<img src="${data}" class="w-full h-24 object-cover">`; });

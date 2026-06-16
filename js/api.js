@@ -98,6 +98,7 @@
     async billingStatus() { return req('GET', '/billing/status'); },
     async billingCheckout(plan, email) { return req('POST', '/billing/checkout', { plan, email }); },
     async billingPortal() { return req('POST', '/billing/portal', {}); },
+    async recipeAi(action, body) { return req('POST', '/recipe-ai/' + action, body); },
   };
 
   window.Api = Api;

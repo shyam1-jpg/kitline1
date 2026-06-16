@@ -32,6 +32,7 @@ const notify = require('./notify');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
 const security = require('./security');
+const recipeAi = require('./recipe-ai');
 const { mergeExtraSites } = require('./extra-sites');
 
 function ensureBreachAlerts(state) {
@@ -325,6 +326,7 @@ async function handleApi(req, res, url) {
       plans: billing.planCatalog(),
       trialDays: billing.TRIAL_DAYS,
       trialMaxUsers: billing.TRIAL_MAX_USERS,
+      recipeAi: recipeAi.configured(),
     });
   }
 
@@ -825,6 +827,38 @@ async function handleApi(req, res, url) {
       return apiSend( 200, result);
     } catch (e) {
       return apiSend( 400, { error: e.message || 'Portal failed' });
+    }
+  }
+
+  // POST /api/recipe-ai/* — AI ingredients, method, image (auth required)
+  if (route.startsWith('/recipe-ai/') && req.method === 'POST') {
+    const rlAi = security.checkRateLimit(req, 'recipe-ai');
+    if (!rlAi.ok) return apiSend(429, { error: 'Too many AI requests. Try again later.', code: 'rate_limited', retryAfter: rlAi.retryAfter });
+    if (!recipeAi.configured()) {
+      return apiSend(503, { error: 'Recipe AI is not configured yet — add OPENAI_API_KEY on the server.' });
+    }
+    const action = route.replace(/^\/recipe-ai\//, '');
+    try {
+      if (action === 'ingredients') {
+        const result = await recipeAi.suggestIngredients(body);
+        return apiSend(200, result);
+      }
+      if (action === 'parse-ingredients') {
+        const result = await recipeAi.parseIngredients(body);
+        return apiSend(200, result);
+      }
+      if (action === 'method') {
+        const result = await recipeAi.generateMethod(body);
+        return apiSend(200, result);
+      }
+      if (action === 'image') {
+        const result = await recipeAi.generateImage(body);
+        return apiSend(200, result);
+      }
+      return apiSend(404, { error: 'Unknown recipe AI action' });
+    } catch (e) {
+      console.error('[recipe-ai]', action, e.message);
+      return apiSend(400, { error: e.message || 'AI request failed' });
     }
   }
 

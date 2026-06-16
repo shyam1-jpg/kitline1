@@ -13,6 +13,7 @@ const RATE_WINDOWS = {
   forgot: { limit: 5, windowMs: 60 * 60 * 1000 },
   resend: { limit: 5, windowMs: 60 * 60 * 1000 },
   verify: { limit: 10, windowMs: 60 * 60 * 1000 },
+  'recipe-ai': { limit: 30, windowMs: 60 * 60 * 1000 },
 };
 
 const rateBuckets = new Map();
