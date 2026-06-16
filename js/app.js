@@ -121,6 +121,12 @@
       return !!S.session();
     },
 
+    async signOut() {
+      if (S.remote && window.Api) { await window.Api.logout(); } else { S.logout(); }
+      toast('Signed out');
+      this.renderLogin();
+    },
+
     async boot() {
       this.route = this.resolveRoute();
       window.addEventListener('hashchange', () => { this.route = location.hash.slice(1) || 'home'; this.render(); });
@@ -254,12 +260,12 @@
               ).join('')}
             </nav>
             <div class="border-t border-white/10 pt-3 mt-3">
-              <div class="flex items-center gap-2 px-2">
+              <div class="flex items-center gap-2 px-2 mb-2">
                 <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm">${me.initials}</div>
                 <div class="flex-1 min-w-0"><div class="text-white text-sm font-semibold truncate">${me.name}</div><div class="text-ink-500 text-xs truncate">${me.title}</div></div>
-                <button class="text-ink-400 hover:text-white" id="logout" title="Sign out">${icon('logout')}</button>
               </div>
-              <div class="px-2 mt-2">${roleBadge(me.role)}</div>
+              <div class="px-2 mb-2">${roleBadge(me.role)}</div>
+              <button class="btn btn-ghost btn-sm w-full justify-center text-ink-300 hover:text-white hover:bg-white/10" id="logout">${icon('logout','w-4 h-4')} Sign out</button>
             </div>
           </aside>
 
@@ -278,16 +284,15 @@
                   ${(window.I18n?window.I18n.langs:['en']).map(l=>`<option value="${l}" ${window.I18n&&l===window.I18n.lang?'selected':''}>${window.I18n?window.I18n.langName(l):l}</option>`).join('')}
                 </select>
                 <a href="#alerts" class="relative text-ink-500 hover:text-ink-800">${icon('bell','w-5 h-5')}${openAlerts?`<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">${openAlerts}</span>`:''}</a>
+                <button id="headerLogout" class="btn btn-ghost btn-sm text-ink-600">${icon('logout','w-4 h-4')} <span class="hidden sm:inline">Sign out</span></button>
               </div>
             </header>
             <div class="p-5 max-w-[1400px] mx-auto" id="view">${view.html}</div>
           </main>
         </div>`;
 
-      document.getElementById('logout').onclick = async () => {
-        if (S.remote && window.Api) { await window.Api.logout(); } else { S.logout(); }
-        toast('Signed out'); this.renderLogin();
-      };
+      document.getElementById('logout').onclick = () => this.signOut();
+      document.getElementById('headerLogout').onclick = () => this.signOut();
       document.getElementById('menuBtn')?.addEventListener('click', () => this.openMobileNav());
       document.getElementById('closeNav')?.addEventListener('click', () => this.closeMobileNav());
       document.getElementById('sidebarOverlay')?.addEventListener('click', () => this.closeMobileNav());
@@ -311,7 +316,7 @@
       const actions = [
         ...(canAccess('sites', meRank) ? [{ label: t('nav.sites','Sites')+': switch site', hint:'Action', icon:'sites', run: () => { location.hash = 'sites'; } }] : []),
         ...(canAccess('settings', meRank) ? [{ label: 'Reset demo data', hint:'Danger', icon:'settings', run: () => { location.hash = 'settings'; } }] : []),
-        { label: 'Sign out', hint:'Account', icon:'logout', run: async () => { if (S.remote && window.Api) await window.Api.logout(); else S.logout(); this.renderLogin(); } },
+        { label: 'Sign out', hint:'Account', icon:'logout', run: () => this.signOut() },
       ];
       const items = dests.concat(actions);
       const layer = document.getElementById('modal-layer');
