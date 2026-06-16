@@ -319,7 +319,8 @@ async function handleApi(req, res, url) {
     return apiSend( 200, {
       demo: DEMO_MODE,
       register: ALLOW_REGISTER,
-      emailVerification: REQUIRE_EMAIL_VERIFY,
+      emailVerification: REQUIRE_EMAIL_VERIFY && notify.smtpConfigured(),
+      emailConfigured: notify.smtpConfigured(),
       billing: billing.isConfigured(),
       plans: billing.planCatalog(),
       trialDays: billing.TRIAL_DAYS,
@@ -387,7 +388,7 @@ async function handleApi(req, res, url) {
     const name = profile
       ? `${profile.firstName} ${profile.lastName}`.trim()
       : (body.name || email.split('@')[0]).trim();
-    const skipVerify = DEMO_MODE || !REQUIRE_EMAIL_VERIFY;
+    const skipVerify = DEMO_MODE || !REQUIRE_EMAIL_VERIFY || !notify.smtpConfigured();
     const now = Date.now();
     db.users[email] = {
       email,
@@ -768,7 +769,8 @@ async function handleApi(req, res, url) {
       ingestKeySecure: INGEST_KEY !== 'kiteline-demo-key',
       demoKey: INGEST_KEY === 'kiteline-demo-key',
       rateLimitEnabled: true,
-      emailVerification: REQUIRE_EMAIL_VERIFY,
+      emailVerification: REQUIRE_EMAIL_VERIFY && notify.smtpConfigured(),
+      emailConfigured: notify.smtpConfigured(),
       isOwner,
     });
   }

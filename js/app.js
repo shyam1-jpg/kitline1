@@ -394,21 +394,37 @@
 
     renderVerifyPending() {
       const email = sessionStorage.getItem('kiteline.pendingEmail') || '';
+      const verifyUrl = sessionStorage.getItem('kiteline.pendingVerifyUrl') || '';
+      const linkBlock = verifyUrl ? `
+              <div class="rounded-xl border-2 border-brand-300 bg-brand-50 p-4 mb-4 text-left">
+                <p class="text-sm font-bold text-brand-900 mb-2">Tap to activate your account:</p>
+                <a href="${escapeHtml(verifyUrl)}" class="btn btn-primary w-full mb-3">Verify my email now</a>
+                <p class="text-xs text-ink-500 break-all mb-2">${escapeHtml(verifyUrl)}</p>
+                <button type="button" class="btn btn-ghost btn-sm w-full" id="copyVerify">Copy link</button>
+                <p class="text-xs text-ink-400 mt-2">Email is not set up on the server yet — this link stays here until you verify.</p>
+              </div>` : `
+              <p class="text-sm text-ink-500 mb-6">Open the email and click <b>Verify email address</b>. Check spam if you do not see it.</p>`;
       document.getElementById('root').innerHTML = `
         <div class="min-h-screen grid lg:grid-cols-2">
           ${authSidePanel()}
           <div class="flex items-center justify-center p-6">
-            <div class="w-full max-w-sm text-center">
-              <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
-              <h2 class="text-2xl font-extrabold">Verify your email</h2>
-              <p class="text-ink-500 mb-4">We sent a verification link to:</p>
-              <p class="font-semibold text-brand-700 mb-4">${escapeHtml(email || 'your email')}</p>
-              <p class="text-sm text-ink-500 mb-6">Open the email and click <b>Verify email address</b>. Check spam if you do not see it.</p>
-              <button class="btn btn-primary w-full mb-3" id="resendVerify">Resend verification email</button>
-              <p class="text-sm"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
+            <div class="w-full max-w-sm">
+              <div class="lg:hidden mb-6 text-center">${brandLogo('lg', true)}</div>
+              <h2 class="text-2xl font-extrabold text-center">Verify your email</h2>
+              <p class="text-ink-500 mb-4 text-center">We sent a verification link to:</p>
+              <p class="font-semibold text-brand-700 mb-4 text-center">${escapeHtml(email || 'your email')}</p>
+              ${linkBlock}
+              <button class="btn btn-primary w-full mb-3" id="resendVerify">Resend verification link</button>
+              <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
             </div>
           </div>
         </div>`;
+      const copyBtn = document.getElementById('copyVerify');
+      if (copyBtn && verifyUrl) {
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(verifyUrl).then(() => toast('Link copied')).catch(() => toast('Copy the link manually', 'warn'));
+        };
+      }
       document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
       document.getElementById('resendVerify').onclick = async () => {
         const em = email || prompt('Enter your email');
@@ -418,13 +434,15 @@
         try {
           const r = await window.Api.resendVerification(em);
           if (r.verifyUrl) {
-            modal('Verification link', `<p class="text-sm text-ink-600 mb-3">${escapeHtml(r.message)}</p>
-              <a href="${r.verifyUrl}" class="text-brand-600 font-semibold break-all">${escapeHtml(r.verifyUrl)}</a>`, { wide: true });
+            sessionStorage.setItem('kiteline.pendingVerifyUrl', r.verifyUrl);
+            sessionStorage.setItem('kiteline.pendingEmail', em);
+            this.renderVerifyPending();
+            toast('New link ready — tap Verify my email now');
           } else toast(r.message || 'Verification email sent');
         } catch (e) {
           toast(e.message || 'Could not resend', 'error');
         }
-        btn.disabled = false; btn.textContent = 'Resend verification email';
+        btn.disabled = false; btn.textContent = 'Resend verification link';
       };
     },
 
@@ -448,6 +466,7 @@
       }
       window.Api.verifyEmail(token).then(async (r) => {
         sessionStorage.removeItem('kiteline.pendingEmail');
+        sessionStorage.removeItem('kiteline.pendingVerifyUrl');
         document.getElementById('verifyStatus').textContent = r.message || 'Email verified!';
         const trialMsg = r.trial && r.trial.active ? ' — ' + r.trial.daysLeft + ' days left on your free trial' : '';
         toast('Email verified — welcome to Kiteline' + trialMsg);

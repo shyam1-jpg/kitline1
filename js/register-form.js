@@ -352,10 +352,7 @@
           clearDraft();
           if (r.needsVerification) {
             sessionStorage.setItem('kiteline.pendingEmail', d.email);
-            if (r.verifyUrl && window.UI) {
-              window.UI.modal(t('reg.verifyTitle', 'Verify your email'), `<p class="text-sm text-ink-600 mb-3">${esc(r.message || '')}</p>
-                <a href="${esc(r.verifyUrl)}" class="text-brand-600 font-semibold break-all">${esc(r.verifyUrl)}</a>`, { wide: true });
-            } else if (window.UI) window.UI.toast(r.message || t('reg.verifySent', 'Check your email to verify'));
+            if (r.verifyUrl) sessionStorage.setItem('kiteline.pendingVerifyUrl', r.verifyUrl);
             location.hash = 'verify-pending';
             app.renderVerifyPending();
             return;
