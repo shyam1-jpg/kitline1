@@ -16,18 +16,18 @@ const ROOT = path.join(__dirname, '..');          // kitchen-os/
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const PORT = process.env.PORT || 4000;
+const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 // Shared secret that physical devices / gateways use to push readings.
 const INGEST_KEY = process.env.INGEST_KEY || 'kiteline-demo-key';
 if (isProd && INGEST_KEY === 'kiteline-demo-key') {
   console.warn('  SECURITY WARNING: Set a strong INGEST_KEY in production (not kiteline-demo-key).');
 }
-const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 // Demo only when explicitly enabled, or local dev. Production (Render) is secure by default.
 const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-16-activate';
+const APP_BUILD = '2026-06-17-fix';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
