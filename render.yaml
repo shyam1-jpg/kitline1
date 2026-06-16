@@ -5,18 +5,19 @@ services:
   - type: web
     name: kiteline
     runtime: node
-    plan: starter
+    plan: free
     region: frankfurt
     buildCommand: npm install
     startCommand: node server/server.js
     healthCheckPath: /health
+    domains:
+      - kiteline.uk
+      - www.kiteline.uk
     envVars:
       - key: NODE_ENV
         value: production
       - key: RENDER
         value: "true"
-      - key: DATA_DIR
-        value: /var/data
       - key: OWNER_EMAIL
         value: shyam_1@hotmail.co.uk
       - key: OWNER_NAME
@@ -45,7 +46,3 @@ services:
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
-    disk:
-      name: kiteline-data
-      mountPath: /var/data
-      sizeGB: 1
