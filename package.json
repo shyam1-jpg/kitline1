@@ -8,7 +8,7 @@
     "start": "node server/server.js",
     "dev": "node server/server.js",
     "reset": "node server/reset.js",
-    "tunnel": "npx cloudflared tunnel --url http://localhost:4001",
+    "tunnel": "npx cloudflared tunnel --url http://127.0.0.1:4001",
     "tunnel:lt": "npx localtunnel --port 4001",
     "sensors:sim": "node server/sensor-sim.js"
   },

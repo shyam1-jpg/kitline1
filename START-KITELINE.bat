@@ -21,7 +21,7 @@ if not exist "kiteline-logo.png" (
 
 start "Kiteline Server" cmd /k "cd /d "%~dp0" && node server/server.js"
 timeout /t 3 /nobreak >nul
-start "Kiteline Tunnel" cmd /k "cd /d "%~dp0" && npm run tunnel"
+start "Kiteline Tunnel" cmd /k "cd /d "%~dp0" && npx --yes cloudflared tunnel --url http://127.0.0.1:4001"
 
 echo.
 echo  Server:  http://localhost:4001/app
