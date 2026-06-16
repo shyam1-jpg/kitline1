@@ -427,6 +427,7 @@
               <p class="font-semibold text-brand-700 mb-4 text-center">${escapeHtml(email || 'your email')}</p>
               ${linkBlock}
               <button class="btn btn-primary w-full mb-3" id="resendVerify">Resend verification link</button>
+              <p class="text-sm text-center mb-2"><a href="#" class="text-brand-600 font-semibold" id="verifyPendingLogin">Already verified? Sign in</a></p>
               <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
               ${authLegalFooter()}
             </div>
@@ -477,18 +478,21 @@
         document.getElementById('verifyStatus').textContent = 'Invalid link — register again or resend verification.';
         return;
       }
-      window.Api.verifyEmail(token).then(async (r) => {
+      window.Api.verifyEmail(token, sessionStorage.getItem('kiteline.pendingEmail') || '').then(async (r) => {
         sessionStorage.removeItem('kiteline.pendingEmail');
         sessionStorage.removeItem('kiteline.pendingVerifyUrl');
         sessionStorage.removeItem('kiteline.pendingVerifyMsg');
         document.getElementById('verifyStatus').textContent = r.message || 'Email verified!';
         const trialMsg = r.trial && r.trial.active ? ' — ' + r.trial.daysLeft + ' days left on your free trial' : '';
-        toast('Email verified — welcome to Kiteline' + trialMsg);
+        toast((r.alreadyVerified ? 'Welcome back' : 'Email verified — welcome to Kiteline') + trialMsg);
         await S.hydrateFromServer();
         setTimeout(() => { location.hash = 'home'; this.render(); }, 800);
       }).catch((e) => {
-        document.getElementById('verifyStatus').textContent = e.message || 'Verification failed';
-        toast(e.message || 'Verification failed', 'error');
+        const msg = e.message || 'Verification failed';
+        document.getElementById('verifyStatus').innerHTML = `${escapeHtml(msg)}<div class="mt-6 flex flex-col gap-2"><a href="#" class="btn btn-primary" id="verifyToLogin">Sign in</a><a href="#forgot-password" class="btn btn-ghost">Forgot password</a></div>`;
+        const toLogin = document.getElementById('verifyToLogin');
+        if (toLogin) toLogin.onclick = (ev) => { ev.preventDefault(); location.hash = ''; this.renderLogin(); };
+        toast(msg, 'error');
       });
     },
 

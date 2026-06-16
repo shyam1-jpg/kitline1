@@ -60,8 +60,8 @@
       }
       return data;
     },
-    async verifyEmail(token) {
-      const data = await req('POST', '/verify-email', { token });
+    async verifyEmail(token, email) {
+      const data = await req('POST', '/verify-email', { token, email: email || undefined });
       setToken(data.token);
       setEmail((data.user && data.user.email) || '');
       return data;

@@ -435,11 +435,31 @@ async function handleApi(req, res, url) {
     const rl = security.checkRateLimit(req, 'verify');
     if (!rl.ok) return apiSend(429, { error: 'Too many attempts. Try again later.', code: 'rate_limited', retryAfter: rl.retryAfter });
     const verifyToken = body.token || '';
+    const emailHint = (body.email || '').toLowerCase().trim();
     if (!verifyToken) return apiSend( 400, { error: 'Verification token required' });
     db.emailVerifications = db.emailVerifications || {};
     const entry = db.emailVerifications[verifyToken];
     if (!entry || entry.expires < Date.now()) {
-      return apiSend( 400, { error: 'Verification link expired or invalid — register again or resend link' });
+      const fallbackEmail = emailHint || (entry && entry.email) || '';
+      const existing = fallbackEmail && db.users[fallbackEmail];
+      if (existing && existing.emailVerified !== false) {
+        billing.ensureTrial(existing);
+        billing.syncOrgAccess(db, fallbackEmail);
+        const token = security.issueToken(db, fallbackEmail);
+        writeDb(db);
+        return apiSend(200, {
+          ok: true,
+          token,
+          user: publicUser(existing),
+          trial: billing.getTrialInfo(existing),
+          alreadyVerified: true,
+          message: 'Your email is already verified — signing you in.',
+        });
+      }
+      return apiSend(400, {
+        error: 'Verification link expired or invalid — use Forgot password to sign in, or register again.',
+        code: 'token_invalid',
+      });
     }
     const email = entry.email;
     const user = db.users[email];
