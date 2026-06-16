@@ -2,24 +2,164 @@
 
 const crypto = require('crypto');
 
+/** Monthly plans — price scales with team size; larger tiers get a lower per-user rate. Amounts in pence (GBP). */
 const PLANS = {
-  solo: {
-    id: 'solo',
-    name: 'SafeServe Solo',
-    description: 'One site · one admin · HACCP, logs, reports',
-    amount: 900,
-    currency: 'gbp',
-    orgPlan: 'SafeServe Solo',
-  },
-  team: {
-    id: 'team',
-    name: 'SafeServe Team',
-    description: 'One site · multiple staff · all modules',
+  users_1: {
+    id: 'users_1',
+    name: 'Kiteline Starter',
+    description: '1 user · 1 site · HACCP, logs, reports',
     amount: 1900,
     currency: 'gbp',
-    orgPlan: 'SafeServe Team',
+    maxUsers: 1,
+    orgPlan: 'Kiteline Starter (1 user)',
+  },
+  users_5: {
+    id: 'users_5',
+    name: 'Kiteline Team 5',
+    description: 'Up to 5 users · 1 site · all modules',
+    amount: 4000,
+    currency: 'gbp',
+    maxUsers: 5,
+    orgPlan: 'Kiteline Team (5 users)',
+    popular: true,
+  },
+  users_10: {
+    id: 'users_10',
+    name: 'Kiteline Team 10',
+    description: 'Up to 10 users · 1 site · all modules',
+    amount: 7200,
+    currency: 'gbp',
+    maxUsers: 10,
+    orgPlan: 'Kiteline Team (10 users)',
+  },
+  users_20: {
+    id: 'users_20',
+    name: 'Kiteline Team 20',
+    description: 'Up to 20 users · multi-site · all modules',
+    amount: 13000,
+    currency: 'gbp',
+    maxUsers: 20,
+    orgPlan: 'Kiteline Team (20 users)',
+  },
+  users_50: {
+    id: 'users_50',
+    name: 'Kiteline Team 50',
+    description: 'Up to 50 users · multi-site · volume discount',
+    amount: 27500,
+    currency: 'gbp',
+    maxUsers: 50,
+    orgPlan: 'Kiteline Team (50 users)',
+    volumeDiscount: true,
   },
 };
+
+/** Legacy plan ids from older pricing page / settings */
+const PLAN_ALIASES = {
+  solo: 'users_1',
+  team: 'users_5',
+};
+
+const TRIAL_DAYS = Number(process.env.TRIAL_DAYS || 14);
+const TRIAL_MAX_USERS = Number(process.env.TRIAL_MAX_USERS || 5);
+
+function ownerEmail() {
+  return (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+}
+
+function isOwner(email) {
+  return (email || '').toLowerCase().trim() === ownerEmail();
+}
+
+function ensureTrial(user) {
+  if (!user) return user;
+  if (!user.trialEndsAt) {
+    const startMs = user.createdAt ? new Date(user.createdAt).getTime() : Date.now();
+    user.trialStartedAt = user.trialStartedAt || user.createdAt || new Date(startMs).toISOString();
+    user.trialEndsAt = new Date(startMs + TRIAL_DAYS * 86400000).toISOString();
+  }
+  return user;
+}
+
+function startTrial(user) {
+  if (!user) return user;
+  const now = Date.now();
+  user.trialStartedAt = new Date(now).toISOString();
+  user.trialEndsAt = new Date(now + TRIAL_DAYS * 86400000).toISOString();
+  return user;
+}
+
+function getTrialInfo(user) {
+  if (!user) return { active: false, expired: false, daysLeft: 0, endsAt: null, maxUsers: TRIAL_MAX_USERS };
+  ensureTrial(user);
+  const endsAt = user.trialEndsAt;
+  const endsMs = new Date(endsAt).getTime();
+  const daysLeft = Math.max(0, Math.ceil((endsMs - Date.now()) / 86400000));
+  const active = endsMs > Date.now();
+  return {
+    active,
+    expired: !active,
+    daysLeft,
+    endsAt,
+    startedAt: user.trialStartedAt,
+    maxUsers: TRIAL_MAX_USERS,
+    days: TRIAL_DAYS,
+  };
+}
+
+function hasActiveSubscription(db, email) {
+  const sub = getSubscription(db, email);
+  return sub && sub.status === 'active';
+}
+
+function canAccess(db, email) {
+  const em = (email || '').toLowerCase().trim();
+  if (!em) return false;
+  if (process.env.DEMO_MODE === 'true') return true;
+  if (isOwner(em)) return true;
+  if (hasActiveSubscription(db, em)) return true;
+  const user = db.users[em];
+  if (!user) return false;
+  return getTrialInfo(user).active;
+}
+
+function syncOrgAccess(db, email) {
+  if (!db.state || !db.state.org) return;
+  const em = (email || '').toLowerCase().trim();
+  if (isOwner(em)) {
+    const sub = getSubscription(db, em);
+    if (sub && sub.status === 'active' && sub.orgPlan) {
+      db.state.org.plan = sub.orgPlan;
+      if (sub.maxUsers) db.state.org.maxUsers = sub.maxUsers;
+    } else if (/free trial/i.test(db.state.org.plan || '')) {
+      db.state.org.plan = 'Complete Kiteline';
+    }
+    delete db.state.org.trialEndsAt;
+    return;
+  }
+  if (hasActiveSubscription(db, em)) return;
+  const user = db.users[em];
+  if (!user) return;
+  const trial = getTrialInfo(user);
+  if (trial.active) {
+    db.state.org.maxUsers = TRIAL_MAX_USERS;
+    db.state.org.trialEndsAt = trial.endsAt;
+  }
+}
+
+function getTrialStatus(db, email) {
+  const em = (email || '').toLowerCase().trim();
+  if (isOwner(em)) return { exempt: true, reason: 'owner' };
+  if (hasActiveSubscription(db, em)) return { exempt: true, reason: 'subscription' };
+  const user = db.users[em];
+  if (!user) return { active: false, expired: true, daysLeft: 0 };
+  const trial = getTrialInfo(user);
+  return { exempt: false, ...trial };
+}
+
+function resolvePlanId(plan) {
+  const id = (plan || '').trim();
+  return PLAN_ALIASES[id] || id;
+}
 
 function secretKey() {
   return process.env.STRIPE_SECRET_KEY || '';
@@ -37,14 +177,26 @@ function appBaseUrl() {
   return (process.env.APP_URL || 'http://localhost:4001').replace(/\/$/, '');
 }
 
+function planById(id) {
+  return PLANS[id] || null;
+}
+
 function planCatalog() {
-  return Object.values(PLANS).map((p) => ({
-    id: p.id,
-    name: p.name,
-    amount: p.amount,
-    currency: p.currency,
-    display: '£' + (p.amount / 100) + '/mo',
-  }));
+  return Object.values(PLANS).map((p) => {
+    const perUser = Math.round(p.amount / p.maxUsers);
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      amount: p.amount,
+      currency: p.currency,
+      maxUsers: p.maxUsers,
+      display: '£' + (p.amount / 100) + '/mo',
+      perUserDisplay: '£' + (perUser / 100).toFixed(perUser % 100 === 0 ? 0 : 2) + '/user',
+      popular: !!p.popular,
+      volumeDiscount: !!p.volumeDiscount,
+    };
+  });
 }
 
 async function stripeRequest(path, params) {
@@ -74,6 +226,19 @@ function getSubscription(db, email) {
   return db.subscriptions[email.toLowerCase()] || null;
 }
 
+function getUserLimit(db, email) {
+  const em = (email || '').toLowerCase().trim();
+  const sub = getSubscription(db, em);
+  if (sub && sub.status === 'active' && sub.maxUsers) return sub.maxUsers;
+  const user = db.users[em];
+  if (user) {
+    const trial = getTrialInfo(user);
+    if (trial.active) return TRIAL_MAX_USERS;
+  }
+  if (db.state && db.state.org && db.state.org.maxUsers) return db.state.org.maxUsers;
+  return null;
+}
+
 function findEmailByCustomer(db, customerId) {
   if (!customerId) return null;
   ensureSubscriptions(db);
@@ -95,17 +260,20 @@ function applySubscription(db, email, patch) {
     if (key === owner || !db.subscriptions[key].orgSynced) {
       if (patch.status === 'active' && patch.orgPlan) {
         db.state.org.plan = patch.orgPlan;
+        if (patch.maxUsers) db.state.org.maxUsers = patch.maxUsers;
         db.subscriptions[key].orgSynced = true;
       } else if (patch.status === 'canceled') {
         db.state.org.plan = 'Demo / trial';
+        delete db.state.org.maxUsers;
       }
     }
   }
 }
 
 async function createCheckout({ plan, email }) {
-  const p = PLANS[plan];
-  if (!p) throw new Error('Unknown plan — use solo or team');
+  const planId = resolvePlanId(plan);
+  const p = PLANS[planId];
+  if (!p) throw new Error('Unknown plan — pick a tier from the pricing page');
   const em = (email || '').toLowerCase().trim();
   if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) throw new Error('Valid email required');
 
@@ -116,8 +284,10 @@ async function createCheckout({ plan, email }) {
     'client_reference_id': em,
     'metadata[plan]': p.id,
     'metadata[email]': em,
+    'metadata[maxUsers]': String(p.maxUsers),
     'subscription_data[metadata][plan]': p.id,
     'subscription_data[metadata][email]': em,
+    'subscription_data[metadata][maxUsers]': String(p.maxUsers),
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': p.currency,
     'line_items[0][price_data][unit_amount]': String(p.amount),
@@ -128,7 +298,7 @@ async function createCheckout({ plan, email }) {
     cancel_url: base + '/pricing.html?checkout=cancel',
   });
 
-  return { url: session.url, sessionId: session.id };
+  return { url: session.url, sessionId: session.id, plan: p.id };
 }
 
 async function createPortalSession(email, db) {
@@ -176,11 +346,13 @@ async function fetchStripeSubscription(subscriptionId) {
 }
 
 function subscriptionFromStripe(sub, planHint) {
-  const plan = planHint || (sub.metadata && sub.metadata.plan) || 'team';
-  const p = PLANS[plan] || PLANS.team;
+  const plan = resolvePlanId(planHint || (sub.metadata && sub.metadata.plan) || 'users_5');
+  const p = PLANS[plan] || PLANS.users_5;
+  const maxUsers = Number(sub.metadata && sub.metadata.maxUsers) || p.maxUsers;
   return {
     plan: p.id,
     orgPlan: p.orgPlan,
+    maxUsers,
     status: sub.status,
     stripeCustomerId: sub.customer,
     stripeSubscriptionId: sub.id,
@@ -200,9 +372,16 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const email = ((session.metadata && session.metadata.email) || session.customer_email || session.client_reference_id || '').toLowerCase();
-    const plan = (session.metadata && session.metadata.plan) || 'team';
+    const plan = resolvePlanId((session.metadata && session.metadata.plan) || 'users_5');
     if (email && session.subscription) {
-      let subObj = { plan, orgPlan: (PLANS[plan] || PLANS.team).orgPlan, status: 'active', stripeCustomerId: session.customer, stripeSubscriptionId: session.subscription };
+      let subObj = {
+        plan,
+        orgPlan: (PLANS[plan] || PLANS.users_5).orgPlan,
+        maxUsers: (PLANS[plan] || PLANS.users_5).maxUsers,
+        status: 'active',
+        stripeCustomerId: session.customer,
+        stripeSubscriptionId: session.subscription,
+      };
       try {
         const sub = await fetchStripeSubscription(session.subscription);
         subObj = subscriptionFromStripe(sub, plan);
@@ -211,7 +390,7 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
       }
       applySubscription(db, email, subObj);
       writeDb(db);
-      console.log('[billing] Subscribed:', email, subObj.plan);
+      console.log('[billing] Subscribed:', email, subObj.plan, subObj.maxUsers + ' users');
     }
   }
 
@@ -219,7 +398,11 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
     const sub = event.data.object;
     let email = ((sub.metadata && sub.metadata.email) || '').toLowerCase();
     if (!email) email = findEmailByCustomer(db, sub.customer) || '';
-    const plan = (sub.metadata && sub.metadata.plan) || (email && getSubscription(db, email) && getSubscription(db, email).plan) || 'team';
+    const plan = resolvePlanId(
+      (sub.metadata && sub.metadata.plan) ||
+        (email && getSubscription(db, email) && getSubscription(db, email).plan) ||
+        'users_5'
+    );
     if (email) {
       applySubscription(db, email, subscriptionFromStripe(sub, plan));
       writeDb(db);
@@ -232,11 +415,24 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
 
 module.exports = {
   PLANS,
+  PLAN_ALIASES,
+  TRIAL_DAYS,
+  TRIAL_MAX_USERS,
+  resolvePlanId,
   isConfigured,
   planCatalog,
+  planById,
   createCheckout,
   createPortalSession,
   getSubscription,
+  getUserLimit,
+  ensureTrial,
+  startTrial,
+  getTrialInfo,
+  getTrialStatus,
+  canAccess,
+  syncOrgAccess,
+  hasActiveSubscription,
   handleWebhook,
   appBaseUrl,
 };

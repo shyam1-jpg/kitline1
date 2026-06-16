@@ -1,5 +1,5 @@
 /* Kiteline service worker — offline app shell caching */
-const CACHE = 'kiteline-v18';
+const CACHE = 'kiteline-v23';
 const ASSETS = [
   '/app',
   '/index.html',
@@ -8,6 +8,7 @@ const ASSETS = [
   '/js/api.js',
   '/js/store.js',
   '/js/ui.js',
+  '/js/register-form.js',
   '/js/views.js',
   '/js/app.js',
   '/kiteline-logo.png?v=mark3',

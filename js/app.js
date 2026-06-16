@@ -161,6 +161,7 @@
 
     async boot() {
       this.route = this.resolveRoute();
+      this.saveInviteSiteFromUrl();
       window.addEventListener('hashchange', () => {
         if (!this.authed()) { this.renderAuthScreen(); return; }
         this.route = location.hash.slice(1) || 'home';
@@ -183,8 +184,18 @@
 
       if (S.remote && window.Api.token()) {
         try {
-          await window.Api.me();            // validate token
-          await S.hydrateFromServer();      // pull shared state
+          const session = await window.Api.session();
+          if (session && session.access === false) {
+            window.Api.setToken(null);
+            this.renderTrialExpired();
+            return;
+          }
+          this.trial = session && session.trial;
+          if (session && session.user && session.user.lang && window.I18n) {
+            window.I18n.setLang(session.user.lang);
+          }
+          await S.hydrateFromServer();
+          this.applyInviteSite();
           this.render();
         } catch (e) {
           window.Api.setToken(null);
@@ -198,6 +209,33 @@
       }
 
       this.startSimulation();
+    },
+
+    saveInviteSiteFromUrl() {
+      const site = new URLSearchParams(location.search).get('site');
+      if (site) {
+        sessionStorage.setItem('kiteline_invite_site', site);
+        sessionStorage.setItem('kiteline_invite_pending', '1');
+      }
+    },
+
+    applyInviteSite() {
+      const site = sessionStorage.getItem('kiteline_invite_site');
+      if (!site || !S.db?.sites) return;
+      if (S.db.sites.some(s => s.id === site)) {
+        if (S.db.currentSite !== site) S.setSite(site);
+        if (sessionStorage.getItem('kiteline_invite_pending') === '1') {
+          toast('Opened ' + S.site(site).name);
+          sessionStorage.removeItem('kiteline_invite_pending');
+        }
+      }
+    },
+
+    inviteSiteNote() {
+      const id = sessionStorage.getItem('kiteline_invite_site');
+      if (!id) return '';
+      const label = id.replace(/^site_/, '').replace(/_/g, ' ');
+      return `<p class="text-sm text-brand-700 bg-brand-50 border border-brand-100 rounded-lg p-3 mb-4">Kitchen invite — after sign-in you will open <b>${escapeHtml(label)}</b>. Your manager may need to add your email on Team first.</p>`;
     },
 
     renderAuthScreen() {
@@ -225,6 +263,7 @@
               <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
               <h2 class="text-2xl font-extrabold">Welcome back</h2>
               <p class="text-ink-500 mb-6">Sign in to access your kitchen tools.</p>
+              ${this.inviteSiteNote()}
               <label class="label">Email address</label>
               <input id="email" class="input mb-4" value="${demoDefaults.email}" placeholder="you@restaurant.com" autocomplete="username">
               <label class="label">Password</label>
@@ -264,15 +303,36 @@
         if (S.remote && window.Api) {
           btn.disabled = true; btn.textContent = 'Signing in…';
           try {
-            await window.Api.login(email, pw);
+            const data = await window.Api.login(email, pw);
             await S.hydrateFromServer();
+            this.applyInviteSite();
             location.hash = 'home';
-            toast('Signed in'); this.render();
+            if (data.trial && data.trial.active) {
+              toast('Signed in — ' + data.trial.daysLeft + ' days left on your free trial');
+            } else {
+              toast('Signed in');
+            }
+            if (data.trial) this.trial = data.trial;
+            this.render();
           } catch (e) {
             if (e.data && e.data.code === 'email_not_verified') {
               sessionStorage.setItem('kiteline.pendingEmail', email);
               location.hash = 'verify-pending';
               this.renderVerifyPending();
+              return;
+            }
+            if (e.data && e.data.code === 'trial_expired') {
+              this.renderTrialExpired();
+              return;
+            }
+            if (e.data && e.data.code === 'account_locked') {
+              toast(e.message || 'Account locked — try again later', 'error');
+              btn.disabled = false; btn.textContent = 'Sign in';
+              return;
+            }
+            if (e.data && e.data.code === 'rate_limited') {
+              toast(e.message || 'Too many attempts — wait and try again', 'error');
+              btn.disabled = false; btn.textContent = 'Sign in';
               return;
             }
             toast((e.message || 'Login failed') + '. Try Forgot password or Create account.', 'error');
@@ -285,60 +345,51 @@
       };
     },
 
-    renderRegister() {
-      if (!this.config.register) { location.hash = ''; return this.renderLogin(); }
+    renderTrialExpired() {
+      const days = this.config.trialDays || 14;
       document.getElementById('root').innerHTML = `
         <div class="min-h-screen grid lg:grid-cols-2">
           ${authSidePanel()}
           <div class="flex items-center justify-center p-6">
-            <div class="w-full max-w-sm">
+            <div class="w-full max-w-sm text-center">
               <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
-              <h2 class="text-2xl font-extrabold">Create account</h2>
-              <p class="text-ink-500 mb-6">Register for early access to Kiteline.</p>
-              <label class="label">Your name</label>
-              <input id="name" class="input mb-4" placeholder="Your name" autocomplete="name">
-              <label class="label">Email address</label>
-              <input id="email" class="input mb-4" placeholder="you@restaurant.com" autocomplete="username">
-              <label class="label">Password</label>
-              ${passwordField('pw', '', 'new-password')}
-              <p class="text-xs text-ink-400 mb-4">Tap <b>Show</b> to see what you typed. Minimum 8 characters.</p>
-              <p class="text-xs text-ink-400 mb-4">We will email you a verification link before you can sign in.</p>
-              <button class="btn btn-primary w-full mb-3" id="register">Create account</button>
-              <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Already have an account? Sign in</a></p>
+              <h2 class="text-2xl font-extrabold">Free trial ended</h2>
+              <p class="text-ink-500 mb-4">Your ${days}-day free trial has finished. Subscribe to keep using Kiteline — pick a plan by team size.</p>
+              <a href="/pricing.html" class="btn btn-primary w-full mb-3 inline-block">View plans & subscribe</a>
+              <a href="#settings" class="btn btn-ghost w-full mb-3 inline-block" id="trialToSettings">Billing in app</a>
+              <p class="text-sm"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Sign in with another account</a></p>
             </div>
           </div>
         </div>`;
-      bindPasswordToggle();
       document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
-      document.getElementById('register').onclick = async () => {
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const pw = document.getElementById('pw').value;
-        const btn = document.getElementById('register');
-        if (!email || !pw) return toast('Email and password required', 'warn');
-        btn.disabled = true; btn.textContent = 'Creating…';
-        try {
-          const r = await window.Api.register(email, pw, name);
-          if (r.needsVerification) {
-            sessionStorage.setItem('kiteline.pendingEmail', email);
-            if (r.verifyUrl) {
-              modal('Verify your email', `<p class="text-sm text-ink-600 mb-3">${escapeHtml(r.message || 'Open this link to verify:')}</p>
-                <a href="${r.verifyUrl}" class="text-brand-600 font-semibold break-all">${escapeHtml(r.verifyUrl)}</a>`, { wide: true });
-            } else {
-              toast(r.message || 'Check your email to verify your account');
-            }
-            location.hash = 'verify-pending';
-            this.renderVerifyPending();
-            return;
-          }
-          await S.hydrateFromServer();
-          location.hash = 'home';
-          toast('Account created'); this.render();
-        } catch (e) {
-          toast(e.message || 'Registration failed', 'error');
-          btn.disabled = false; btn.textContent = 'Create account';
-        }
+      const ts = document.getElementById('trialToSettings');
+      if (ts) ts.onclick = (e) => {
+        e.preventDefault();
+        toast('Sign in after you subscribe with the same email', 'warn');
       };
+    },
+
+    renderRegister() {
+      if (!this.config.register) { location.hash = ''; return this.renderLogin(); }
+      const RF = window.RegisterForm;
+      const trialDays = this.config.trialDays || 14;
+      const trialUsers = this.config.trialMaxUsers || 5;
+      const step = RF ? Math.min(4, Math.max(1, RF.loadDraft().step || 1)) : 1;
+      const formHtml = RF
+        ? RF.buildHtml(step, trialDays, trialUsers)
+        : `<div class="w-full max-w-sm"><p class="text-ink-500">Registration form loading…</p></div>`;
+      document.getElementById('root').innerHTML = `
+        <div class="min-h-screen grid lg:grid-cols-2">
+          ${authSidePanel()}
+          <div class="flex items-center justify-center p-6 overflow-y-auto max-h-screen py-10">
+            <div class="w-full max-w-lg">
+              <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
+              ${this.inviteSiteNote()}
+              ${formHtml}
+            </div>
+          </div>
+        </div>`;
+      if (RF) RF.mount(this, trialDays, trialUsers);
     },
 
     renderVerifyPending() {
@@ -398,7 +449,8 @@
       window.Api.verifyEmail(token).then(async (r) => {
         sessionStorage.removeItem('kiteline.pendingEmail');
         document.getElementById('verifyStatus').textContent = r.message || 'Email verified!';
-        toast('Email verified — welcome to Kiteline');
+        const trialMsg = r.trial && r.trial.active ? ' — ' + r.trial.daysLeft + ' days left on your free trial' : '';
+        toast('Email verified — welcome to Kiteline' + trialMsg);
         await S.hydrateFromServer();
         setTimeout(() => { location.hash = 'home'; this.render(); }, 800);
       }).catch((e) => {

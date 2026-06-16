@@ -6,7 +6,6 @@
 (function () {
   const TOKEN_KEY = 'kiteline.token';
   const EMAIL_KEY = 'kiteline.email';
-  // Same-origin when served by the Node server; '' resolves relative paths.
   const BASE = '';
 
   function token() { return localStorage.getItem(TOKEN_KEY) || ''; }
@@ -23,7 +22,10 @@
     });
     let data = null;
     try { data = await res.json(); } catch {}
-    if (!res.ok) throw Object.assign(new Error((data && data.error) || res.statusText), { status: res.status, data });
+    if (!res.ok) {
+      if (res.status === 401 && data && data.code === 'session_expired') setToken(null);
+      throw Object.assign(new Error((data && data.error) || res.statusText), { status: res.status, data });
+    }
     return data;
   }
 
@@ -32,14 +34,13 @@
     token,
     setToken,
 
-    // Detect whether a backend is present (vs file:// / offline)
     async ping() {
       try {
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), 1500);
         const res = await fetch(BASE + '/api/me', { headers: token() ? { 'Authorization': 'Bearer ' + token() } : {}, signal: ctrl.signal });
         clearTimeout(t);
-        this.online = res.status !== 0; // any HTTP response means backend exists
+        this.online = res.status !== 0;
         return this.online;
       } catch { this.online = false; return false; }
     },
@@ -47,11 +48,12 @@
     email, setEmail,
     async login(email, password) {
       const data = await req('POST', '/login', { email, password });
-      setToken(data.token); setEmail((data.user && data.user.email) || email);
-      return data.user;
+      setToken(data.token);
+      setEmail((data.user && data.user.email) || email);
+      return data;
     },
-    async register(email, password, name) {
-      const data = await req('POST', '/register', { email, password, name });
+    async register(email, password, name, profile) {
+      const data = await req('POST', '/register', { email, password, name, profile });
       if (data.token) {
         setToken(data.token);
         setEmail((data.user && data.user.email) || email);
@@ -73,8 +75,18 @@
     async resetPassword(token, password) {
       return req('POST', '/reset-password', { token, password });
     },
-    async me() { return (await req('GET', '/me')).user; },
+    async changePassword(currentPassword, newPassword) {
+      const data = await req('POST', '/change-password', { currentPassword, newPassword });
+      if (data.token) setToken(data.token);
+      return data;
+    },
+    async me() {
+      const data = await req('GET', '/me');
+      return data.user;
+    },
+    async session() { return req('GET', '/me'); },
     async logout() { try { await req('POST', '/logout'); } catch {} setToken(null); setEmail(null); },
+    async securityStatus() { return req('GET', '/security/status'); },
 
     async getState() { return (await req('GET', '/state')).state; },
     async putState(state) { return req('PUT', '/state', { state }); },

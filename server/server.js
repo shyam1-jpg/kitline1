@@ -18,6 +18,9 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 const PORT = process.env.PORT || 4000;
 // Shared secret that physical devices / gateways use to push readings.
 const INGEST_KEY = process.env.INGEST_KEY || 'kiteline-demo-key';
+if (isProd && INGEST_KEY === 'kiteline-demo-key') {
+  console.warn('  SECURITY WARNING: Set a strong INGEST_KEY in production (not kiteline-demo-key).');
+}
 const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 // Demo only when explicitly enabled, or local dev. Production (Render) is secure by default.
 const DEMO_MODE = process.env.DEMO_MODE === 'true'
@@ -28,6 +31,7 @@ const APP_URL = (process.env.APP_URL || '').replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
+const security = require('./security');
 const { mergeExtraSites } = require('./extra-sites');
 
 function ensureBreachAlerts(state) {
@@ -136,12 +140,12 @@ function bootstrapDemoKitchen() {
     console.log('  Extra sites merged (Vedanta Kitchen + hotels)');
   }
 }
-function newToken() { return crypto.randomBytes(24).toString('hex'); }
+function newToken() { return crypto.randomBytes(32).toString('hex'); }
 
 const REQUIRE_EMAIL_VERIFY = process.env.REQUIRE_EMAIL_VERIFY !== 'false' && !DEMO_MODE;
 
 function publicUser(user) {
-  return { email: user.email, name: user.name, emailVerified: user.emailVerified !== false };
+  return { email: user.email, name: user.name, emailVerified: user.emailVerified !== false, lang: user.lang || 'en' };
 }
 
 async function sendVerificationEmail(db, email, baseUrl) {
@@ -168,18 +172,91 @@ async function sendVerificationEmail(db, email, baseUrl) {
 
 function userFromReq(db, req) {
   const auth = req.headers['authorization'] || '';
-  const token = auth.replace(/^Bearer\s+/i, '');
-  const email = db.tokens[token];
-  return email ? db.users[email] : null;
+  const token = auth.replace(/^Bearer\s+/i, '').trim();
+  if (!token || token.length < 32) return null;
+  const entry = db.tokens[token];
+  const email = security.tokenEmail(entry);
+  if (!email || !db.users[email]) {
+    if (entry) delete db.tokens[token];
+    return null;
+  }
+  if (security.isTokenExpired(entry)) {
+    delete db.tokens[token];
+    return null;
+  }
+  security.touchToken(entry);
+  return db.users[email];
+}
+
+function applyRegistrationProfile(db, email, profile) {
+  if (!profile || !profile.businessName) return;
+  const user = db.users[email];
+  if (!user) return;
+  user.profile = profile;
+  user.lang = profile.lang || 'en';
+  const fullName = `${(profile.firstName || '').trim()} ${(profile.lastName || '').trim()}`.trim();
+  if (fullName) user.name = fullName;
+
+  db.registrations = db.registrations || [];
+  db.registrations.unshift({
+    at: new Date().toISOString(),
+    email,
+    ...profile,
+  });
+
+  if (!db.state) return;
+  const siteId = 'site_' + crypto.randomBytes(6).toString('hex');
+  const biz = String(profile.businessName).trim();
+  const site = {
+    id: siteId,
+    name: biz,
+    legalName: (profile.legalName || '').trim() || biz,
+    city: (profile.city || '').trim() || '—',
+    postcode: (profile.postcode || '').trim(),
+    address: (profile.address || '').trim(),
+    country: profile.country || 'United Kingdom',
+    type: profile.businessType || 'Restaurant',
+    timezone: 'Europe/London',
+    manager: user.name,
+    phone: (profile.phone || '').trim(),
+    email,
+    status: 'Active',
+  };
+  db.state.sites = db.state.sites || [];
+  db.state.sites.push(site);
+  db.state.currentSite = siteId;
+  db.state.org = db.state.org || { products: {}, channels: {} };
+  db.state.org.name = biz;
+  if (profile.legalName) db.state.org.legalName = profile.legalName.trim();
+  db.state.org.products = db.state.org.products || { fss: true, allerq: true, labels: true, waste: true };
+  (profile.modules || []).forEach((m) => {
+    if (m !== 'sensors' && db.state.org.products[m] !== undefined) db.state.org.products[m] = true;
+  });
+
+  const initials = ((profile.firstName || '')[0] || '') + ((profile.lastName || '')[0] || '');
+  db.state.team = db.state.team || [];
+  db.state.team.push({
+    id: 'u_' + crypto.randomBytes(4).toString('hex'),
+    name: user.name,
+    email,
+    phone: (profile.phone || '').trim(),
+    role: profile.jobRole || 'Owner / Director',
+    access: 'Admin',
+    siteId,
+    initials: (initials.toUpperCase() || 'OW').slice(0, 2),
+  });
 }
 
 /* ---------------- http helpers ---------------- */
-function send(res, code, obj, headers) {
+function send(res, code, obj, headers, req) {
   const body = typeof obj === 'string' ? obj : JSON.stringify(obj);
-  res.writeHead(code, Object.assign({ 'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS' }, headers || {}));
+  const cors = security.corsOrigin(req || { headers: {} }, isProd);
+  res.writeHead(code, Object.assign(security.securityHeaders({
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': cors,
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+  }), headers || {}));
   res.end(body);
 }
 function readBody(req) {
@@ -210,10 +287,10 @@ function serveFile(res, filePath) {
       headers['Cache-Control'] = 'public, max-age=86400';
     }
     const buf = fs.readFileSync(filePath);
-    res.writeHead(200, headers);
+    res.writeHead(200, security.securityHeaders(headers));
     res.end(buf);
   } catch {
-    send(res, 404, { error: 'Not found' });
+    send(res, 404, { error: 'Not found' }, null, null);
   }
 }
 function isExistingFile(filePath) {
@@ -232,129 +309,171 @@ function safeJoin(base, target) {
 /* ---------------- API routes ---------------- */
 async function handleApi(req, res, url) {
   const db = readDb();
+  const apiSend = (code, obj, extra) => send(res, code, obj, extra, req);
+  const ip = security.clientIp(req);
   const route = url.pathname.replace(/^\/api/, '');
   const body = (req.method === 'POST' || req.method === 'PUT') ? await readBody(req) : {};
 
   // GET /api/config — public app flags (demo UI, registration)
   if (route === '/config' && req.method === 'GET') {
-    return send(res, 200, {
+    return apiSend( 200, {
       demo: DEMO_MODE,
       register: ALLOW_REGISTER,
       emailVerification: REQUIRE_EMAIL_VERIFY,
       billing: billing.isConfigured(),
       plans: billing.planCatalog(),
+      trialDays: billing.TRIAL_DAYS,
+      trialMaxUsers: billing.TRIAL_MAX_USERS,
     });
   }
 
   // GET /api/billing/config — public plan list + Stripe enabled flag
   if (route === '/billing/config' && req.method === 'GET') {
-    return send(res, 200, { enabled: billing.isConfigured(), plans: billing.planCatalog() });
+    return apiSend( 200, { enabled: billing.isConfigured(), plans: billing.planCatalog() });
   }
 
   // POST /api/billing/checkout — Stripe Checkout (email required)
   if (route === '/billing/checkout' && req.method === 'POST') {
     if (!billing.isConfigured()) {
-      return send(res, 503, { error: 'Online checkout not configured yet — email shyam_1@hotmail.co.uk for an invoice.' });
+      return apiSend( 503, { error: 'Online checkout not configured yet — email shyam_1@hotmail.co.uk for an invoice.' });
     }
     try {
       const result = await billing.createCheckout({ plan: body.plan, email: body.email });
-      return send(res, 200, result);
+      return apiSend( 200, result);
     } catch (e) {
-      return send(res, 400, { error: e.message || 'Checkout failed' });
+      return apiSend( 400, { error: e.message || 'Checkout failed' });
     }
   }
 
   // POST /api/waitlist — hardware interest (no payment, no stock)
   if (route === '/waitlist' && req.method === 'POST') {
     const result = waitlist.add(body);
-    if (result.error) return send(res, 409, result);
+    if (result.error) return apiSend( 409, result);
     notify.notifyWaitlistSignup(result.entry || body).catch((e) => {
       console.error('[waitlist] owner email failed:', e.message);
     });
-    return send(res, 200, result);
+    return apiSend( 200, result);
   }
 
   // GET /api/waitlist/summary — public counts only (no personal data)
   if (route === '/waitlist/summary' && req.method === 'GET') {
-    return send(res, 200, waitlist.summary(waitlist.read()));
+    return apiSend( 200, waitlist.summary(waitlist.read()));
   }
 
   // POST /api/register
   if (route === '/register' && req.method === 'POST') {
-    if (!ALLOW_REGISTER) return send(res, 403, { error: 'Registration disabled' });
+    if (!ALLOW_REGISTER) return apiSend( 403, { error: 'Registration disabled' });
+    const rlReg = security.checkRateLimit(req, 'register');
+    if (!rlReg.ok) return apiSend(429, { error: 'Too many registration attempts. Try again later.', code: 'rate_limited', retryAfter: rlReg.retryAfter });
     const email = (body.email || '').toLowerCase().trim();
-    if (!email || !body.password) return send(res, 400, { error: 'Email and password required' });
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, 400, { error: 'Enter a valid email address' });
-    if (body.password.length < 8) return send(res, 400, { error: 'Password must be at least 8 characters' });
+    if (!email || !body.password) return apiSend( 400, { error: 'Email and password required' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return apiSend( 400, { error: 'Enter a valid email address' });
+    const pwCheckReg = security.validatePassword(body.password, email);
+    if (!pwCheckReg.ok) return apiSend(400, { error: pwCheckReg.error });
+    const profile = body.profile || null;
+    if (profile) {
+      if (!profile.termsAccepted) return apiSend( 400, { error: 'Please accept the terms to register' });
+      if (!profile.firstName || !profile.lastName) return apiSend( 400, { error: 'First and last name are required' });
+      if (!profile.businessName) return apiSend( 400, { error: 'Business or kitchen name is required' });
+      if (!profile.city || !profile.postcode) return apiSend( 400, { error: 'City and postcode are required' });
+    }
     if (db.users[email]) {
       const existing = db.users[email];
       if (REQUIRE_EMAIL_VERIFY && existing.emailVerified === false) {
-        return send(res, 409, { error: 'Account exists but email not verified — check your inbox or resend the link.', code: 'email_not_verified' });
+        return apiSend( 409, { error: 'Account exists but email not verified — check your inbox or resend the link.', code: 'email_not_verified' });
       }
-      return send(res, 409, { error: 'Account already exists — sign in or reset your password' });
+      return apiSend( 409, { error: 'Account already exists — sign in or reset your password' });
     }
-    const name = (body.name || email.split('@')[0]).trim();
+    const name = profile
+      ? `${profile.firstName} ${profile.lastName}`.trim()
+      : (body.name || email.split('@')[0]).trim();
     const skipVerify = DEMO_MODE || !REQUIRE_EMAIL_VERIFY;
+    const now = Date.now();
     db.users[email] = {
       email,
       name,
       pass: hashPassword(body.password),
       emailVerified: skipVerify,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(now).toISOString(),
+      trialStartedAt: new Date(now).toISOString(),
+      trialEndsAt: new Date(now + billing.TRIAL_DAYS * 86400000).toISOString(),
+      lang: (profile && profile.lang) || 'en',
     };
+    if (profile) applyRegistrationProfile(db, email, profile);
+    security.audit(db, 'register', { ip, email });
     if (skipVerify) {
-      const token = newToken();
-      db.tokens[token] = email;
+      const token = security.issueToken(db, email);
+      billing.syncOrgAccess(db, email);
       writeDb(db);
-      return send(res, 200, { token, user: publicUser(db.users[email]), needsVerification: false });
+      return apiSend( 200, {
+        token,
+        user: publicUser(db.users[email]),
+        needsVerification: false,
+        trialDays: billing.TRIAL_DAYS,
+        message: billing.TRIAL_DAYS + '-day free trial started — full access to all modules.',
+      });
     }
     writeDb(db);
     const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
     const mail = await sendVerificationEmail(db, email, base);
-    return send(res, 200, {
+    return apiSend( 200, {
       ok: true,
       needsVerification: true,
+      trialDays: billing.TRIAL_DAYS,
       message: notify.smtpConfigured()
-        ? 'Account created — check your email and click Verify to activate your account.'
-        : 'Account created — use the verification link below (email not configured on server).',
+        ? 'Account created — check your email and click Verify to activate your ' + billing.TRIAL_DAYS + '-day free trial.'
+        : 'Account created — use the verification link below (email not configured on server). Your ' + billing.TRIAL_DAYS + '-day free trial starts when you verify.',
       verifyUrl: mail.verifyUrl,
     });
   }
 
   // POST /api/verify-email
   if (route === '/verify-email' && req.method === 'POST') {
+    const rl = security.checkRateLimit(req, 'verify');
+    if (!rl.ok) return apiSend(429, { error: 'Too many attempts. Try again later.', code: 'rate_limited', retryAfter: rl.retryAfter });
     const verifyToken = body.token || '';
-    if (!verifyToken) return send(res, 400, { error: 'Verification token required' });
+    if (!verifyToken) return apiSend( 400, { error: 'Verification token required' });
     db.emailVerifications = db.emailVerifications || {};
     const entry = db.emailVerifications[verifyToken];
     if (!entry || entry.expires < Date.now()) {
-      return send(res, 400, { error: 'Verification link expired or invalid — register again or resend link' });
+      return apiSend( 400, { error: 'Verification link expired or invalid — register again or resend link' });
     }
     const email = entry.email;
     const user = db.users[email];
-    if (!user) return send(res, 404, { error: 'Account not found' });
+    if (!user) return apiSend( 404, { error: 'Account not found' });
     user.emailVerified = true;
     delete db.emailVerifications[verifyToken];
-    const token = newToken();
-    db.tokens[token] = email;
+    billing.ensureTrial(user);
+    billing.syncOrgAccess(db, email);
+    const token = security.issueToken(db, email);
+    security.audit(db, 'email_verified', { ip, email });
     writeDb(db);
-    return send(res, 200, { ok: true, token, user: publicUser(user), message: 'Email verified — you are signed in' });
+    const trial = billing.getTrialInfo(user);
+    return apiSend( 200, {
+      ok: true,
+      token,
+      user: publicUser(user),
+      trial,
+      message: 'Email verified — your ' + billing.TRIAL_DAYS + '-day free trial is active',
+    });
   }
 
   // POST /api/resend-verification
   if (route === '/resend-verification' && req.method === 'POST') {
+    const rl = security.checkRateLimit(req, 'resend');
+    if (!rl.ok) return apiSend(429, { error: 'Too many requests. Try again later.', code: 'rate_limited', retryAfter: rl.retryAfter });
     const email = (body.email || '').toLowerCase().trim();
-    if (!email) return send(res, 400, { error: 'Email required' });
+    if (!email) return apiSend( 400, { error: 'Email required' });
     const user = db.users[email];
     if (!user) {
-      return send(res, 200, { ok: true, message: 'If that email is registered, we sent a new verification link.' });
+      return apiSend( 200, { ok: true, message: 'If that email is registered, we sent a new verification link.' });
     }
     if (user.emailVerified !== false) {
-      return send(res, 200, { ok: true, message: 'This email is already verified — you can sign in.' });
+      return apiSend( 200, { ok: true, message: 'This email is already verified — you can sign in.' });
     }
     const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
     const mail = await sendVerificationEmail(db, email, base);
-    return send(res, 200, {
+    return apiSend( 200, {
       ok: true,
       message: notify.smtpConfigured()
         ? 'Verification email sent — check your inbox (and spam folder).'
@@ -365,16 +484,19 @@ async function handleApi(req, res, url) {
 
   // POST /api/forgot-password
   if (route === '/forgot-password' && req.method === 'POST') {
+    const rl = security.checkRateLimit(req, 'forgot');
+    if (!rl.ok) return apiSend(429, { error: 'Too many requests. Try again later.', code: 'rate_limited', retryAfter: rl.retryAfter });
     const email = (body.email || '').toLowerCase().trim();
-    if (!email) return send(res, 400, { error: 'Email required' });
+    if (!email) return apiSend( 400, { error: 'Email required' });
     const user = db.users[email];
     if (!user) {
-      return send(res, 200, {
+      return apiSend( 200, {
         ok: true,
-        message: 'No account found for that email. Try shyam_1@hotmail.co.uk or create a new account.',
+        message: 'If that email is registered, we sent a reset link.',
         emailSent: false,
       });
     }
+    security.audit(db, 'forgot_password', { ip, email });
     const resetToken = crypto.randomBytes(24).toString('hex');
     db.passwordResets = db.passwordResets || {};
     db.passwordResets[resetToken] = { email, expires: Date.now() + 3600000 };
@@ -392,7 +514,7 @@ async function handleApi(req, res, url) {
     };
     await notify.sendRawEmail(email, msg);
     const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
-    return send(res, 200, {
+    return apiSend( 200, {
       ok: true,
       emailSent: notify.smtpConfigured(),
       message: notify.smtpConfigured()
@@ -406,47 +528,92 @@ async function handleApi(req, res, url) {
   if (route === '/reset-password' && req.method === 'POST') {
     const resetToken = body.token || '';
     const password = body.password || '';
-    if (!resetToken || !password) return send(res, 400, { error: 'Token and new password required' });
-    if (password.length < 4) return send(res, 400, { error: 'Password must be at least 4 characters' });
+    if (!resetToken || !password) return apiSend( 400, { error: 'Token and new password required' });
     db.passwordResets = db.passwordResets || {};
     const entry = db.passwordResets[resetToken];
     if (!entry || entry.expires < Date.now()) {
-      return send(res, 400, { error: 'Reset link expired or invalid — request a new one' });
+      return apiSend( 400, { error: 'Reset link expired or invalid — request a new one' });
     }
     const email = entry.email;
-    if (!db.users[email]) return send(res, 404, { error: 'Account not found' });
+    if (!db.users[email]) return apiSend( 404, { error: 'Account not found' });
+    const pwCheckReset = security.validatePassword(password, email);
+    if (!pwCheckReset.ok) return apiSend(400, { error: pwCheckReset.error });
     db.users[email].pass = hashPassword(password);
+    security.clearLoginFailures(db.users[email]);
+    security.revokeAllTokens(db, email);
     delete db.passwordResets[resetToken];
+    security.audit(db, 'password_reset', { ip, email });
     writeDb(db);
-    return send(res, 200, { ok: true, message: 'Password updated — you can sign in now' });
+    return apiSend( 200, { ok: true, message: 'Password updated — sign in with your new password' });
+  }
+
+  // POST /api/change-password — sign-in user updates password (revokes other sessions)
+  if (route === '/change-password' && req.method === 'POST') {
+    const meEarly = userFromReq(db, req);
+    if (!meEarly) return apiSend(401, { error: 'Session expired — sign in again', code: 'session_expired' });
+    const current = body.currentPassword || '';
+    const newPw = body.newPassword || '';
+    if (!current || !newPw) return apiSend(400, { error: 'Current and new password required' });
+    if (!verifyPassword(current, meEarly.pass)) return apiSend(401, { error: 'Current password is incorrect' });
+    const pwCheckChg = security.validatePassword(newPw, meEarly.email);
+    if (!pwCheckChg.ok) return apiSend(400, { error: pwCheckChg.error });
+    meEarly.pass = hashPassword(newPw);
+    security.clearLoginFailures(meEarly);
+    security.revokeAllTokens(db, meEarly.email);
+    const token = security.issueToken(db, meEarly.email);
+    security.audit(db, 'password_change', { ip, email: meEarly.email });
+    writeDb(db);
+    return apiSend(200, { ok: true, token, message: 'Password updated — other devices signed out' });
   }
 
   // POST /api/login
   if (route === '/login' && req.method === 'POST') {
+    const rlLogin = security.checkRateLimit(req, 'login');
+    if (!rlLogin.ok) return apiSend(429, { error: 'Too many login attempts. Try again later.', code: 'rate_limited', retryAfter: rlLogin.retryAfter });
     const email = (body.email || '').toLowerCase().trim();
     const password = body.password || '';
-    if (!email) return send(res, 400, { error: 'Email required' });
-    if (!password) return send(res, 400, { error: 'Password required' });
+    if (!email) return apiSend( 400, { error: 'Email required' });
+    if (!password) return apiSend( 400, { error: 'Password required' });
     let user = db.users[email];
     if (DEMO_MODE) {
       if (!user) {
-        user = db.users[email] = { email, name: email.split('@')[0], pass: hashPassword(password), createdAt: new Date().toISOString() };
-      } else {
-        user.pass = hashPassword(password);
+        user = db.users[email] = { email, name: email.split('@')[0], pass: hashPassword(password), createdAt: new Date().toISOString(), emailVerified: true };
+        writeDb(db);
       }
     } else {
       if (!user || !verifyPassword(password, user.pass)) {
-        return send(res, 401, { error: 'Invalid email or password' });
+        if (user) {
+          security.recordFailedLogin(user);
+          security.audit(db, 'login_failed', { ip, email, detail: 'bad_password' });
+          writeDb(db);
+        }
+        return apiSend(401, { error: 'Invalid email or password', code: 'invalid_credentials' });
+      }
+      if (security.isLocked(user)) {
+        const mins = Math.ceil((user.lockUntil - Date.now()) / 60000);
+        return apiSend(423, { error: 'Account temporarily locked. Try again in ' + mins + ' minute(s).', code: 'account_locked', retryAfter: Math.ceil((user.lockUntil - Date.now()) / 1000) });
       }
       if (REQUIRE_EMAIL_VERIFY && user.emailVerified === false) {
-        return send(res, 403, {
+        return apiSend( 403, {
           error: 'Verify your email before signing in — check your inbox or resend the verification link.',
           code: 'email_not_verified',
         });
       }
+      if (!billing.canAccess(db, email)) {
+        return apiSend( 403, {
+          error: 'Your ' + billing.TRIAL_DAYS + '-day free trial has ended. Subscribe at kiteline.uk/pricing.html to continue.',
+          code: 'trial_expired',
+        });
+      }
     }
-    const token = newToken(); db.tokens[token] = email; writeDb(db);
-    return send(res, 200, { token, user: publicUser(user) });
+    security.clearLoginFailures(user);
+    billing.ensureTrial(user);
+    billing.syncOrgAccess(db, email);
+    const token = security.issueToken(db, email);
+    security.audit(db, 'login_success', { ip, email });
+    writeDb(db);
+    const trial = billing.getTrialInfo(user);
+    return apiSend( 200, { token, user: publicUser(user), trial, sessionDays: security.sessionDays() });
   }
 
   // POST /api/ingest — physical sensors / LoRaWAN gateways push live readings here.
@@ -455,9 +622,9 @@ async function handleApi(req, res, url) {
   //   { "readings":[ {sensorId,temp}, ... ] }
   if (route === '/ingest' && req.method === 'POST') {
     const key = req.headers['x-api-key'] || '';
-    if (key !== INGEST_KEY) return send(res, 401, { error: 'Invalid or missing x-api-key' });
+    if (key !== INGEST_KEY) return apiSend( 401, { error: 'Invalid or missing x-api-key' });
     if (!db.state || !Array.isArray(db.state.sensors)) {
-      return send(res, 409, { error: 'No kitchen state yet — open the app once so sensors exist.' });
+      return apiSend( 409, { error: 'No kitchen state yet — open the app once so sensors exist.' });
     }
     const readings = Array.isArray(body.readings) ? body.readings : [body];
     db.state.alerts = db.state.alerts || [];
@@ -478,7 +645,7 @@ async function handleApi(req, res, url) {
     db.state._updatedAt = new Date().toISOString();
     db.state._updatedBy = 'device';
     writeDb(db);
-    return send(res, 200, { ok: true, updated, unknown, notified: mail.length });
+    return apiSend( 200, { ok: true, updated, unknown, notified: mail.length });
   }
 
   // POST /api/maintenance/update — the repair/maintenance department (or an email-reply
@@ -486,29 +653,38 @@ async function handleApi(req, res, url) {
   //   { "ticketId":"mt2", "status":"In progress", "message":"Engineer en route", "by":"CoolFix", "ref":"CF-99" }
   if (route === '/maintenance/update' && req.method === 'POST') {
     const key = req.headers['x-api-key'] || '';
-    if (key !== INGEST_KEY) return send(res, 401, { error: 'Invalid or missing x-api-key' });
-    if (!db.state || !Array.isArray(db.state.maintenance)) return send(res, 409, { error: 'No tickets yet.' });
+    if (key !== INGEST_KEY) return apiSend( 401, { error: 'Invalid or missing x-api-key' });
+    if (!db.state || !Array.isArray(db.state.maintenance)) return apiSend( 409, { error: 'No tickets yet.' });
     const t = db.state.maintenance.find(x => x.id === body.ticketId || (body.ref && x.ref === body.ref));
-    if (!t) return send(res, 404, { error: 'Ticket not found' });
+    if (!t) return apiSend( 404, { error: 'Ticket not found' });
     if (body.status) t.status = body.status;
     if (body.ref) t.ref = body.ref;
     if (body.message) t.thread.push({ at: new Date().toISOString(), by: body.by || t.dept || 'Maintenance', type: 'dept', body: String(body.message) });
     db.state._updatedAt = new Date().toISOString();
     db.state._updatedBy = 'dept';
     writeDb(db);
-    return send(res, 200, { ok: true, ticket: { id: t.id, status: t.status, messages: t.thread.length } });
+    return apiSend( 200, { ok: true, ticket: { id: t.id, status: t.status, messages: t.thread.length } });
   }
 
   // everything below requires auth
   const me = userFromReq(db, req);
-  if (!me) return send(res, 401, { error: 'Unauthorized' });
+  if (!me) return apiSend(401, { error: 'Session expired — sign in again', code: 'session_expired' });
 
-  if (route === '/me' && req.method === 'GET') return send(res, 200, { user: publicUser(me) });
+  if (route === '/me' && req.method === 'GET') {
+    billing.ensureTrial(me);
+    billing.syncOrgAccess(db, me.email);
+    writeDb(db);
+    return apiSend( 200, {
+      user: publicUser(me),
+      trial: billing.getTrialStatus(db, me.email),
+      access: billing.canAccess(db, me.email),
+    });
+  }
 
   if (route === '/logout' && req.method === 'POST') {
     const token = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
     delete db.tokens[token]; writeDb(db);
-    return send(res, 200, { ok: true });
+    return apiSend( 200, { ok: true });
   }
 
   // Shared org state (cross-device, multi-user, last-write-wins)
@@ -525,7 +701,7 @@ async function handleApi(req, res, url) {
         writeDb(db);
       }
     }
-    return send(res, 200, { state: db.state });
+    return apiSend( 200, { state: db.state });
   }
   if (route === '/state' && req.method === 'PUT') {
     const prevState = db.state ? JSON.parse(JSON.stringify(db.state)) : null;
@@ -535,82 +711,140 @@ async function handleApi(req, res, url) {
     db.state._updatedAt = new Date().toISOString();
     db.state._updatedBy = me.email;
     writeDb(db);
-    return send(res, 200, { ok: true, _updatedAt: db.state._updatedAt, notified: mail });
+    return apiSend( 200, { ok: true, _updatedAt: db.state._updatedAt, notified: mail });
   }
 
   // POST /api/notify/test — send test email and/or SMS
   if (route === '/notify/test' && req.method === 'POST') {
-    if (!db.state) return send(res, 409, { error: 'No kitchen state yet' });
+    if (!db.state) return apiSend( 409, { error: 'No kitchen state yet' });
     const channel = (body.channel || 'email').toLowerCase();
     if (channel === 'sms') {
       const result = await notify.sendTestSms(db.state);
-      return send(res, 200, { ok: true, result });
+      return apiSend( 200, { ok: true, result });
     }
     if (channel === 'both') {
       const email = await notify.sendTestEmail(db.state);
       const sms = await notify.sendTestSms(db.state);
-      return send(res, 200, { ok: true, result: { email, sms } });
+      return apiSend( 200, { ok: true, result: { email, sms } });
     }
     const result = await notify.sendTestEmail(db.state);
-    return send(res, 200, { ok: true, result });
+    return apiSend( 200, { ok: true, result });
   }
 
   // GET /api/notify/status — which channels are configured (SMTP / Twilio)
   if (route === '/notify/status' && req.method === 'GET') {
-    return send(res, 200, notify.channelStatus());
+    return apiSend( 200, notify.channelStatus());
   }
 
   // GET /api/ingest/info — ingest URL + API key for sensor hardware setup (auth required)
   if (route === '/ingest/info' && req.method === 'GET') {
     const host = (process.env.APP_URL || '').replace(/\/$/, '')
       || `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost:4001'}`;
-    return send(res, 200, {
+    const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+    const isOwner = me.email.toLowerCase() === ownerEmail;
+    const demoKey = INGEST_KEY === 'kiteline-demo-key';
+    return apiSend(200, {
       ingestUrl: `${host}/api/ingest`,
-      apiKey: INGEST_KEY,
-      demoKey: INGEST_KEY === 'kiteline-demo-key',
+      apiKey: isOwner ? INGEST_KEY : security.maskSecret(INGEST_KEY, 4),
+      demoKey,
+      keyWarning: demoKey ? 'Set INGEST_KEY on the server — default key is not safe for production.' : null,
     });
+  }
+
+  // GET /api/security/status — session and password policy for signed-in users
+  if (route === '/security/status' && req.method === 'GET') {
+    const token = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '').trim();
+    const entry = db.tokens[token];
+    const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+    const isOwner = me.email.toLowerCase() === ownerEmail;
+    return apiSend(200, {
+      sessionExpiresAt: entry && entry.expiresAt ? new Date(entry.expiresAt).toISOString() : null,
+      sessionDays: security.sessionDays(),
+      passwordMinLength: 10,
+      passwordRequiresNumber: true,
+      maxLoginAttempts: security.MAX_FAILED,
+      lockoutMinutes: Math.round(security.LOCKOUT_MS / 60000),
+      accountLocked: security.isLocked(me),
+      ingestKeySecure: INGEST_KEY !== 'kiteline-demo-key',
+      demoKey: INGEST_KEY === 'kiteline-demo-key',
+      rateLimitEnabled: true,
+      emailVerification: REQUIRE_EMAIL_VERIFY,
+      isOwner,
+    });
+  }
+
+  // GET /api/security/audit — owner-only recent auth events
+  if (route === '/security/audit' && req.method === 'GET') {
+    const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+    if (me.email.toLowerCase() !== ownerEmail) return apiSend(403, { error: 'Owner only' });
+    return apiSend(200, { entries: (db.auditLog || []).slice(0, 50) });
+  }
+
+  // GET /api/registrations — owner-only new signups
+  if (route === '/registrations' && req.method === 'GET') {
+    const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+    if (me.email.toLowerCase() !== ownerEmail) return apiSend(403, { error: 'Owner only' });
+    return apiSend(200, { entries: (db.registrations || []).slice(0, 50) });
   }
 
   // GET /api/waitlist — owner-only full list (see who wants to buy what)
   if (route === '/waitlist' && req.method === 'GET') {
     const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
-    if (me.email.toLowerCase() !== ownerEmail) return send(res, 403, { error: 'Owner only' });
+    if (me.email.toLowerCase() !== ownerEmail) return apiSend( 403, { error: 'Owner only' });
     const list = waitlist.read();
-    return send(res, 200, { entries: list, summary: waitlist.summary(list) });
+    return apiSend( 200, { entries: list, summary: waitlist.summary(list) });
   }
 
   // GET /api/billing/status — current user's subscription
   if (route === '/billing/status' && req.method === 'GET') {
+    billing.ensureTrial(me);
+    billing.syncOrgAccess(db, me.email);
+    writeDb(db);
     const sub = billing.getSubscription(db, me.email);
-    return send(res, 200, {
+    const teamCount = (db.state && db.state.team && db.state.team.length) || 0;
+    const maxUsers = billing.getUserLimit(db, me.email);
+    const trial = billing.getTrialStatus(db, me.email);
+    return apiSend( 200, {
       enabled: billing.isConfigured(),
+      plans: billing.planCatalog(),
+      teamCount,
+      maxUsers,
+      trial,
+      trialDays: billing.TRIAL_DAYS,
       subscription: sub || { status: 'none', plan: null },
     });
   }
 
   // POST /api/billing/portal — Stripe customer portal (manage/cancel)
   if (route === '/billing/portal' && req.method === 'POST') {
-    if (!billing.isConfigured()) return send(res, 503, { error: 'Billing not configured' });
+    if (!billing.isConfigured()) return apiSend( 503, { error: 'Billing not configured' });
     try {
       const result = await billing.createPortalSession(me.email, db);
-      return send(res, 200, result);
+      return apiSend( 200, result);
     } catch (e) {
-      return send(res, 400, { error: e.message || 'Portal failed' });
+      return apiSend( 400, { error: e.message || 'Portal failed' });
     }
   }
 
-  return send(res, 404, { error: 'Unknown API route' });
+  return apiSend( 404, { error: 'Unknown API route' });
 }
 
 /* ---------------- static + routing ---------------- */
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  if (req.method === 'OPTIONS') return send(res, 204, '');
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, security.securityHeaders({
+      'Access-Control-Allow-Origin': security.corsOrigin(req, isProd),
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    }));
+    return res.end();
+  }
 
   try {
     // Health check (for uptime monitors / load balancers)
     if (url.pathname === '/health' || url.pathname === '/api/health') {
-      return send(res, 200, { ok: true, service: 'kiteline', uptime: Math.round(process.uptime()), now: new Date().toISOString() });
+      return send(res, 200, { ok: true, service: 'kiteline', uptime: Math.round(process.uptime()), now: new Date().toISOString() }, null, req);
     }
 
     // Stripe webhook needs raw body (before JSON parser in handleApi)
@@ -619,7 +853,7 @@ const server = http.createServer(async (req, res) => {
       const sig = req.headers['stripe-signature'] || '';
       const db = readDb();
       const result = await billing.handleWebhook(raw, sig, db, writeDb);
-      return send(res, result.ok ? 200 : 400, result);
+      return send(res, result.ok ? 200 : 400, result, null, req);
     }
 
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
@@ -639,9 +873,9 @@ const server = http.createServer(async (req, res) => {
     let siteTarget = safeJoin(path.join(ROOT, 'site'), url.pathname);
     if (isExistingFile(siteTarget)) return serveFile(res, siteTarget);
 
-    return send(res, 404, { error: 'Not found' });
+    return send(res, 404, { error: 'Not found' }, null, req);
   } catch (e) {
-    return send(res, 500, { error: String(e && e.message || e) });
+    return send(res, 500, { error: String(e && e.message || e) }, null, req);
   }
 });
 

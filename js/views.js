@@ -11,6 +11,60 @@
     : st==='warn' ? '<span class="badge badge-amber">Near limit</span>'
     : '<span class="badge badge-green">In range</span>';
 
+  function employeeAppUrl(siteId, mode = 'register') {
+    const q = siteId ? '?site=' + encodeURIComponent(siteId) : '';
+    const hash = mode === 'login' ? '' : '#register';
+    return S.siteUrl('/app' + q + hash);
+  }
+
+  function mountQrIn(el, url, size = 200) {
+    if (!el || typeof QRCode === 'undefined') return;
+    el.innerHTML = '';
+    new QRCode(el, { text: url, width: size, height: size, colorDark: '#0f766e', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  }
+
+  function showEmployeeQrModal(siteId, siteName) {
+    const url = employeeAppUrl(siteId, 'register');
+    const name = siteName || S.site(siteId || S.db.currentSite).name;
+    modal('Staff QR — add Kiteline to phone', `
+      <div class="text-center space-y-4">
+        <p class="text-sm text-ink-500">Scan with a phone camera. Staff can create an account or sign in, then add Kiteline to their home screen.</p>
+        <div class="inline-block p-4 bg-white rounded-2xl border border-ink-200 shadow-sm" id="staffQrBox"></div>
+        <div class="text-sm font-semibold">${escapeHtml(name)}</div>
+        <div class="rounded-xl bg-ink-50 p-3 text-xs text-ink-600 text-left space-y-2">
+          <p><b>iPhone:</b> open link → Share → <b>Add to Home Screen</b></p>
+          <p><b>Android:</b> open link → menu → <b>Install app</b> or <b>Add to Home screen</b></p>
+        </div>
+        <div class="flex flex-wrap gap-2 justify-center">
+          <button class="btn btn-ghost btn-sm" id="staffQrCopy">Copy invite link</button>
+          <button class="btn btn-ghost btn-sm" id="staffQrPrint">${icon('print','ico')} Print poster</button>
+        </div>
+        <p class="text-xs text-ink-400 break-all">${escapeHtml(url)}</p>
+      </div>`, { wide: true });
+    mountQrIn(document.getElementById('staffQrBox'), url, 220);
+    document.getElementById('staffQrCopy').onclick = () => { navigator.clipboard.writeText(url); toast('Invite link copied'); };
+    document.getElementById('staffQrPrint').onclick = () => printStaffQrPoster(name, url);
+  }
+
+  function printStaffQrPoster(siteName, url) {
+    const w = window.open('', '_blank', 'width=520,height=720');
+    if (!w) return toast('Allow pop-ups to print', 'warn');
+    const safeUrl = url.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    w.document.write(`<!DOCTYPE html><html><head><title>Kiteline staff QR</title>
+      <style>body{font-family:system-ui;text-align:center;padding:24px}h1{font-size:22px;margin:0}.sub{color:#666;margin:8px 0 20px}
+      .box{display:inline-block;padding:16px;border:2px solid #0f766e;border-radius:16px}
+      ol{text-align:left;font-size:13px;color:#444;line-height:1.6;max-width:280px;margin:16px auto}</style></head><body>
+      <h1>Kiteline — staff app</h1>
+      <p class="sub">${escapeHtml(siteName)}</p>
+      <div class="box" id="q"></div>
+      <ol><li>Scan QR with your phone</li><li>Create account or sign in</li><li>Add Kiteline to your home screen</li></ol>
+      <p style="font-size:11px;color:#999">${escapeHtml(url)}</p>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+      <script>new QRCode(document.getElementById('q'),{text:'${safeUrl}',width:200,height:200,colorDark:'#0f766e'});setTimeout(function(){print();},500);<\/script>
+      </body></html>`);
+    w.document.close();
+  }
+
   const SENSOR_TYPES = [
     { v: 'fridge', label: 'Fridge / chilled', target: 4, min: 1, max: 5, standard: '0–5°C chilled (EC 852/2004)' },
     { v: 'freezer', label: 'Freezer', target: -18, min: -22, max: -16, standard: '≤-18°C frozen storage' },
@@ -647,6 +701,7 @@
           <div><b>Covers:</b> ${s.covers||'—'} · <b>Opened:</b> ${s.opened||'—'} · <b>Last EHO visit:</b> ${s.lastInspection||'—'}</div>
           <div><b>Email:</b> ${escapeHtml(s.email||'—')}</div>
         </div>
+        <button class="btn btn-ghost w-full btn-sm mb-2" data-staffqr="${s.id}">${icon('qr','ico')} Staff QR (scan to install)</button>
         <button class="btn ${s.id===S.db.currentSite?'btn-ghost':'btn-primary'} w-full btn-sm" data-switch="${s.id}">${s.id===S.db.currentSite?'Currently viewing':'Switch to site'}</button>
       </div>`;
     }).join('');
@@ -708,6 +763,7 @@
         });
       });
       document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>{ S.setSite(b.dataset.switch); toast('Switched site'); window.App.render(); });
+      document.querySelectorAll('[data-staffqr]').forEach(b => b.onclick = () => showEmployeeQrModal(b.dataset.staffqr, S.site(b.dataset.staffqr).name));
       document.querySelector('[data-act="addsite"]').onclick=()=>{
         modal('Add Site',`<div class="space-y-3"><input id="n" class="input" placeholder="Site name"><input id="c" class="input" placeholder="City"><button class="btn btn-primary w-full" id="s">Add site</button></div>`);
         document.getElementById('s').onclick=()=>{ const n=document.getElementById('n').value.trim(); if(!n)return toast('Enter a name','warn');
@@ -770,9 +826,32 @@
       <td><select class="select !w-auto !py-1 text-xs" data-acc="${m.id}">${['Admin','Manager','Staff'].map(a=>`<option ${accessOf(m)===a?'selected':''}>${a}</option>`).join('')}</select></td>
       <td class="text-xs text-ink-500">${escapeHtml(m.phone || '—')}</td>
       <td>${escapeHtml(S.site(m.siteId).name)}</td></tr>`).join('');
+    const curSite = S.site(S.db.currentSite);
+    const staffUrl = employeeAppUrl(S.db.currentSite, 'register');
+    const maxUsers = S.db.org.maxUsers;
+    const teamCount = S.db.team.length;
+    const limitNote = maxUsers
+      ? `<span class="badge ${teamCount >= maxUsers ? 'badge-amber' : 'badge-gray'}">${teamCount}/${maxUsers} users on plan</span>`
+      : '';
     const html = `
       ${sectionHeader('Team & Accountability','Track who did what and when — full audit trail', `
+        ${limitNote}
+        <button class="btn btn-ghost btn-sm" data-act="staffqr">${icon('qr','ico')} Staff QR</button>
         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add member</button>`)}
+      <div class="card card-pad mb-5 fade-in">
+        <div class="flex flex-wrap items-center gap-5">
+          <div id="teamQrInline" class="p-2 bg-white rounded-xl border border-ink-100 flex-none"></div>
+          <div class="flex-1 min-w-[200px]">
+            <h3 class="font-bold mb-1">Add Kiteline on staff phones</h3>
+            <p class="text-sm text-ink-500 mb-2">Staff scan this QR to open Kiteline, create an account, and add the app to their device. Post it in the kitchen or share at handover.</p>
+            <p class="text-xs text-ink-400 mb-3"><b>${escapeHtml(curSite.name)}</b> · <span class="break-all">${escapeHtml(staffUrl)}</span></p>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn btn-primary btn-sm" data-act="staffqr">${icon('qr','ico')} Full screen / print</button>
+              <button class="btn btn-ghost btn-sm" data-act="copystaffurl">Copy link</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card overflow-hidden lg:col-span-2">
           <table class="table"><thead><tr><th>Member</th><th>Job title</th><th>Access</th><th>Mobile (SMS)</th><th>Site</th></tr></thead><tbody>${rows}</tbody></table>
@@ -788,11 +867,20 @@
         </div>
       </div>`;
     return { title:'Team', html, mount() {
+      mountQrIn(document.getElementById('teamQrInline'), staffUrl, 120);
+      document.querySelectorAll('[data-act="staffqr"]').forEach(b => b.onclick = () => showEmployeeQrModal(S.db.currentSite, curSite.name));
+      const copyBtn = document.querySelector('[data-act="copystaffurl"]');
+      if (copyBtn) copyBtn.onclick = () => { navigator.clipboard.writeText(staffUrl); toast('Invite link copied'); };
       document.querySelectorAll('[data-acc]').forEach(sel=>sel.onchange=()=>{
         const m=S.db.team.find(x=>x.id===sel.dataset.acc); if(!m)return;
         m.access=sel.value; S.persist(); toast(m.name+' is now '+sel.value); window.App.render();
       });
       document.querySelector('[data-act="add"]').onclick=()=>{
+        const max = S.db.org.maxUsers;
+        if (max && S.db.team.length >= max) {
+          toast(`Your plan allows ${max} users. Upgrade in Settings or email shyam_1@hotmail.co.uk for a larger plan.`, 'warn');
+          return;
+        }
         modal('Add Team Member',`<div class="space-y-3">
           <input id="n" class="input" placeholder="Full name">
           <input id="e" class="input" placeholder="Email (their login)">
@@ -802,6 +890,8 @@
           <p class="text-xs text-ink-400">Admins get SMS alerts on all sites. Managers get SMS for their site only.</p>
           <button class="btn btn-primary w-full" id="s">Add member</button></div>`);
         document.getElementById('s').onclick=()=>{ const n=document.getElementById('n').value.trim(); if(!n)return toast('Enter a name','warn');
+          const max = S.db.org.maxUsers;
+          if (max && S.db.team.length >= max) { toast(`Plan limit: ${max} users`, 'warn'); return; }
           const initials=n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
           S.db.team.push({id:S.uid('u'),name:n,email:document.getElementById('e').value,phone:document.getElementById('ph').value.trim(),role:document.getElementById('r').value||'Staff',access:document.getElementById('a').value,siteId:S.db.currentSite,initials});
           S.persist(); closeModal(); window.App.render(); toast('Member added — they can now sign in'); };
@@ -2254,6 +2344,22 @@
         </div>
       </div>`;
 
+    const sessionTrial = window.App && window.App.trial;
+    const showTrialBanner = sessionTrial && sessionTrial.active && !sessionTrial.exempt;
+    const trialEnds = (sessionTrial && sessionTrial.endsAt) || db.org.trialEndsAt;
+    let trialBannerHtml = '';
+    if (showTrialBanner && trialEnds) {
+      const daysLeft = sessionTrial.daysLeft != null
+        ? sessionTrial.daysLeft
+        : Math.max(0, Math.ceil((new Date(trialEnds) - Date.now()) / 86400000));
+      const urgent = daysLeft <= 3;
+      trialBannerHtml = `<div class="card card-pad mb-5 flex flex-wrap items-center gap-3 border ${urgent ? 'border-amber-300 bg-amber-50' : 'border-brand-200 bg-brand-50'}">
+        ${icon('shield','w-5 h-5 text-brand-700')}
+        <div class="text-sm flex-1 min-w-[200px]"><b>Free trial</b> — ${daysLeft} day${daysLeft === 1 ? '' : 's'} left · up to ${db.org.maxUsers || 5} users.</div>
+        <a href="#settings" class="btn btn-primary btn-sm">Choose a plan</a>
+      </div>`;
+    }
+
     const html = `
       <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -2274,6 +2380,7 @@
       ${openAlerts?`<div class="card card-pad mb-5 flex items-center gap-3 border-l-4 border-red-500 bg-red-50">
         ${icon('alert','w-5 h-5 text-red-600')}<div class="text-sm"><b>${openAlerts} open alert(s)</b> at this site.</div>
         <button class="btn btn-ghost btn-sm ml-auto" data-go="alerts">View alerts</button></div>`:''}
+      ${trialBannerHtml}
       ${milestonesHtml}
 
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
@@ -3011,12 +3118,10 @@
         </div>
         <div class="card card-pad" id="billingCard">
           <h3 class="font-bold mb-1">Billing</h3>
-          <p class="text-sm text-ink-500 mb-3" id="billingLine">Checking subscription…</p>
-          <div class="flex flex-wrap gap-2">
-            <button class="btn btn-primary btn-sm hidden" id="billSolo" data-plan="solo">Subscribe Solo £9/mo</button>
-            <button class="btn btn-primary btn-sm hidden" id="billTeam" data-plan="team">Subscribe Team £19/mo</button>
-            <button class="btn btn-ghost btn-sm hidden" id="billPortal">Manage subscription</button>
-          </div>
+          <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription…</p>
+          <p class="text-xs text-ink-400 mb-3 hidden" id="billingTeamLine"></p>
+          <div class="flex flex-wrap gap-2" id="billingPlanBtns"></div>
+          <button class="btn btn-ghost btn-sm hidden mt-2" id="billPortal">Manage subscription</button>
           <p class="text-xs text-ink-400 mt-3" id="billingHint"></p>
         </div>
         <div class="card card-pad">
@@ -3028,6 +3133,21 @@
           <button class="btn btn-ghost btn-sm w-full mt-3" id="testemail">${icon('mail','ico')} Send test email</button>
           <button class="btn btn-ghost btn-sm w-full mt-2" id="testsms">${icon('mail','ico')} Send test SMS</button>
           <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup…</p>
+        </div>
+        <div class="card card-pad lg:col-span-2" id="staffQrCard">
+          <h3 class="font-bold mb-1">Staff QR — scan to install app</h3>
+          <p class="text-sm text-ink-500 mb-4">Print or display this QR so employees can open Kiteline on their phone and add it to their home screen. Links to <b>${escapeHtml(S.site(S.db.currentSite).name)}</b>.</p>
+          <div class="flex flex-wrap items-center gap-6">
+            <div id="settingsStaffQr" class="p-3 bg-white rounded-xl border border-ink-100"></div>
+            <div class="flex-1 min-w-[200px] space-y-2">
+              <p class="text-xs text-ink-500 break-all">${escapeHtml(employeeAppUrl(S.db.currentSite, 'register'))}</p>
+              <div class="flex flex-wrap gap-2">
+                <button class="btn btn-primary btn-sm" id="settingsStaffQrModal">${icon('qr','ico')} Full screen / print</button>
+                <button class="btn btn-ghost btn-sm" id="settingsStaffQrCopy">Copy link</button>
+              </div>
+              <p class="text-xs text-ink-400">Also on <b>Team</b> and each site card under <b>Sites</b>. Per-site QR codes use that kitchen’s link.</p>
+            </div>
+          </div>
         </div>
         <div class="card card-pad lg:col-span-2" id="iotCard">
           <h3 class="font-bold mb-1">Temperature sensors (IoT setup)</h3>
@@ -3058,9 +3178,17 @@
         </div>
         <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-1">Security &amp; account</h3>
-          <p class="text-sm text-ink-500 mb-4">Set a PIN so deletes and reset need your approval. Optional Face ID / fingerprint on phone.</p>
-          <div class="grid md:grid-cols-2 gap-4">
+          <p class="text-sm text-ink-500 mb-3" id="secServerLine">Checking server security…</p>
+          <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div class="rounded-xl border border-ink-100 p-3 bg-ink-50">
+              <p class="text-sm font-semibold mb-2">Change password</p>
+              <p class="text-xs text-ink-500 mb-2">Min 10 characters with letters and numbers. Signs out other devices.</p>
+              <input id="secCurPw" type="password" class="input mb-2" placeholder="Current password" autocomplete="current-password">
+              <input id="secNewPw" type="password" class="input mb-2" placeholder="New password" autocomplete="new-password">
+              <button class="btn btn-primary btn-sm w-full" id="secChangePw">Update password</button>
+            </div>
             <div>
+              <p class="text-sm font-medium mb-2">Device PIN (local)</p>
               <label class="label">New PIN (4–6 digits)</label>
               <input id="secNewPin" type="password" inputmode="numeric" maxlength="6" class="input mb-2" placeholder="••••" autocomplete="off">
               <label class="label">Confirm PIN</label>
@@ -3068,13 +3196,19 @@
               <button class="btn btn-primary btn-sm w-full" id="secSavePin">Save PIN</button>
               <p class="text-xs text-ink-400 mt-2" id="secPinStatus">No PIN set — required before any delete or reset.</p>
             </div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
             <div>
               <p class="text-sm font-medium mb-2">Biometric unlock</p>
-              <p class="text-xs text-ink-500 mb-3">Works on <b>kiteline.uk</b> and the public tunnel link on your phone (Face ID / fingerprint).</p>
+              <p class="text-xs text-ink-500 mb-3">Face ID / fingerprint on <b>kiteline.uk</b> (phone).</p>
               <button class="btn btn-ghost btn-sm w-full mb-2" id="secBioOn">${icon('shield','w-4 h-4')} Enable Face ID / Fingerprint</button>
               <button class="btn btn-ghost btn-sm w-full mb-3 hidden" id="secBioOff">Remove biometric</button>
               <p class="text-xs text-ink-400 mb-4" id="secBioStatus"></p>
-              <button class="btn btn-ghost btn-sm w-full" id="settingsLogout">${icon('logout','w-4 h-4')} Sign out</button>
+            </div>
+            <div>
+              <p class="text-sm font-medium mb-2">Session</p>
+              <p class="text-xs text-ink-500 mb-3" id="secSessionLine">—</p>
+              <button class="btn btn-ghost btn-sm w-full" id="settingsLogout">${icon('logout','w-4 h-4')} Sign out this device</button>
             </div>
           </div>
         </div>
@@ -3094,6 +3228,12 @@
         </div>
       </div>`;
     return { title:'Settings', html, mount() {
+      const staffInviteUrl = employeeAppUrl(S.db.currentSite, 'register');
+      mountQrIn(document.getElementById('settingsStaffQr'), staffInviteUrl, 160);
+      const sqm = document.getElementById('settingsStaffQrModal');
+      if (sqm) sqm.onclick = () => showEmployeeQrModal(S.db.currentSite, S.site(S.db.currentSite).name);
+      const sqc = document.getElementById('settingsStaffQrCopy');
+      if (sqc) sqc.onclick = () => { navigator.clipboard.writeText(staffInviteUrl); toast('Invite link copied'); };
       document.getElementById('saveorg').onclick=()=>{ o.name=document.getElementById('orgname').value; o.currency=document.getElementById('cur').value; S.persist(); toast('Settings saved'); window.App.render(); };
       document.querySelectorAll('[data-prod]').forEach(c=>c.onchange=()=>{ o.products[c.dataset.prod]=c.checked; S.persist(); window.App.render(); });
       document.querySelectorAll('[data-ch]').forEach(c=>c.onchange=()=>{ o.channels[c.dataset.ch]=c.checked; S.persist(); });
@@ -3156,9 +3296,11 @@
             const info = await window.Api.ingestInfo();
             if (iotUrl) iotUrl.textContent = info.ingestUrl || fallbackUrl;
             if (iotKey) iotKey.textContent = info.apiKey || '—';
-            if (iotKeyHint) iotKeyHint.textContent = info.demoKey
-              ? 'Demo key — set INGEST_KEY in server/.env before going live.'
-              : 'Custom key from server environment.';
+            if (iotKeyHint) {
+              if (info.keyWarning) iotKeyHint.textContent = info.keyWarning;
+              else if (info.demoKey) iotKeyHint.textContent = 'Using default sensor key — add INGEST_KEY on Render for production.';
+              else iotKeyHint.textContent = 'Custom sensor key configured on server.';
+            }
             if (iotStatus) iotStatus.textContent = 'Server ready — devices POST readings here every 1–5 minutes.';
             if (iotExample && siteSensors[0]) {
               iotExample.textContent = JSON.stringify({ sensorId: siteSensors[0].id, temp: 3.4, battery: 92 }, null, 2);
@@ -3180,9 +3322,9 @@
       if (cpIotUrl) cpIotUrl.onclick = () => { if (iotUrl && iotUrl.textContent !== '—') { navigator.clipboard.writeText(iotUrl.textContent); toast('Ingest URL copied'); } };
       if (cpIotKey) cpIotKey.onclick = () => { if (iotKey && iotKey.textContent !== '—') { navigator.clipboard.writeText(iotKey.textContent); toast('API key copied'); } };
       const billLine = document.getElementById('billingLine');
+      const billTeamLine = document.getElementById('billingTeamLine');
       const billHint = document.getElementById('billingHint');
-      const billSolo = document.getElementById('billSolo');
-      const billTeam = document.getElementById('billTeam');
+      const billPlanBtns = document.getElementById('billingPlanBtns');
       const billPortal = document.getElementById('billPortal');
       async function startCheckout(plan) {
         const email = (window.Api && window.Api.email()) || prompt('Your Kiteline email:', '') || '';
@@ -3193,8 +3335,16 @@
           else toast(r.error || 'Checkout failed', 'error');
         } catch (e) { toast(e.message || 'Checkout failed', 'error'); }
       }
-      if (billSolo) billSolo.onclick = () => startCheckout('solo');
-      if (billTeam) billTeam.onclick = () => startCheckout('team');
+      function renderPlanButtons(plans, active) {
+        if (!billPlanBtns || !plans || !plans.length) return;
+        billPlanBtns.innerHTML = plans.map(p => `
+          <button type="button" class="btn btn-primary btn-sm billing-plan-btn" data-plan="${escapeHtml(p.id)}">${escapeHtml(p.maxUsers)} users · ${escapeHtml(p.display)}</button>
+        `).join('');
+        billPlanBtns.querySelectorAll('.billing-plan-btn').forEach(btn => {
+          btn.onclick = () => startCheckout(btn.dataset.plan);
+        });
+        if (active) billPlanBtns.classList.add('hidden');
+      }
       if (billPortal) billPortal.onclick = async () => {
         billPortal.disabled = true;
         try {
@@ -3207,20 +3357,37 @@
       if (window.Api && S.remote && billLine) {
         window.Api.billingStatus().then(st => {
           const sub = st.subscription || {};
+          const trial = st.trial || {};
+          const plans = st.plans || [];
           if (!st.enabled) {
             billLine.textContent = 'Online checkout not configured — contact support for an invoice.';
             billHint.textContent = 'Add STRIPE_SECRET_KEY on the server to enable Subscribe buttons.';
+            renderPlanButtons(plans, false);
+            return;
+          }
+          if (trial.active && !trial.exempt) {
+            billLine.textContent = 'Free trial — ' + trial.daysLeft + ' day' + (trial.daysLeft === 1 ? '' : 's') + ' left (up to ' + (trial.maxUsers || st.maxUsers || 5) + ' users)';
+            if (billTeamLine) {
+              billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + (st.maxUsers || trial.maxUsers || 5) + ' during trial.';
+              billTeamLine.classList.remove('hidden');
+            }
+            billHint.textContent = 'Subscribe before trial ends to keep access. Pick a plan below.';
+            renderPlanButtons(plans, false);
             return;
           }
           if (sub.status === 'active') {
             billLine.textContent = 'Plan: ' + (sub.orgPlan || sub.plan || 'Active') + (sub.currentPeriodEnd ? ' · renews ' + fmt.date(sub.currentPeriodEnd) : '');
+            if (billTeamLine && st.maxUsers) {
+              billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + st.maxUsers + ' users on this plan.';
+              billTeamLine.classList.remove('hidden');
+            }
             billPortal.classList.remove('hidden');
-            billHint.textContent = 'Update card or cancel via Stripe customer portal.';
+            billHint.textContent = 'Need more users? Upgrade via Stripe portal or pick a larger plan below.';
+            renderPlanButtons(plans, false);
           } else {
-            billLine.textContent = 'No active subscription — choose a plan below.';
-            billSolo.classList.remove('hidden');
-            billTeam.classList.remove('hidden');
-            billHint.textContent = 'Use the same email you sign in with. Secure payment via Stripe.';
+            billLine.textContent = 'No active subscription — choose a plan by team size.';
+            renderPlanButtons(plans, false);
+            billHint.textContent = 'Price scales with users — larger teams get a lower per-user rate. Secure payment via Stripe.';
           }
         }).catch(() => { billLine.textContent = 'Sign in on the server to view billing.'; });
       } else if (billLine) billLine.textContent = 'Run npm start for billing.';
@@ -3256,6 +3423,34 @@
         window.Security.confirmDangerous('Reset demo data?', 'This wipes all kitchen data and restores the demo. PIN or biometric required.', () => {
           S.reset(); toast('Data reset'); window.App.render();
         });
+      };
+      const secLine = document.getElementById('secServerLine');
+      const secSession = document.getElementById('secSessionLine');
+      if (window.Api && S.remote && secLine) {
+        window.Api.securityStatus().then(st => {
+          if (st.isOwner) {
+            secLine.textContent = 'Your owner account — full access. Security: login lockout, rate limits, and session expiry are active for all users.';
+          } else {
+            const bits = ['Password rules enforced', 'Login lockout after ' + st.maxLoginAttempts + ' tries'];
+            if (!st.ingestKeySecure) bits.push('Add INGEST_KEY on Render (sensor security)');
+            secLine.textContent = bits.join(' · ');
+          }
+          if (secSession && st.sessionExpiresAt) secSession.textContent = 'This device session expires ' + fmt.date(st.sessionExpiresAt);
+        }).catch(() => { secLine.textContent = 'Sign in on the server for account security options.'; });
+      }
+      const chPw = document.getElementById('secChangePw');
+      if (chPw) chPw.onclick = async () => {
+        const cur = document.getElementById('secCurPw').value;
+        const neu = document.getElementById('secNewPw').value;
+        if (!cur || !neu) return toast('Enter current and new password', 'warn');
+        chPw.disabled = true;
+        try {
+          const r = await window.Api.changePassword(cur, neu);
+          document.getElementById('secCurPw').value = '';
+          document.getElementById('secNewPw').value = '';
+          toast(r.message || 'Password updated');
+        } catch (e) { toast(e.message || 'Could not update password', 'error'); }
+        chPw.disabled = false;
       };
       const pinStatus = document.getElementById('secPinStatus');
       const bioStatus = document.getElementById('secBioStatus');

@@ -30,7 +30,7 @@
     <h1 class="text-4xl lg:text-5xl font-black">Simple plans. No surprises.</h1>
     <p class="mt-4 text-white/75 max-w-2xl mx-auto">Kiteline is in early access. The software below is available to try in the app today. Sensor hardware and paid billing are rolling out with pilot kitchens — prices may change before general launch.</p>
     <div class="mt-5 flex flex-wrap gap-4 justify-center text-sm text-white/70">
-      <span>✓ Try the live demo free</span><span id="billingTag">✓ Subscribe online when Stripe is configured</span><span>✓ Cancel anytime</span>
+      <span>✓ 14-day free trial for new accounts</span><span id="billingTag">✓ Subscribe online when Stripe is configured</span><span>✓ Cancel anytime</span>
     </div>
   </section>
 
@@ -45,55 +45,35 @@
 
   <!-- SOFTWARE PLANS -->
   <section class="max-w-7xl mx-auto px-5 py-16">
-    <h2 class="text-2xl font-extrabold text-center mb-2">SafeServe — food safety software</h2>
-    <p class="text-center text-ink-500 mb-10 max-w-2xl mx-auto">Choose software only first. Add automated fridge sensors later when our hardware pilot opens in your area.</p>
-    <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-      <div class="rounded-2xl border border-ink-100 p-6 flex flex-col">
-        <span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Available now</span>
-        <h3 class="font-bold text-lg mt-2">SafeServe Solo</h3>
-        <p class="text-sm text-ink-500 mt-1">One site · one admin user</p>
-        <div class="text-3xl font-black mt-4">£9<span class="text-sm font-normal text-ink-400">/mo</span></div>
-        <p class="text-xs text-ink-400 mt-1">Early-access · cancel anytime</p>
+    <h2 class="text-2xl font-extrabold text-center mb-2">Kiteline — pay by team size</h2>
+    <p class="text-center text-ink-500 mb-2 max-w-2xl mx-auto">Clear monthly price for each tier. More users = better per-person rate. All modules included (SafeServe, MenuGuard, labels, waste).</p>
+    <p class="text-center text-sm text-brand-700 font-semibold mb-10">New accounts get <b>14 days free</b> — up to 5 users, all modules, no card required</p>
+    <div id="planGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <p class="text-center text-ink-400 col-span-full">Loading plans…</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8">
+      <div class="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 flex flex-col">
+        <span class="text-[10px] font-bold uppercase tracking-wide text-amber-800">50+ users</span>
+        <h3 class="font-bold text-lg mt-2">Enterprise &amp; multi-site</h3>
+        <p class="text-sm text-ink-500 mt-1">Hotels, groups, 50+ staff</p>
+        <div class="text-3xl font-black mt-4">Custom<span class="text-sm font-normal text-ink-400"> quote</span></div>
+        <p class="text-xs text-ink-500 mt-1">We apply volume discounts for large teams — e.g. 50 users at a lower per-person rate than smaller plans.</p>
         <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
-          <li>✓ Digital HACCP checklists</li>
-          <li>✓ Manual temperature logs</li>
-          <li>✓ Compliance reports & exports</li>
-          <li>✓ Email alerts (when SMTP set up)</li>
+          <li>✓ Tailored user count</li>
+          <li>✓ Multi-site roll-out</li>
+          <li>✓ Invoice or annual billing</li>
         </ul>
-        <div class="mt-5 space-y-2">
-          <button type="button" class="checkout-btn w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm" data-plan="solo">Subscribe — £9/mo</button>
-          <a href="/app" class="block text-center px-4 py-2 text-sm text-ink-500 hover:text-brand-700">Try free first</a>
-        </div>
-      </div>
-      <div class="rounded-2xl border-2 border-brand-300 p-6 flex flex-col relative">
-        <span class="absolute -top-3 left-6 text-[10px] font-bold bg-brand-600 text-white px-2 py-1 rounded-full">MOST POPULAR</span>
-        <span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Available now</span>
-        <h3 class="font-bold text-lg mt-2">SafeServe Team</h3>
-        <p class="text-sm text-ink-500 mt-1">One site · multiple staff roles</p>
-        <div class="text-3xl font-black mt-4">£19<span class="text-sm font-normal text-ink-400">/mo</span></div>
-        <p class="text-xs text-ink-400 mt-1">Early-access · cancel anytime</p>
-        <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
-          <li>✓ Everything in Solo</li>
-          <li>✓ Manager & staff permissions</li>
-          <li>✓ Live ops dashboard</li>
-          <li>✓ Multi-module access (MenuGuard, labels, etc.)</li>
-        </ul>
-        <div class="mt-5 space-y-2">
-          <button type="button" class="checkout-btn w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm" data-plan="team">Subscribe — £19/mo</button>
-          <a href="/app" class="block text-center px-4 py-2 text-sm text-ink-500 hover:text-brand-700">Try free first</a>
-        </div>
+        <a href="mailto:shyam_1@hotmail.co.uk?subject=Kiteline%20enterprise%20quote%20(50%2B%20users)" class="mt-5 text-center px-4 py-2.5 rounded-lg bg-ink-900 text-white font-semibold text-sm">Email for enterprise quote</a>
       </div>
       <div class="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 flex flex-col">
         <span class="text-[10px] font-bold uppercase tracking-wide text-amber-800">Sensor pilot</span>
         <h3 class="font-bold text-lg mt-2">SafeServe + Sensors</h3>
         <p class="text-sm text-ink-500 mt-1">Software + connected probes (when available)</p>
         <div class="text-3xl font-black mt-4">Quote<span class="text-sm font-normal text-ink-400">/site</span></div>
-        <p class="text-xs text-ink-500 mt-1">Hardware kit & install priced after site survey. We are testing compatible sensors before we publish a fixed price.</p>
+        <p class="text-xs text-ink-500 mt-1">Hardware kit priced after site survey.</p>
         <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
           <li>✓ Automated fridge/freezer readings</li>
-          <li>✓ Gateway + probes supplied by Kiteline</li>
           <li>✓ Out-of-range alerts to your team</li>
-          <li>○ Pilot kitchens only — join waitlist</li>
         </ul>
         <a href="hardware.html" class="mt-5 text-center px-4 py-2.5 rounded-lg bg-ink-900 text-white font-semibold text-sm">Register interest</a>
       </div>
@@ -133,14 +113,23 @@
 
   <!-- EXAMPLE BUNDLE -->
   <section class="max-w-3xl mx-auto px-5 py-16">
-    <h2 class="text-2xl font-extrabold text-center mb-2">Example early-access bundle</h2>
-    <p class="text-center text-ink-500 mb-8">Illustrative only — we will confirm your quote in writing before any paid subscription starts.</p>
+    <h2 class="text-2xl font-extrabold text-center mb-2">How per-user pricing works</h2>
+    <p class="text-center text-ink-500 mb-8">Pick the tier that matches your team. You can upgrade when you hire more staff.</p>
     <div class="rounded-2xl border-2 border-brand-200 p-8 bg-brand-50/30">
-      <h3 class="font-bold text-xl">Complete Kiteline (software)</h3>
-      <p class="text-sm text-ink-500 mt-1">SafeServe Team + MenuGuard + LabelSmart for one site</p>
-      <div class="text-3xl font-black mt-4">from £29<span class="text-sm font-normal text-ink-400">/mo</span></div>
-      <p class="text-sm text-ink-600 mt-4">Multi-site operators: contact us for a tailored quote. Discounts applied case-by-case during early access — not guaranteed at launch.</p>
-      <a href="mailto:shyam_1@hotmail.co.uk?subject=Kiteline%20early%20access%20quote" class="inline-block mt-6 px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm">Email for a quote</a>
+      <h3 class="font-bold text-xl">All modules included</h3>
+      <p class="text-sm text-ink-500 mt-1">SafeServe · MenuGuard · LabelSmart · WasteWise — one subscription per organisation</p>
+      <table class="w-full text-sm mt-6">
+        <thead><tr class="text-left text-ink-500 border-b border-ink-200"><th class="pb-2">Users</th><th class="pb-2">Monthly</th><th class="pb-2">Per user</th></tr></thead>
+        <tbody id="pricingTable" class="text-ink-700">
+          <tr><td class="py-2">1</td><td>£19</td><td>£19.00</td></tr>
+          <tr><td class="py-2">5</td><td>£40</td><td>£8.00</td></tr>
+          <tr><td class="py-2">10</td><td>£72</td><td>£7.20</td></tr>
+          <tr><td class="py-2">20</td><td>£130</td><td>£6.50</td></tr>
+          <tr><td class="py-2">50</td><td>£275</td><td>£5.50 <span class="text-brand-700 font-semibold">discount</span></td></tr>
+        </tbody>
+      </table>
+      <p class="text-sm text-ink-600 mt-4"><b>50+ users?</b> Email us for a custom quote — we discount large teams further.</p>
+      <a href="mailto:shyam_1@hotmail.co.uk?subject=Kiteline%20team%20pricing%20quote" class="inline-block mt-6 px-5 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm">Email for a quote</a>
     </div>
   </section>
 
@@ -148,8 +137,10 @@
   <section class="max-w-3xl mx-auto px-5 py-16 border-t border-ink-100">
     <h2 class="text-2xl font-extrabold text-center mb-8">Pricing FAQs</h2>
     <div class="space-y-3">
-      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can I pay on this website?</summary><p class="text-sm text-ink-500 mt-2">Yes — click <b>Subscribe</b> on Solo or Team to pay securely with Stripe (card). You can also try the app free first. If checkout is not live yet, email us for an invoice.</p></details>
-      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">What do I get for free today?</summary><p class="text-sm text-ink-500 mt-2">Full access to the demo environment to explore every module. For a private early-access workspace with your own data, contact us — we set that up manually during pilot.</p></details>
+      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Can I pay on this website?</summary><p class="text-sm text-ink-500 mt-2">Yes — pick your team size and click <b>Subscribe</b> to pay with Stripe (card). Try the app free first. If checkout is not live yet, email us for an invoice.</p></details>
+      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">What if I need more users later?</summary><p class="text-sm text-ink-500 mt-2">Upgrade to the next tier in Settings or on this pricing page. Your plan limits how many people you can add on Team — e.g. the 5-user plan allows up to 5 staff accounts.</p></details>
+      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Do you discount large teams?</summary><p class="text-sm text-ink-500 mt-2">Yes — the 50-user tier is priced lower per person than smaller plans. For 50+ users or multiple hotels, email us for an enterprise quote.</p></details>
+      <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Is there a free trial?</summary><p class="text-sm text-ink-500 mt-2">Yes — every new account gets <b>14 days free</b> with full access for up to <b>5 users</b>. No card needed to register. After 14 days, pick a paid plan to continue.</p></details>
       <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Do you sell temperature sensors now?</summary><p class="text-sm text-ink-500 mt-2">Not as a standard product yet. The app supports manual logging and simulated readings today. We are running a small hardware pilot to choose reliable probes and gateways before we publish fixed sensor pricing.</p></details>
       <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Are the prices final?</summary><p class="text-sm text-ink-500 mt-2">No. Figures on this page are guide prices for early access and may change before public launch. Your signed quote is the price that applies to you.</p></details>
       <details class="rounded-xl border border-ink-100 p-4"><summary class="font-semibold cursor-pointer">Is support included?</summary><p class="text-sm text-ink-500 mt-2">Yes — email support for early-access customers during UK business hours. Response times improve as we grow the team.</p></details>
@@ -163,8 +154,82 @@
   <script>
     (function () {
       let billingOn = false;
+      let plans = [];
+
+      function planCard(p) {
+        const popular = p.popular;
+        const discount = p.volumeDiscount ? '<span class="text-[10px] font-bold text-brand-700">Volume discount</span>' : '';
+        return `<div class="rounded-2xl ${popular ? 'border-2 border-brand-300' : 'border border-ink-100'} p-6 flex flex-col relative">
+          ${popular ? '<span class="absolute -top-3 left-6 text-[10px] font-bold bg-brand-600 text-white px-2 py-1 rounded-full">MOST POPULAR</span>' : ''}
+          <span class="text-[10px] font-bold uppercase tracking-wide text-brand-700">Up to ${p.maxUsers} users</span>
+          <h3 class="font-bold text-lg mt-2">${p.name}</h3>
+          <p class="text-sm text-ink-500 mt-1">${p.description || ''}</p>
+          <div class="text-3xl font-black mt-4">${p.display.replace('/mo', '')}<span class="text-sm font-normal text-ink-400">/mo</span></div>
+          <p class="text-xs text-ink-500 mt-1">${p.perUserDisplay} · cancel anytime</p>
+          ${discount ? '<p class="text-xs text-brand-700 font-semibold mt-1">' + discount + '</p>' : ''}
+          <ul class="mt-4 space-y-1.5 text-sm text-ink-600 flex-1">
+            <li>✓ Up to <b>${p.maxUsers}</b> team members</li>
+            <li>✓ HACCP, temps, reports</li>
+            <li>✓ MenuGuard, labels, waste</li>
+            <li>✓ Manager & staff roles</li>
+          </ul>
+          <div class="mt-5 space-y-2">
+            <button type="button" class="checkout-btn w-full px-4 py-2.5 rounded-lg bg-brand-600 text-white font-semibold text-sm" data-plan="${p.id}">Subscribe — ${p.display}</button>
+            <a href="/app" class="block text-center px-4 py-2 text-sm text-ink-500 hover:text-brand-700">Try free first</a>
+          </div>
+        </div>`;
+      }
+
+      function renderPlans() {
+        const grid = document.getElementById('planGrid');
+        const table = document.getElementById('pricingTable');
+        if (grid && plans.length) {
+          grid.innerHTML = plans.map(planCard).join('');
+          bindCheckoutButtons();
+        }
+        if (table && plans.length) {
+          table.innerHTML = plans.map(p => `<tr><td class="py-2">${p.maxUsers}</td><td>${p.display.replace('/mo', '')}</td><td>${p.perUserDisplay}${p.volumeDiscount ? ' <span class="text-brand-700 font-semibold">discount</span>' : ''}</td></tr>`).join('');
+        }
+      }
+
+      function bindCheckoutButtons() {
+        document.querySelectorAll('.checkout-btn').forEach(btn => {
+          btn.onclick = async () => {
+            const plan = btn.dataset.plan;
+            if (!billingOn) {
+              const p = plans.find(x => x.id === plan);
+              const label = p ? p.name : plan;
+              window.location.href = 'mailto:shyam_1@hotmail.co.uk?subject=Kiteline%20' + encodeURIComponent(label);
+              return;
+            }
+            let email = localStorage.getItem('kiteline.email') || '';
+            if (!email) email = prompt('Your email (use the same email you sign in to Kiteline with):', '') || '';
+            if (!email) return;
+            btn.disabled = true;
+            const old = btn.textContent;
+            btn.textContent = 'Opening checkout…';
+            try {
+              const res = await fetch('/api/billing/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan, email: email.trim() }),
+              });
+              const data = await res.json();
+              if (data.url) window.location.href = data.url;
+              else alert(data.error || 'Checkout unavailable — email shyam_1@hotmail.co.uk');
+            } catch (e) {
+              alert('Could not start checkout. Is the server running?');
+            }
+            btn.disabled = false;
+            btn.textContent = old;
+          };
+        });
+      }
+
       fetch('/api/billing/config').then(r => r.json()).then(cfg => {
         billingOn = !!cfg.enabled;
+        plans = cfg.plans || [];
+        renderPlans();
         if (!billingOn) {
           document.querySelectorAll('.checkout-btn').forEach(btn => {
             btn.textContent = 'Email for invoice';
@@ -175,36 +240,6 @@
           if (tag) tag.textContent = '✓ Invoice on request until Stripe is connected';
         }
       }).catch(() => {});
-
-      document.querySelectorAll('.checkout-btn').forEach(btn => {
-        btn.onclick = async () => {
-          const plan = btn.dataset.plan;
-          if (!billingOn) {
-            window.location.href = 'mailto:shyam_1@hotmail.co.uk?subject=Kiteline%20' + (plan === 'solo' ? 'Solo' : 'Team') + '%20subscription';
-            return;
-          }
-          let email = localStorage.getItem('kiteline.email') || '';
-          if (!email) email = prompt('Your email (use the same email you sign in to Kiteline with):', '') || '';
-          if (!email) return;
-          btn.disabled = true;
-          const old = btn.textContent;
-          btn.textContent = 'Opening checkout…';
-          try {
-            const res = await fetch('/api/billing/checkout', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ plan, email: email.trim() }),
-            });
-            const data = await res.json();
-            if (data.url) window.location.href = data.url;
-            else alert(data.error || 'Checkout unavailable — email shyam_1@hotmail.co.uk');
-          } catch (e) {
-            alert('Could not start checkout. Is the server running?');
-          }
-          btn.disabled = false;
-          btn.textContent = old;
-        };
-      });
 
       if (new URLSearchParams(location.search).get('checkout') === 'cancel') {
         const note = document.createElement('p');
