@@ -207,6 +207,8 @@
       if (path === 'register') return this.renderRegister();
       if (path === 'forgot-password') return this.renderForgotPassword();
       if (path.startsWith('reset-password')) return this.renderResetPassword();
+      if (path.startsWith('verify-email')) return this.renderVerifyEmail();
+      if (path === 'verify-pending') return this.renderVerifyPending();
       return this.renderLogin();
     },
 
@@ -267,6 +269,12 @@
             location.hash = 'home';
             toast('Signed in'); this.render();
           } catch (e) {
+            if (e.data && e.data.code === 'email_not_verified') {
+              sessionStorage.setItem('kiteline.pendingEmail', email);
+              location.hash = 'verify-pending';
+              this.renderVerifyPending();
+              return;
+            }
             toast((e.message || 'Login failed') + '. Try Forgot password or Create account.', 'error');
             btn.disabled = false; btn.textContent = 'Sign in';
           }
@@ -293,7 +301,8 @@
               <input id="email" class="input mb-4" placeholder="you@restaurant.com" autocomplete="username">
               <label class="label">Password</label>
               ${passwordField('pw', '', 'new-password')}
-              <p class="text-xs text-ink-400 mb-4">Tap <b>Show</b> to see what you typed. Minimum 4 characters.</p>
+              <p class="text-xs text-ink-400 mb-4">Tap <b>Show</b> to see what you typed. Minimum 8 characters.</p>
+              <p class="text-xs text-ink-400 mb-4">We will email you a verification link before you can sign in.</p>
               <button class="btn btn-primary w-full mb-3" id="register">Create account</button>
               <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Already have an account? Sign in</a></p>
             </div>
@@ -309,7 +318,19 @@
         if (!email || !pw) return toast('Email and password required', 'warn');
         btn.disabled = true; btn.textContent = 'Creating…';
         try {
-          await window.Api.register(email, pw, name);
+          const r = await window.Api.register(email, pw, name);
+          if (r.needsVerification) {
+            sessionStorage.setItem('kiteline.pendingEmail', email);
+            if (r.verifyUrl) {
+              modal('Verify your email', `<p class="text-sm text-ink-600 mb-3">${escapeHtml(r.message || 'Open this link to verify:')}</p>
+                <a href="${r.verifyUrl}" class="text-brand-600 font-semibold break-all">${escapeHtml(r.verifyUrl)}</a>`, { wide: true });
+            } else {
+              toast(r.message || 'Check your email to verify your account');
+            }
+            location.hash = 'verify-pending';
+            this.renderVerifyPending();
+            return;
+          }
           await S.hydrateFromServer();
           location.hash = 'home';
           toast('Account created'); this.render();
@@ -318,6 +339,72 @@
           btn.disabled = false; btn.textContent = 'Create account';
         }
       };
+    },
+
+    renderVerifyPending() {
+      const email = sessionStorage.getItem('kiteline.pendingEmail') || '';
+      document.getElementById('root').innerHTML = `
+        <div class="min-h-screen grid lg:grid-cols-2">
+          ${authSidePanel()}
+          <div class="flex items-center justify-center p-6">
+            <div class="w-full max-w-sm text-center">
+              <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
+              <h2 class="text-2xl font-extrabold">Verify your email</h2>
+              <p class="text-ink-500 mb-4">We sent a verification link to:</p>
+              <p class="font-semibold text-brand-700 mb-4">${escapeHtml(email || 'your email')}</p>
+              <p class="text-sm text-ink-500 mb-6">Open the email and click <b>Verify email address</b>. Check spam if you do not see it.</p>
+              <button class="btn btn-primary w-full mb-3" id="resendVerify">Resend verification email</button>
+              <p class="text-sm"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('backLogin').onclick = (e) => { e.preventDefault(); location.hash = ''; this.renderLogin(); };
+      document.getElementById('resendVerify').onclick = async () => {
+        const em = email || prompt('Enter your email');
+        if (!em) return toast('Enter your email', 'warn');
+        const btn = document.getElementById('resendVerify');
+        btn.disabled = true; btn.textContent = 'Sending…';
+        try {
+          const r = await window.Api.resendVerification(em);
+          if (r.verifyUrl) {
+            modal('Verification link', `<p class="text-sm text-ink-600 mb-3">${escapeHtml(r.message)}</p>
+              <a href="${r.verifyUrl}" class="text-brand-600 font-semibold break-all">${escapeHtml(r.verifyUrl)}</a>`, { wide: true });
+          } else toast(r.message || 'Verification email sent');
+        } catch (e) {
+          toast(e.message || 'Could not resend', 'error');
+        }
+        btn.disabled = false; btn.textContent = 'Resend verification email';
+      };
+    },
+
+    renderVerifyEmail() {
+      const hash = (location.hash || '').slice(1);
+      const token = (hash.split('token=')[1] || '').split('&')[0];
+      document.getElementById('root').innerHTML = `
+        <div class="min-h-screen grid lg:grid-cols-2">
+          ${authSidePanel()}
+          <div class="flex items-center justify-center p-6">
+            <div class="w-full max-w-sm text-center">
+              <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
+              <h2 class="text-2xl font-extrabold">Verifying…</h2>
+              <p class="text-ink-500 mt-4" id="verifyStatus">Please wait while we confirm your email.</p>
+            </div>
+          </div>
+        </div>`;
+      if (!token) {
+        document.getElementById('verifyStatus').textContent = 'Invalid link — register again or resend verification.';
+        return;
+      }
+      window.Api.verifyEmail(token).then(async (r) => {
+        sessionStorage.removeItem('kiteline.pendingEmail');
+        document.getElementById('verifyStatus').textContent = r.message || 'Email verified!';
+        toast('Email verified — welcome to Kiteline');
+        await S.hydrateFromServer();
+        setTimeout(() => { location.hash = 'home'; this.render(); }, 800);
+      }).catch((e) => {
+        document.getElementById('verifyStatus').textContent = e.message || 'Verification failed';
+        toast(e.message || 'Verification failed', 'error');
+      });
     },
 
     renderForgotPassword() {

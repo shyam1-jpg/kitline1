@@ -52,8 +52,26 @@
     },
     async register(email, password, name) {
       const data = await req('POST', '/register', { email, password, name });
-      setToken(data.token); setEmail((data.user && data.user.email) || email);
-      return data.user;
+      if (data.token) {
+        setToken(data.token);
+        setEmail((data.user && data.user.email) || email);
+      }
+      return data;
+    },
+    async verifyEmail(token) {
+      const data = await req('POST', '/verify-email', { token });
+      setToken(data.token);
+      setEmail((data.user && data.user.email) || '');
+      return data;
+    },
+    async resendVerification(email) {
+      return req('POST', '/resend-verification', { email });
+    },
+    async forgotPassword(email) {
+      return req('POST', '/forgot-password', { email });
+    },
+    async resetPassword(token, password) {
+      return req('POST', '/reset-password', { token, password });
     },
     async me() { return (await req('GET', '/me')).user; },
     async logout() { try { await req('POST', '/logout'); } catch {} setToken(null); setEmail(null); },

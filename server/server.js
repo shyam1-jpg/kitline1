@@ -98,6 +98,7 @@ function bootstrapProductionDb() {
     email: ownerEmail,
     name: process.env.OWNER_NAME || (db.users[ownerEmail] && db.users[ownerEmail].name) || 'Owner',
     pass: hashPassword(ownerPass),
+    emailVerified: true,
     createdAt: (db.users[ownerEmail] && db.users[ownerEmail].createdAt) || new Date().toISOString(),
   };
   writeDb(db);
@@ -131,6 +132,34 @@ function bootstrapDemoKitchen() {
   }
 }
 function newToken() { return crypto.randomBytes(24).toString('hex'); }
+
+const REQUIRE_EMAIL_VERIFY = process.env.REQUIRE_EMAIL_VERIFY !== 'false' && !DEMO_MODE;
+
+function publicUser(user) {
+  return { email: user.email, name: user.name, emailVerified: user.emailVerified !== false };
+}
+
+async function sendVerificationEmail(db, email, baseUrl) {
+  const verifyToken = crypto.randomBytes(24).toString('hex');
+  db.emailVerifications = db.emailVerifications || {};
+  db.emailVerifications[verifyToken] = { email, expires: Date.now() + 48 * 3600000 };
+  writeDb(db);
+  const verifyUrl = `${baseUrl}/app#verify-email?token=${verifyToken}`;
+  const msg = {
+    subject: 'Verify your Kiteline email',
+    text: `Welcome to Kiteline!\n\nVerify your email to activate your account:\n\n${verifyUrl}\n\nThis link expires in 48 hours.`,
+    html: `<div style="font-family:Inter,system-ui,sans-serif;max-width:520px">
+      <h2 style="color:#0d9488">Verify your Kiteline email</h2>
+      <p>Thanks for registering. Confirm your email to sign in and use your kitchen workspace.</p>
+      <p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#0d9488;color:#fff;font-weight:bold;border-radius:8px;text-decoration:none">Verify email address</a></p>
+      <p style="color:#64748b;font-size:13px">Or copy this link: ${verifyUrl}</p>
+      <p style="color:#64748b;font-size:13px">Link expires in 48 hours.</p>
+    </div>`,
+  };
+  await notify.sendRawEmail(email, msg);
+  const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.emailEnabled();
+  return { verifyUrl: showLink ? verifyUrl : undefined };
+}
 
 function userFromReq(db, req) {
   const auth = req.headers['authorization'] || '';
@@ -198,6 +227,7 @@ async function handleApi(req, res, url) {
     return send(res, 200, {
       demo: DEMO_MODE,
       register: ALLOW_REGISTER,
+      emailVerification: REQUIRE_EMAIL_VERIFY,
       billing: billing.isConfigured(),
       plans: billing.planCatalog(),
     });
@@ -241,11 +271,83 @@ async function handleApi(req, res, url) {
     if (!ALLOW_REGISTER) return send(res, 403, { error: 'Registration disabled' });
     const email = (body.email || '').toLowerCase().trim();
     if (!email || !body.password) return send(res, 400, { error: 'Email and password required' });
-    if (body.password.length < 4) return send(res, 400, { error: 'Password must be at least 4 characters' });
-    if (db.users[email]) return send(res, 409, { error: 'Account already exists — sign in or reset your password' });
-    db.users[email] = { email, name: body.name || email.split('@')[0], pass: hashPassword(body.password), createdAt: new Date().toISOString() };
-    const token = newToken(); db.tokens[token] = email; writeDb(db);
-    return send(res, 200, { token, user: { email, name: db.users[email].name } });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, 400, { error: 'Enter a valid email address' });
+    if (body.password.length < 8) return send(res, 400, { error: 'Password must be at least 8 characters' });
+    if (db.users[email]) {
+      const existing = db.users[email];
+      if (REQUIRE_EMAIL_VERIFY && existing.emailVerified === false) {
+        return send(res, 409, { error: 'Account exists but email not verified — check your inbox or resend the link.', code: 'email_not_verified' });
+      }
+      return send(res, 409, { error: 'Account already exists — sign in or reset your password' });
+    }
+    const name = (body.name || email.split('@')[0]).trim();
+    const skipVerify = DEMO_MODE || !REQUIRE_EMAIL_VERIFY;
+    db.users[email] = {
+      email,
+      name,
+      pass: hashPassword(body.password),
+      emailVerified: skipVerify,
+      createdAt: new Date().toISOString(),
+    };
+    if (skipVerify) {
+      const token = newToken();
+      db.tokens[token] = email;
+      writeDb(db);
+      return send(res, 200, { token, user: publicUser(db.users[email]), needsVerification: false });
+    }
+    writeDb(db);
+    const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
+    const mail = await sendVerificationEmail(db, email, base);
+    return send(res, 200, {
+      ok: true,
+      needsVerification: true,
+      message: notify.emailEnabled()
+        ? 'Account created — check your email and click Verify to activate your account.'
+        : 'Account created — use the verification link below (email not configured on server).',
+      verifyUrl: mail.verifyUrl,
+    });
+  }
+
+  // POST /api/verify-email
+  if (route === '/verify-email' && req.method === 'POST') {
+    const verifyToken = body.token || '';
+    if (!verifyToken) return send(res, 400, { error: 'Verification token required' });
+    db.emailVerifications = db.emailVerifications || {};
+    const entry = db.emailVerifications[verifyToken];
+    if (!entry || entry.expires < Date.now()) {
+      return send(res, 400, { error: 'Verification link expired or invalid — register again or resend link' });
+    }
+    const email = entry.email;
+    const user = db.users[email];
+    if (!user) return send(res, 404, { error: 'Account not found' });
+    user.emailVerified = true;
+    delete db.emailVerifications[verifyToken];
+    const token = newToken();
+    db.tokens[token] = email;
+    writeDb(db);
+    return send(res, 200, { ok: true, token, user: publicUser(user), message: 'Email verified — you are signed in' });
+  }
+
+  // POST /api/resend-verification
+  if (route === '/resend-verification' && req.method === 'POST') {
+    const email = (body.email || '').toLowerCase().trim();
+    if (!email) return send(res, 400, { error: 'Email required' });
+    const user = db.users[email];
+    if (!user) {
+      return send(res, 200, { ok: true, message: 'If that email is registered, we sent a new verification link.' });
+    }
+    if (user.emailVerified !== false) {
+      return send(res, 200, { ok: true, message: 'This email is already verified — you can sign in.' });
+    }
+    const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
+    const mail = await sendVerificationEmail(db, email, base);
+    return send(res, 200, {
+      ok: true,
+      message: notify.emailEnabled()
+        ? 'Verification email sent — check your inbox (and spam folder).'
+        : 'Use the verification link below.',
+      verifyUrl: mail.verifyUrl,
+    });
   }
 
   // POST /api/forgot-password
@@ -318,9 +420,15 @@ async function handleApi(req, res, url) {
       if (!user || !verifyPassword(password, user.pass)) {
         return send(res, 401, { error: 'Invalid email or password' });
       }
+      if (REQUIRE_EMAIL_VERIFY && user.emailVerified === false) {
+        return send(res, 403, {
+          error: 'Verify your email before signing in — check your inbox or resend the verification link.',
+          code: 'email_not_verified',
+        });
+      }
     }
     const token = newToken(); db.tokens[token] = email; writeDb(db);
-    return send(res, 200, { token, user: { email, name: user.name } });
+    return send(res, 200, { token, user: publicUser(user) });
   }
 
   // POST /api/ingest — physical sensors / LoRaWAN gateways push live readings here.
@@ -377,7 +485,7 @@ async function handleApi(req, res, url) {
   const me = userFromReq(db, req);
   if (!me) return send(res, 401, { error: 'Unauthorized' });
 
-  if (route === '/me' && req.method === 'GET') return send(res, 200, { user: { email: me.email, name: me.name } });
+  if (route === '/me' && req.method === 'GET') return send(res, 200, { user: publicUser(me) });
 
   if (route === '/logout' && req.method === 'POST') {
     const token = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '');
