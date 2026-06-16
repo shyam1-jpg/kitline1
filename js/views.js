@@ -3217,7 +3217,7 @@
           <p class="text-sm text-ink-500 mb-3">© 2026 Vedanta Way Ltd. Kiteline is a trading name. All rights reserved.</p>
           <div class="flex flex-wrap gap-3 text-sm">
             <a href="/contact.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Contact</a>
-            <a href="mailto:contact@kiteline.co.uk" class="text-brand-700 font-semibold">contact@kiteline.co.uk</a>
+            <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a>
             <a href="/terms.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Terms &amp; Conditions</a>
             <a href="/privacy.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Privacy Policy</a>
           </div>

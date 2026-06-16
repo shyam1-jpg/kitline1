@@ -336,7 +336,7 @@ async function handleApi(req, res, url) {
   // POST /api/billing/checkout — Stripe Checkout (email required)
   if (route === '/billing/checkout' && req.method === 'POST') {
     if (!billing.isConfigured()) {
-      return apiSend( 503, { error: 'Online checkout not configured yet — email contact@kiteline.co.uk for an invoice.' });
+      return apiSend( 503, { error: 'Online checkout not configured yet — email contact@kiteline.uk for an invoice.' });
     }
     try {
       const result = await billing.createCheckout({ plan: body.plan, email: body.email });
