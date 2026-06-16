@@ -157,9 +157,29 @@
       return (location.hash || '#home').slice(1) || 'home';
     },
 
+    normalizeAppHash() {
+      const h = location.hash || '';
+      if (h.startsWith('#/')) {
+        history.replaceState(null, '', location.pathname + '#' + h.slice(2));
+      }
+    },
+
+    authHashPath() {
+      let hash = (location.hash || '').slice(1);
+      if (hash.startsWith('/')) hash = hash.slice(1);
+      const q = hash.indexOf('?');
+      return q >= 0 ? hash.slice(0, q) : hash;
+    },
+
+    normalizeVerifyUrl(url) {
+      if (!url) return url;
+      return String(url).replace('/app#/', '/app#').replace(/^http:\/\//i, 'https://');
+    },
+
     authTokenFromUrl(param) {
       const key = param || 'token';
-      const hash = (location.hash || '').slice(1);
+      let hash = (location.hash || '').slice(1);
+      if (hash.startsWith('/')) hash = hash.slice(1);
       let token = '';
       const hashQ = hash.indexOf('?');
       if (hashQ >= 0) token = new URLSearchParams(hash.slice(hashQ)).get(key) || '';
@@ -183,6 +203,7 @@
     },
 
     async boot() {
+      this.normalizeAppHash();
       this.route = this.resolveRoute();
       this.saveInviteSiteFromUrl();
       window.addEventListener('hashchange', () => {
@@ -262,9 +283,7 @@
     },
 
     renderAuthScreen() {
-      const hash = (location.hash || '').slice(1);
-      const q = hash.indexOf('?');
-      const path = q >= 0 ? hash.slice(0, q) : hash;
+      const path = this.authHashPath();
       if (path === 'register') return this.renderRegister();
       if (path === 'forgot-password') return this.renderForgotPassword();
       if (path.startsWith('reset-password')) return this.renderResetPassword();
@@ -418,7 +437,7 @@
 
     renderVerifyPending() {
       const email = sessionStorage.getItem('kiteline.pendingEmail') || '';
-      const verifyUrl = sessionStorage.getItem('kiteline.pendingVerifyUrl') || '';
+      const verifyUrl = this.normalizeVerifyUrl(sessionStorage.getItem('kiteline.pendingVerifyUrl') || '');
       const serverMsg = sessionStorage.getItem('kiteline.pendingVerifyMsg') || '';
       const linkBlock = verifyUrl ? `
               <div class="rounded-xl border-2 border-brand-300 bg-brand-50 p-4 mb-4 text-left">
@@ -464,7 +483,7 @@
         try {
           const r = await window.Api.resendVerification(em);
           if (r.verifyUrl) {
-            sessionStorage.setItem('kiteline.pendingVerifyUrl', r.verifyUrl);
+            sessionStorage.setItem('kiteline.pendingVerifyUrl', this.normalizeVerifyUrl(r.verifyUrl));
             sessionStorage.setItem('kiteline.pendingEmail', em);
             this.renderVerifyPending();
             toast('New link ready — tap Verify my email now');
