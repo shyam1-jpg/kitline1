@@ -199,6 +199,8 @@
     skipEmailVerification() {
       return this.config && this.config.emailConfigured === false;
     },
+
+    authed() {
       if (S.remote && window.Api) return !!window.Api.token();
       return !!S.session();
     },
