@@ -6,10 +6,10 @@ const EXTRA_SITES = [
   {
     id: 'site_vedanta',
     name: 'Vedanta Kitchen',
-    legalName: 'Vedant Way Ltd',
+    legalName: 'Vedanta Way Ltd',
     city: 'London',
     timezone: 'Europe/London',
-    address: 'Vedant Way',
+    address: 'Vedanta Way',
     postcode: '—',
     country: 'UK',
     type: 'Kitchen',
@@ -114,7 +114,7 @@ function mkSensor(id, name, type, target, min, max, siteId, temp, extra) {
 }
 
 const EXTRA_SENSORS = [
-  mkSensor('s23', 'Walk-in Fridge — Vedanta', 'fridge', 4, 1, 5, 'site_vedanta', 3.4, { location: 'Vedanta Kitchen', zone: 'Main cold store', notes: 'Vedant Way Ltd — primary fridge' }),
+  mkSensor('s23', 'Walk-in Fridge — Vedanta', 'fridge', 4, 1, 5, 'site_vedanta', 3.4, { location: 'Vedanta Kitchen', zone: 'Main cold store', notes: 'Vedanta Way Ltd — primary fridge' }),
   mkSensor('s24', 'Prep Fridge — Vedanta', 'fridge', 4, 1, 5, 'site_vedanta', 4.0, { location: 'Prep line', zone: 'Daily prep' }),
   mkSensor('s25', 'Freezer — Vedanta', 'freezer', -18, -22, -16, 'site_vedanta', -18.2, { location: 'Cold store', zone: 'Frozen' }),
   mkSensor('s26', 'Hot Hold — Vedanta', 'hot', 70, 63, 90, 'site_vedanta', 72.5, { location: 'Service', zone: 'Hot hold' }),
@@ -125,7 +125,7 @@ const EXTRA_SENSORS = [
 ];
 
 const EXTRA_TEAM = [
-  { id: 'u_vedanta_mgr', name: 'Shyam Prasad', role: 'Owner — Vedant Way Ltd', email: 'shyam_1@hotmail.co.uk', phone: '', siteId: 'site_vedanta', initials: 'SP', access: 'Admin' },
+  { id: 'u_vedanta_mgr', name: 'Shyam Prasad', role: 'Owner — Vedanta Way Ltd', email: 'shyam_1@hotmail.co.uk', phone: '', siteId: 'site_vedanta', initials: 'SP', access: 'Admin' },
   { id: 'u_helen', name: 'Helen Croft', role: 'Head Chef', email: 'helen@kiteline.uk', siteId: 'site_regent', initials: 'HC', access: 'Manager' },
   { id: 'u_gordon', name: 'Gordon Reid', role: 'Executive Chef', email: 'gordon@kiteline.uk', siteId: 'site_manor', initials: 'GR', access: 'Manager' },
   { id: 'u_kate', name: 'Kate Morrison', role: 'Kitchen Manager', email: 'kate@kiteline.uk', siteId: 'site_coastal', initials: 'KM', access: 'Manager' },
@@ -176,7 +176,7 @@ function mergeExtraSites(state) {
   const shyam = state.team.find((m) => (m.email || '').toLowerCase() === 'shyam_1@hotmail.co.uk');
   if (shyam && shyam.siteId === 'site_grove' && state.sites.some((s) => s.id === 'site_vedanta')) {
     shyam.siteId = 'site_vedanta';
-    shyam.role = 'Owner — Vedant Way Ltd';
+    shyam.role = 'Owner — Vedanta Way Ltd';
     changed = true;
   }
 
@@ -186,6 +186,21 @@ function mergeExtraSites(state) {
     state.recipes.push(...clones);
     changed = true;
   }
+
+  const vedanta = state.sites.find((s) => s.id === 'site_vedanta');
+  if (vedanta) {
+    if (vedanta.legalName === 'Vedant Way Ltd' || !vedanta.legalName) {
+      vedanta.legalName = 'Vedanta Way Ltd';
+      changed = true;
+    }
+    if (vedanta.address === 'Vedant Way') vedanta.address = 'Vedanta Way';
+  }
+  state.team.forEach((m) => {
+    if ((m.role || '').includes('Vedant Way Ltd')) {
+      m.role = m.role.replace('Vedant Way Ltd', 'Vedanta Way Ltd');
+      changed = true;
+    }
+  });
 
   return changed;
 }
