@@ -177,7 +177,7 @@
       </div>
       <label class="flex items-start gap-2 text-sm cursor-pointer mb-4">
         <input type="checkbox" id="regTerms" class="w-4 h-4 mt-0.5 accent-brand-600" ${d.termsAccepted ? 'checked' : ''}>
-        <span>${t('reg.terms', 'I agree to Kiteline terms and understand food-safety data is stored securely for my organisation.')}</span>
+        <span>I agree to the <a href="/terms.html" target="_blank" rel="noopener" class="text-brand-600 font-semibold">Terms &amp; Conditions</a> and <a href="/privacy.html" target="_blank" rel="noopener" class="text-brand-600 font-semibold">Privacy Policy</a>. I understand food-safety data is stored securely for my organisation.</span>
       </label>`;
   }
 
@@ -265,6 +265,7 @@
         <div class="reg-step-body">${body}</div>
         <div class="flex gap-2 mt-6">${back}${next}</div>
         <p class="text-sm text-center mt-4"><a href="#" class="text-brand-600 font-semibold" id="regToLogin">${t('reg.haveAccount', 'Already have an account? Sign in')}</a></p>
+        ${authLegalFooter()}
       </div>`;
   }
 

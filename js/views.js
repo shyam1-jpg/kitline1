@@ -3213,6 +3213,14 @@
           </div>
         </div>
         <div class="card card-pad lg:col-span-2">
+          <h3 class="font-bold mb-2">Legal</h3>
+          <p class="text-sm text-ink-500 mb-3">© 2026 Vedanta Way Ltd. Kiteline is a trading name. All rights reserved.</p>
+          <div class="flex flex-wrap gap-3 text-sm">
+            <a href="/terms.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Terms &amp; Conditions</a>
+            <a href="/privacy.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Privacy Policy</a>
+          </div>
+        </div>
+        <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-2">Danger Zone</h3>
           <p class="text-sm text-ink-500 mb-3">Reset all demo data back to the seeded state. <b>PIN or biometric required.</b></p>
           <button class="btn btn-danger btn-sm" id="reset">Reset demo data</button>

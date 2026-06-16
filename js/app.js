@@ -81,6 +81,14 @@
     </div>`;
   }
 
+  function authLegalFooter() {
+    return `<p class="text-xs text-ink-400 text-center mt-6 leading-relaxed">
+      © 2026 Vedanta Way Ltd · Kiteline<br>
+      <a href="/terms.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Terms</a> ·
+      <a href="/privacy.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Privacy</a>
+    </p>`;
+  }
+
   const brandLogo = (size, light) =>
     `<div class="brand-lockup${size==='lg'?' brand-lockup--lg':''}${light?' brand-lockup--light':''}">
       <img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="36" height="36">
@@ -285,6 +293,7 @@
                 </div>
               </div>
               <p class="text-center text-ink-400 text-sm mt-4">Demo build — any credentials work.</p>` : ''}
+              ${authLegalFooter()}
             </div>
           </div>
         </div>`;
@@ -416,6 +425,7 @@
               ${linkBlock}
               <button class="btn btn-primary w-full mb-3" id="resendVerify">Resend verification link</button>
               <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
+              ${authLegalFooter()}
             </div>
           </div>
         </div>`;
@@ -491,6 +501,7 @@
               <input id="email" class="input mb-5" placeholder="you@restaurant.com" autocomplete="username">
               <button class="btn btn-primary w-full mb-3" id="sendReset">Send reset link</button>
               <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
+              ${authLegalFooter()}
             </div>
           </div>
         </div>`;
@@ -537,6 +548,7 @@
               <p class="text-xs text-ink-400 mb-4">Tap <b>Show</b> to see what you typed.</p>
               <button class="btn btn-primary w-full mb-3" id="savePw">Save password</button>
               <p class="text-sm text-center"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
+              ${authLegalFooter()}
             </div>
           </div>
         </div>`;
