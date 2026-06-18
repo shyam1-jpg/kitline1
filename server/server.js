@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-18-recipe-ai-billing';
+const APP_BUILD = '2026-06-18-recipe-ai-setup';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
@@ -411,6 +411,11 @@ async function handleApi(req, res, url) {
       trialMaxUsers: billing.TRIAL_MAX_USERS,
       recipeAi: recipeAiAccess.platformAvailable(),
       recipeAiAddon: recipeAiAccess.addonCatalog(),
+      recipeAiSetup: {
+        platformKey: recipeAiAccess.platformAvailable(),
+        stripe: billing.isConfigured(),
+        byokStorage: !!(process.env.INGEST_KEY || process.env.DATA_ENCRYPTION_KEY),
+      },
       build: APP_BUILD,
     });
   }

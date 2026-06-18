@@ -1,5 +1,5 @@
 /* Kiteline service worker — offline app shell caching */
-const CACHE = 'kiteline-v33';
+const CACHE = 'kiteline-v34';
 const ASSETS = [
   '/app',
   '/index.html',

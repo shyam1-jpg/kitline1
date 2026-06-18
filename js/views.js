@@ -3262,27 +3262,36 @@
           <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup…</p>
         </div>
         <div class="card card-pad lg:col-span-2" id="recipeAiCard">
-          <h3 class="font-bold mb-1">Recipe AI assistant</h3>
-          <p class="text-sm text-ink-500 mb-3" id="recipeAiLine">Checking…</p>
-          <p class="text-xs text-ink-400 mb-4" id="recipeAiUsage"></p>
-          <div class="grid md:grid-cols-2 gap-4">
+          <h3 class="font-bold mb-1">Recipe AI assistant — 3 ways to enable</h3>
+          <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking…</p>
+          <p class="text-xs text-ink-400 mb-3" id="recipeAiUsage"></p>
+          <div id="recipeAiServerBits" class="flex flex-wrap gap-2 mb-4 text-[10px] font-semibold uppercase tracking-wide"></div>
+          <div class="grid md:grid-cols-3 gap-4">
             <div class="rounded-xl border border-brand-200 bg-brand-50/50 p-4">
-              <p class="text-sm font-bold text-brand-900 mb-1">Option A — Kiteline Recipe AI</p>
-              <p class="text-xs text-ink-600 mb-3">Subscribe per company. Billed to <b>your business</b> (e.g. Vedanta), not shared with other kitchens.</p>
+              <p class="text-xs font-bold text-brand-800 mb-1">Option A</p>
+              <p class="text-sm font-bold text-brand-900 mb-1">Kiteline subscription</p>
+              <p class="text-xs text-ink-600 mb-3">Your company pays Kiteline monthly. AI runs on our server — <b>not charged to other customers</b>.</p>
               <button class="btn btn-primary btn-sm w-full" id="recipeAiSubscribe">Subscribe to Recipe AI</button>
+              <a href="mailto:contact@kiteline.uk?subject=Recipe%20AI%20subscription" class="btn btn-ghost btn-sm w-full mt-2 hidden" id="recipeAiSubscribeEmail">Email to subscribe</a>
               <p class="text-xs text-ink-400 mt-2" id="recipeAiPrice">—</p>
             </div>
             <div class="rounded-xl border border-ink-200 bg-ink-50 p-4">
-              <p class="text-sm font-bold mb-1">Option B — Your own OpenAI key</p>
-              <p class="text-xs text-ink-600 mb-2">OpenAI bills <b>your company</b> directly. Get a key at platform.openai.com</p>
+              <p class="text-xs font-bold text-ink-500 mb-1">Option B</p>
+              <p class="text-sm font-bold mb-1">Your own OpenAI key</p>
+              <p class="text-xs text-ink-600 mb-2">OpenAI bills <b>your company</b> directly at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="text-brand-700 font-semibold">platform.openai.com</a></p>
               <input id="recipeAiKey" type="password" class="input text-sm mb-2" placeholder="sk-…" autocomplete="off">
               <div class="flex gap-2">
                 <button class="btn btn-primary btn-sm flex-1" id="recipeAiSaveKey">Save key</button>
                 <button class="btn btn-ghost btn-sm" id="recipeAiRemoveKey">Remove</button>
               </div>
             </div>
+            <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-4" id="recipeAiOptionC">
+              <p class="text-xs font-bold text-amber-800 mb-1">Option C</p>
+              <p class="text-sm font-bold mb-1">Kiteline sets up for you</p>
+              <p class="text-xs text-ink-600 mb-3">Email <a href="mailto:contact@kiteline.uk?subject=Enable%20Recipe%20AI%20for%20my%20company" class="text-brand-700 font-semibold">contact@kiteline.uk</a> — we enable AI on your account (invoice separately).</p>
+              <p class="text-xs text-ink-500 hidden" id="recipeAiGrantHint">Owner: use the panel below to enable a customer instantly.</p>
+            </div>
           </div>
-          <p class="text-xs text-ink-400 mt-3">Need help? Email <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a> — we can enable AI for a customer manually.</p>
         </div>
         <div class="card card-pad lg:col-span-2 hidden" id="recipeAiGrantCard">
           <h3 class="font-bold mb-1">Owner — enable Recipe AI for a customer</h3>
@@ -3565,8 +3574,14 @@
         const usage = document.getElementById('recipeAiUsage');
         const price = document.getElementById('recipeAiPrice');
         const subBtn = document.getElementById('recipeAiSubscribe');
+        const subEmail = document.getElementById('recipeAiSubscribeEmail');
         if (!line) return;
-        line.textContent = st.message || '—';
+        if (st.enabled) {
+          const modeLabel = { byok: 'Active — Option B (your OpenAI key)', kiteline: 'Active — Option A (Kiteline subscription)', granted: 'Active — Option C (enabled by Kiteline)', owner: 'Active — owner platform key' }[st.mode] || 'Active';
+          line.innerHTML = '<span class="text-brand-700 font-semibold">' + modeLabel + '</span>';
+        } else {
+          line.textContent = st.message || 'Pick Option A, B, or C below.';
+        }
         if (usage && st.usage && st.limits && st.limits.text) {
           usage.textContent = 'This month: ' + (st.usage.text || 0) + ' / ' + st.limits.text + ' text · ' + (st.usage.image || 0) + ' / ' + st.limits.image + ' photos';
         } else if (usage && st.mode === 'byok') {
@@ -3574,11 +3589,33 @@
         } else if (usage) usage.textContent = '';
         if (price && st.addon) price.textContent = st.addon.display + ' per company · includes monthly AI limits';
         if (subBtn) {
-          subBtn.disabled = !!(st.enabled && st.mode !== 'none' && st.mode !== 'byok' && st.kitelineAddon);
-          if (st.kitelineAddon && st.enabled) subBtn.textContent = 'Recipe AI active';
+          const kitelineOn = st.enabled && (st.kitelineAddon || st.mode === 'granted' || st.mode === 'kiteline');
+          subBtn.disabled = !!kitelineOn;
+          subBtn.textContent = kitelineOn ? 'Recipe AI active (Option A/C)' : 'Subscribe to Recipe AI';
         }
       };
+      const paintRecipeAiSetup = (cfg) => {
+        const bits = document.getElementById('recipeAiServerBits');
+        const subBtn = document.getElementById('recipeAiSubscribe');
+        const subEmail = document.getElementById('recipeAiSubscribeEmail');
+        const setup = (cfg && cfg.recipeAiSetup) || {};
+        const addon = (cfg && cfg.recipeAiAddon) || {};
+        if (bits) {
+          bits.innerHTML = [
+            setup.platformKey ? '<span class="badge badge-green">Platform AI ready</span>' : '<span class="badge badge-amber">Platform AI off</span>',
+            setup.stripe ? '<span class="badge badge-green">Stripe checkout</span>' : '<span class="badge badge-gray">Stripe off — email to subscribe</span>',
+            setup.byokStorage ? '<span class="badge badge-green">BYOK storage OK</span>' : '<span class="badge badge-amber">BYOK needs INGEST_KEY</span>',
+          ].join('');
+        }
+        if (subBtn && subEmail && !setup.stripe) {
+          subBtn.classList.add('hidden');
+          subEmail.classList.remove('hidden');
+        }
+        const price = document.getElementById('recipeAiPrice');
+        if (price && addon.display) price.textContent = addon.display + ' per company · Option A';
+      };
       if (window.Api && S.remote) {
+        fetch('/api/config').then(r => r.json()).then(paintRecipeAiSetup).catch(() => {});
         window.Api.recipeAiStatus().then(paintRecipeAi).catch(() => {
           const line = document.getElementById('recipeAiLine');
           if (line) line.textContent = 'Sign in on kiteline.uk to manage Recipe AI.';
@@ -3657,7 +3694,9 @@
           if (st.isOwner) {
             secLine.textContent = 'Your owner account — full access. Security: login lockout, rate limits, and session expiry are active for all users.';
             const grantCard = document.getElementById('recipeAiGrantCard');
+            const grantHint = document.getElementById('recipeAiGrantHint');
             if (grantCard) grantCard.classList.remove('hidden');
+            if (grantHint) grantHint.classList.remove('hidden');
           } else {
             const bits = ['Password rules enforced', 'Login lockout after ' + st.maxLoginAttempts + ' tries'];
             if (!st.ingestKeySecure) bits.push('Add INGEST_KEY on Render (sensor security)');
