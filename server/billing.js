@@ -62,7 +62,9 @@ const PLAN_ALIASES = {
 const TRIAL_DAYS = Number(process.env.TRIAL_DAYS || 14);
 const TRIAL_MAX_USERS = Number(process.env.TRIAL_MAX_USERS || 5);
 
-const recipeAiAccess = require('./recipe-ai-access');
+function recipeAiAccess() {
+  return require('./recipe-ai-access');
+}
 
 function ownerEmail() {
   return (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
@@ -304,7 +306,7 @@ async function createCheckout({ plan, email }) {
 }
 
 async function createRecipeAiCheckout({ email }) {
-  const addon = recipeAiAccess.addonCatalog();
+  const addon = recipeAiAccess().addonCatalog();
   if (!isConfigured()) {
     throw new Error('Online checkout not configured — email contact@kiteline.uk to enable Recipe AI for your company.');
   }
@@ -315,10 +317,10 @@ async function createRecipeAiCheckout({ email }) {
     mode: 'subscription',
     'customer_email': em,
     'client_reference_id': em,
-    'metadata[plan]': recipeAiAccess.ADDON_ID,
+    'metadata[plan]': recipeAiAccess().ADDON_ID,
     'metadata[email]': em,
     'metadata[product]': 'recipe_ai',
-    'subscription_data[metadata][plan]': recipeAiAccess.ADDON_ID,
+    'subscription_data[metadata][plan]': recipeAiAccess().ADDON_ID,
     'subscription_data[metadata][email]': em,
     'subscription_data[metadata][product]': 'recipe_ai',
     'line_items[0][quantity]': '1',
@@ -330,7 +332,7 @@ async function createRecipeAiCheckout({ email }) {
     success_url: base + '/billing-success.html?session_id={CHECKOUT_SESSION_ID}&addon=recipe_ai',
     cancel_url: base + '/app#settings',
   });
-  return { url: session.url, sessionId: session.id, plan: recipeAiAccess.ADDON_ID };
+  return { url: session.url, sessionId: session.id, plan: recipeAiAccess().ADDON_ID };
 }
 
 async function createPortalSession(email, db) {
@@ -405,8 +407,8 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
     const session = event.data.object;
     const email = ((session.metadata && session.metadata.email) || session.customer_email || session.client_reference_id || '').toLowerCase();
     const plan = resolvePlanId((session.metadata && session.metadata.plan) || 'users_5');
-    if (email && session.subscription && plan === recipeAiAccess.ADDON_ID) {
-      recipeAiAccess.activateKitelineAddon(db, email, { subscriptionId: session.subscription });
+    if (email && session.subscription && plan === recipeAiAccess().ADDON_ID) {
+      recipeAiAccess().activateKitelineAddon(db, email, { subscriptionId: session.subscription });
       ensureSubscriptions(db);
       db.subscriptions[email] = Object.assign({}, db.subscriptions[email] || {}, {
         email,
@@ -443,11 +445,11 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
     let email = ((sub.metadata && sub.metadata.email) || '').toLowerCase();
     if (!email) email = findEmailByCustomer(db, sub.customer) || '';
     const metaPlan = sub.metadata && sub.metadata.plan;
-    if (email && metaPlan === recipeAiAccess.ADDON_ID) {
+    if (email && metaPlan === recipeAiAccess().ADDON_ID) {
       if (sub.status === 'active') {
-        recipeAiAccess.activateKitelineAddon(db, email, { subscriptionId: sub.id });
+        recipeAiAccess().activateKitelineAddon(db, email, { subscriptionId: sub.id });
       } else {
-        recipeAiAccess.deactivateKitelineAddon(db, email);
+        recipeAiAccess().deactivateKitelineAddon(db, email);
       }
       writeDb(db);
       console.log('[billing] Recipe AI subscription:', email, sub.status);
