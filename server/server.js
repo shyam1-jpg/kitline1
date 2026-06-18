@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-17-fix';
+const APP_BUILD = '2026-06-18-forgot';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
@@ -588,10 +588,14 @@ async function handleApi(req, res, url) {
     if (!email) return apiSend( 400, { error: 'Email required' });
     const user = db.users[email];
     if (!user) {
+      const smtpOn = notify.smtpConfigured();
       return apiSend( 200, {
         ok: true,
-        message: 'If that email is registered, we sent a reset link.',
+        message: smtpOn
+          ? 'If that email is registered, we sent a reset link — check inbox and spam.'
+          : 'No email is sent from Kiteline yet. If that address is registered, a reset link would appear on this page. If nothing appeared, check the spelling or create an account.',
         emailSent: false,
+        emailConfigured: smtpOn,
       });
     }
     security.audit(db, 'forgot_password', { ip, email });
