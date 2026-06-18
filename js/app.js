@@ -224,6 +224,11 @@
       this.saveInviteSiteFromUrl();
       window.addEventListener('hashchange', () => {
         if (!this.authed()) { this.renderAuthScreen(); return; }
+        const authPath = this.authHashPath();
+        if (authPath === 'register' || authPath === 'forgot-password' || authPath.startsWith('reset-password')) {
+          this.renderAuthScreen();
+          return;
+        }
         this.route = location.hash.slice(1) || 'home';
         this.render();
       });
@@ -250,6 +255,11 @@
       }
 
       if (S.remote && window.Api.token()) {
+        const authPath = this.authHashPath();
+        if (authPath === 'register' || authPath === 'forgot-password' || authPath.startsWith('reset-password')) {
+          this.renderAuthScreen();
+          return;
+        }
         try {
           const session = await window.Api.session();
           if (session && session.access === false) {

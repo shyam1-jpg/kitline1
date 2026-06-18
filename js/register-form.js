@@ -50,6 +50,15 @@
     return (window.UI && window.UI.escapeHtml) ? window.UI.escapeHtml(s) : String(s || '');
   }
 
+  function regLegalFooter() {
+    return `<p class="text-xs text-ink-400 text-center mt-6 leading-relaxed">
+      © 2026 Vedanta Way Ltd · Kiteline<br>
+      <a href="/contact.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Contact</a> ·
+      <a href="/terms.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Terms</a> ·
+      <a href="/privacy.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Privacy</a>
+    </p>`;
+  }
+
   function optList(items, key, selected) {
     return items.map(v => `<option value="${esc(v)}" ${selected === v ? 'selected' : ''}>${esc(v)}</option>`).join('');
   }
@@ -265,7 +274,7 @@
         <div class="reg-step-body">${body}</div>
         <div class="flex gap-2 mt-6">${back}${next}</div>
         <p class="text-sm text-center mt-4"><a href="#" class="text-brand-600 font-semibold" id="regToLogin">${t('reg.haveAccount', 'Already have an account? Sign in')}</a></p>
-        ${authLegalFooter()}
+        ${regLegalFooter()}
       </div>`;
   }
 
