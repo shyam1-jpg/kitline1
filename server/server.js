@@ -884,6 +884,25 @@ async function handleApi(req, res, url) {
     });
   }
 
+  // GET /api/backup — owner-only full database export (users, kitchen state, registrations)
+  if (route === '/backup' && req.method === 'GET') {
+    const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+    if (me.email.toLowerCase() !== ownerEmail) return apiSend(403, { error: 'Owner only' });
+    return apiSend(200, {
+      exportedAt: new Date().toISOString(),
+      service: 'kiteline',
+      build: APP_BUILD,
+      db: {
+        users: db.users,
+        subscriptions: db.subscriptions || {},
+        registrations: db.registrations || [],
+        state: db.state,
+        waitlist: waitlist.read(),
+        auditLog: (db.auditLog || []).slice(0, 200),
+      },
+    });
+  }
+
   // GET /api/security/audit — owner-only recent auth events
   if (route === '/security/audit' && req.method === 'GET') {
     const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();

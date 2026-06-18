@@ -104,6 +104,7 @@
     async recipeAiRemoveKey() { return req('PUT', '/recipe-ai/settings', { removeKey: true }); },
     async recipeAiCheckout() { return req('POST', '/recipe-ai/checkout', {}); },
     async recipeAiGrant(email, enable) { return req('POST', '/recipe-ai/grant', { email, enable }); },
+    async downloadBackup() { return req('GET', '/backup'); },
   };
 
   window.Api = Api;

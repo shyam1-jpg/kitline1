@@ -3395,6 +3395,12 @@
           <p class="text-sm text-ink-500 mb-3">Reset all demo data back to the seeded state. <b>PIN or biometric required.</b></p>
           <button class="btn btn-danger btn-sm" id="reset">Reset demo data</button>
         </div>
+        <div class="card card-pad lg:col-span-2 hidden" id="ownerBackupCard">
+          <h3 class="font-bold mb-1">Owner — download all data</h3>
+          <p class="text-sm text-ink-500 mb-3">Save users, registrations, and full kitchen state from the live server (JSON file).</p>
+          <button class="btn btn-primary btn-sm" id="ownerBackupBtn">${icon('download','ico')} Download backup JSON</button>
+          <p class="text-xs text-ink-400 mt-2">Keep this file safe — it is your cloud database copy. Local code backup: run SAVE-ALL-DATA.bat on your Desktop.</p>
+        </div>
         <div class="card card-pad lg:col-span-2 hidden" id="waitlistCard">
           <h3 class="font-bold mb-1">Hardware waitlist</h3>
           <p class="text-sm text-ink-500 mb-3">People who registered on <a href="/hardware.html" class="text-brand-700 font-semibold">kiteline.uk/hardware</a> — who wants sensors, printers, or labels. No payment taken yet.</p>
@@ -3697,6 +3703,8 @@
             const grantHint = document.getElementById('recipeAiGrantHint');
             if (grantCard) grantCard.classList.remove('hidden');
             if (grantHint) grantHint.classList.remove('hidden');
+            const backupCard = document.getElementById('ownerBackupCard');
+            if (backupCard) backupCard.classList.remove('hidden');
           } else {
             const bits = ['Password rules enforced', 'Login lockout after ' + st.maxLoginAttempts + ' tries'];
             if (!st.ingestKeySecure) bits.push('Add INGEST_KEY on Render (sensor security)');
@@ -3717,6 +3725,23 @@
       };
       if (grantOn) grantOn.onclick = () => runGrant(true);
       if (grantOff) grantOff.onclick = () => runGrant(false);
+      const backupBtn = document.getElementById('ownerBackupBtn');
+      if (backupBtn) backupBtn.onclick = async () => {
+        backupBtn.disabled = true;
+        backupBtn.textContent = 'Preparing…';
+        try {
+          const data = await window.Api.downloadBackup();
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'kiteline-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          toast('Backup downloaded');
+        } catch (e) { toast(e.message || 'Backup failed', 'error'); }
+        backupBtn.disabled = false;
+        backupBtn.innerHTML = `${icon('download','ico')} Download backup JSON`;
+      };
       const chPw = document.getElementById('secChangePw');
       if (chPw) chPw.onclick = async () => {
         const cur = document.getElementById('secCurPw').value;
