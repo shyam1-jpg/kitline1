@@ -1736,7 +1736,7 @@
               <textarea id="raiParseText" class="textarea text-sm" rows="2" placeholder="200g flour, 2 eggs, 100ml milk, pinch salt…"></textarea>
               <button type="button" class="btn btn-primary btn-sm" id="raiParse">Parse into ingredient lines</button>
             </div>
-            <p class="text-xs text-ink-500">AI fills ingredients, method, pro steps, and can create a hero photo. Sign in on the hosted app with AI enabled.</p>
+            <p class="text-xs text-ink-500">AI fills ingredients, method &amp; photos. Each company subscribes or uses their own OpenAI key — see <b>Settings → Recipe AI</b>.</p>
           </div>
           <div><label class="label">Food cost (${S.db.org.currency})</label><input id="rcost" type="number" step="0.1" class="input" value="${r.cost||0}"></div>
           <div>
@@ -1822,16 +1822,27 @@
       const withAi = async (btn, fn) => {
         const ai = window.RecipeAi;
         if (!ai) return toast('AI module not loaded', 'warn');
-        if (!(await ai.isConfigured())) return toast('Recipe AI not set up — add OPENAI_API_KEY on Render', 'warn');
+        const st = await ai.getStatus();
+        if (!st.enabled) {
+          return toast(st.message || 'Recipe AI not enabled — open Settings to subscribe or add your OpenAI key', 'warn');
+        }
         const label = btn.innerHTML;
         btn.disabled = true;
         btn.textContent = 'Working…';
         try { await fn(); } catch (e) { toast(e.message || 'AI failed', 'error'); }
         finally { btn.disabled = false; btn.innerHTML = label; }
       };
-      window.RecipeAi && window.RecipeAi.isConfigured().then((ok) => {
+      window.RecipeAi && window.RecipeAi.getStatus().then((st) => {
         const el = document.getElementById('raiStatus');
-        if (el) el.textContent = ok ? 'Ready' : 'Not configured on server';
+        if (!el) return;
+        if (st.enabled) {
+          const mode = st.mode === 'byok' ? 'Your OpenAI key' : st.mode === 'kiteline' ? 'Kiteline plan' : st.mode === 'granted' ? 'Enabled by Kiteline' : 'Ready';
+          el.textContent = mode;
+          el.className = 'text-xs text-brand-700 font-semibold';
+        } else {
+          el.textContent = 'Not enabled — Settings';
+          el.className = 'text-xs text-amber-700 font-semibold';
+        }
       });
       document.getElementById('raiParseToggle').onclick = () => {
         document.getElementById('raiParseWrap').classList.toggle('hidden');
@@ -3250,6 +3261,38 @@
           <button class="btn btn-ghost btn-sm w-full mt-2" id="testsms">${icon('mail','ico')} Send test SMS</button>
           <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup…</p>
         </div>
+        <div class="card card-pad lg:col-span-2" id="recipeAiCard">
+          <h3 class="font-bold mb-1">Recipe AI assistant</h3>
+          <p class="text-sm text-ink-500 mb-3" id="recipeAiLine">Checking…</p>
+          <p class="text-xs text-ink-400 mb-4" id="recipeAiUsage"></p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-xl border border-brand-200 bg-brand-50/50 p-4">
+              <p class="text-sm font-bold text-brand-900 mb-1">Option A — Kiteline Recipe AI</p>
+              <p class="text-xs text-ink-600 mb-3">Subscribe per company. Billed to <b>your business</b> (e.g. Vedanta), not shared with other kitchens.</p>
+              <button class="btn btn-primary btn-sm w-full" id="recipeAiSubscribe">Subscribe to Recipe AI</button>
+              <p class="text-xs text-ink-400 mt-2" id="recipeAiPrice">—</p>
+            </div>
+            <div class="rounded-xl border border-ink-200 bg-ink-50 p-4">
+              <p class="text-sm font-bold mb-1">Option B — Your own OpenAI key</p>
+              <p class="text-xs text-ink-600 mb-2">OpenAI bills <b>your company</b> directly. Get a key at platform.openai.com</p>
+              <input id="recipeAiKey" type="password" class="input text-sm mb-2" placeholder="sk-…" autocomplete="off">
+              <div class="flex gap-2">
+                <button class="btn btn-primary btn-sm flex-1" id="recipeAiSaveKey">Save key</button>
+                <button class="btn btn-ghost btn-sm" id="recipeAiRemoveKey">Remove</button>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-ink-400 mt-3">Need help? Email <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a> — we can enable AI for a customer manually.</p>
+        </div>
+        <div class="card card-pad lg:col-span-2 hidden" id="recipeAiGrantCard">
+          <h3 class="font-bold mb-1">Owner — enable Recipe AI for a customer</h3>
+          <p class="text-sm text-ink-500 mb-3">Turn on Kiteline-hosted AI for a registered company without Stripe (uses your platform OpenAI key).</p>
+          <div class="flex flex-wrap gap-2 max-w-xl">
+            <input id="recipeAiGrantEmail" class="input flex-1 min-w-[200px]" placeholder="customer@company.com">
+            <button class="btn btn-primary btn-sm" id="recipeAiGrantOn">Enable</button>
+            <button class="btn btn-ghost btn-sm" id="recipeAiGrantOff">Disable</button>
+          </div>
+        </div>
         <div class="card card-pad lg:col-span-2" id="staffQrCard">
           <h3 class="font-bold mb-1">Staff QR — scan to install app</h3>
           <p class="text-sm text-ink-500 mb-4">Print or display this QR so employees can open Kiteline on their phone and add it to their home screen. Links to <b>${escapeHtml(S.site(S.db.currentSite).name)}</b>.</p>
@@ -3517,6 +3560,63 @@
           }
         }).catch(() => { billLine.textContent = 'Sign in on the server to view billing.'; });
       } else if (billLine) billLine.textContent = 'Run npm start for billing.';
+      const paintRecipeAi = (st) => {
+        const line = document.getElementById('recipeAiLine');
+        const usage = document.getElementById('recipeAiUsage');
+        const price = document.getElementById('recipeAiPrice');
+        const subBtn = document.getElementById('recipeAiSubscribe');
+        if (!line) return;
+        line.textContent = st.message || '—';
+        if (usage && st.usage && st.limits && st.limits.text) {
+          usage.textContent = 'This month: ' + (st.usage.text || 0) + ' / ' + st.limits.text + ' text · ' + (st.usage.image || 0) + ' / ' + st.limits.image + ' photos';
+        } else if (usage && st.mode === 'byok') {
+          usage.textContent = st.keyHint ? 'Key on file: ' + st.keyHint : '';
+        } else if (usage) usage.textContent = '';
+        if (price && st.addon) price.textContent = st.addon.display + ' per company · includes monthly AI limits';
+        if (subBtn) {
+          subBtn.disabled = !!(st.enabled && st.mode !== 'none' && st.mode !== 'byok' && st.kitelineAddon);
+          if (st.kitelineAddon && st.enabled) subBtn.textContent = 'Recipe AI active';
+        }
+      };
+      if (window.Api && S.remote) {
+        window.Api.recipeAiStatus().then(paintRecipeAi).catch(() => {
+          const line = document.getElementById('recipeAiLine');
+          if (line) line.textContent = 'Sign in on kiteline.uk to manage Recipe AI.';
+        });
+        const subBtn = document.getElementById('recipeAiSubscribe');
+        if (subBtn) subBtn.onclick = async () => {
+          subBtn.disabled = true;
+          try {
+            const r = await window.Api.recipeAiCheckout();
+            if (r.url) location.href = r.url;
+            else toast('Checkout not available — email contact@kiteline.uk', 'warn');
+          } catch (e) {
+            toast(e.message || 'Checkout failed', 'error');
+          }
+          subBtn.disabled = false;
+        };
+        const saveKey = document.getElementById('recipeAiSaveKey');
+        if (saveKey) saveKey.onclick = async () => {
+          const key = document.getElementById('recipeAiKey').value.trim();
+          if (!key) return toast('Paste your OpenAI API key', 'warn');
+          saveKey.disabled = true;
+          try {
+            const r = await window.Api.recipeAiSaveKey(key);
+            document.getElementById('recipeAiKey').value = '';
+            paintRecipeAi(r.status);
+            toast(r.message || 'Key saved');
+          } catch (e) { toast(e.message || 'Could not save key', 'error'); }
+          saveKey.disabled = false;
+        };
+        const rmKey = document.getElementById('recipeAiRemoveKey');
+        if (rmKey) rmKey.onclick = async () => {
+          try {
+            const r = await window.Api.recipeAiRemoveKey();
+            paintRecipeAi(r.status);
+            toast('OpenAI key removed');
+          } catch (e) { toast(e.message || 'Could not remove key', 'error'); }
+        };
+      }
       const wlLabels = { 'sensor-kit':'Sensor kit', 'printer-bundle':'Printer bundle', 'label-rolls':'Label rolls', 'full-bundle':'Full bundle' };
       const wlCard = document.getElementById('waitlistCard');
       const wlBody = document.getElementById('waitlistBody');
@@ -3556,6 +3656,8 @@
         window.Api.securityStatus().then(st => {
           if (st.isOwner) {
             secLine.textContent = 'Your owner account — full access. Security: login lockout, rate limits, and session expiry are active for all users.';
+            const grantCard = document.getElementById('recipeAiGrantCard');
+            if (grantCard) grantCard.classList.remove('hidden');
           } else {
             const bits = ['Password rules enforced', 'Login lockout after ' + st.maxLoginAttempts + ' tries'];
             if (!st.ingestKeySecure) bits.push('Add INGEST_KEY on Render (sensor security)');
@@ -3564,6 +3666,18 @@
           if (secSession && st.sessionExpiresAt) secSession.textContent = 'This device session expires ' + fmt.date(st.sessionExpiresAt);
         }).catch(() => { secLine.textContent = 'Sign in on the server for account security options.'; });
       }
+      const grantOn = document.getElementById('recipeAiGrantOn');
+      const grantOff = document.getElementById('recipeAiGrantOff');
+      const runGrant = async (enable) => {
+        const em = document.getElementById('recipeAiGrantEmail') && document.getElementById('recipeAiGrantEmail').value.trim();
+        if (!em) return toast('Enter customer email', 'warn');
+        try {
+          await window.Api.recipeAiGrant(em, enable);
+          toast(enable ? 'Recipe AI enabled for ' + em : 'Recipe AI disabled for ' + em);
+        } catch (e) { toast(e.message || 'Grant failed', 'error'); }
+      };
+      if (grantOn) grantOn.onclick = () => runGrant(true);
+      if (grantOff) grantOff.onclick = () => runGrant(false);
       const chPw = document.getElementById('secChangePw');
       if (chPw) chPw.onclick = async () => {
         const cur = document.getElementById('secCurPw').value;

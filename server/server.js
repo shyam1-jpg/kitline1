@@ -27,13 +27,14 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-18-register';
+const APP_BUILD = '2026-06-18-recipe-ai-billing';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
 const security = require('./security');
 const recipeAi = require('./recipe-ai');
+const recipeAiAccess = require('./recipe-ai-access');
 const { mergeExtraSites } = require('./extra-sites');
 
 function ensureBreachAlerts(state) {
@@ -408,7 +409,8 @@ async function handleApi(req, res, url) {
       plans: billing.planCatalog(),
       trialDays: billing.TRIAL_DAYS,
       trialMaxUsers: billing.TRIAL_MAX_USERS,
-      recipeAi: recipeAi.configured(),
+      recipeAi: recipeAiAccess.platformAvailable(),
+      recipeAiAddon: recipeAiAccess.addonCatalog(),
       build: APP_BUILD,
     });
   }
@@ -930,32 +932,67 @@ async function handleApi(req, res, url) {
     }
   }
 
-  // POST /api/recipe-ai/* — AI ingredients, method, image (auth required)
+  // --- Recipe AI (per-company: Kiteline subscription, BYOK, or owner grant) ---
+  if (route === '/recipe-ai/status' && req.method === 'GET') {
+    return apiSend(200, recipeAiAccess.getStatus(db, me.email));
+  }
+  if (route === '/recipe-ai/settings' && req.method === 'PUT') {
+    try {
+      if (body.removeKey) {
+        const st = recipeAiAccess.removeOwnKey(db, me.email);
+        writeDb(db);
+        return apiSend(200, { ok: true, status: st });
+      }
+      if (body.openaiApiKey) {
+        const st = recipeAiAccess.saveOwnKey(db, me.email, body.openaiApiKey);
+        writeDb(db);
+        security.audit(db, 'recipe_ai_byok', { ip, email: me.email });
+        return apiSend(200, { ok: true, status: st, message: 'Your OpenAI key saved — OpenAI will bill your company directly.' });
+      }
+      return apiSend(400, { error: 'Send openaiApiKey or removeKey: true' });
+    } catch (e) {
+      return apiSend(400, { error: e.message || 'Could not save key' });
+    }
+  }
+  if (route === '/recipe-ai/checkout' && req.method === 'POST') {
+    try {
+      const result = await billing.createRecipeAiCheckout({ email: me.email });
+      return apiSend(200, result);
+    } catch (e) {
+      return apiSend(400, { error: e.message || 'Checkout failed' });
+    }
+  }
+  if (route === '/recipe-ai/grant' && req.method === 'POST') {
+    const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+    if (me.email.toLowerCase() !== ownerEmail) return apiSend(403, { error: 'Owner only' });
+    const target = (body.email || '').toLowerCase().trim();
+    if (!target) return apiSend(400, { error: 'Customer email required' });
+    try {
+      const st = recipeAiAccess.grantAccess(db, target, body.enable !== false);
+      security.audit(db, 'recipe_ai_grant', { ip, email: me.email, target, enable: body.enable !== false });
+      writeDb(db);
+      return apiSend(200, { ok: true, status: st });
+    } catch (e) {
+      return apiSend(400, { error: e.message || 'Grant failed' });
+    }
+  }
   if (route.startsWith('/recipe-ai/') && req.method === 'POST') {
     const rlAi = security.checkRateLimit(req, 'recipe-ai');
     if (!rlAi.ok) return apiSend(429, { error: 'Too many AI requests. Try again later.', code: 'rate_limited', retryAfter: rlAi.retryAfter });
-    if (!recipeAi.configured()) {
-      return apiSend(503, { error: 'Recipe AI is not configured yet — add OPENAI_API_KEY on the server.' });
-    }
     const action = route.replace(/^\/recipe-ai\//, '');
+    const access = recipeAiAccess.resolveAccess(db, me.email, action);
+    if (!access.ok) return apiSend(403, { error: access.error, status: access.status });
     try {
-      if (action === 'ingredients') {
-        const result = await recipeAi.suggestIngredients(body);
-        return apiSend(200, result);
-      }
-      if (action === 'parse-ingredients') {
-        const result = await recipeAi.parseIngredients(body);
-        return apiSend(200, result);
-      }
-      if (action === 'method') {
-        const result = await recipeAi.generateMethod(body);
-        return apiSend(200, result);
-      }
-      if (action === 'image') {
-        const result = await recipeAi.generateImage(body);
-        return apiSend(200, result);
-      }
-      return apiSend(404, { error: 'Unknown recipe AI action' });
+      let result;
+      if (action === 'ingredients') result = await recipeAi.suggestIngredients(body, access.apiKey);
+      else if (action === 'parse-ingredients') result = await recipeAi.parseIngredients(body, access.apiKey);
+      else if (action === 'method') result = await recipeAi.generateMethod(body, access.apiKey);
+      else if (action === 'image') result = await recipeAi.generateImage(body, access.apiKey);
+      else return apiSend(404, { error: 'Unknown recipe AI action' });
+      recipeAiAccess.recordUsage(db, me.email, action);
+      security.audit(db, 'recipe_ai_use', { ip, email: me.email, action, billTo: access.billTo });
+      writeDb(db);
+      return apiSend(200, result);
     } catch (e) {
       console.error('[recipe-ai]', action, e.message);
       return apiSend(400, { error: e.message || 'AI request failed' });

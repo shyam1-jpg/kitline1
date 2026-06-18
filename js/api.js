@@ -99,6 +99,11 @@
     async billingCheckout(plan, email) { return req('POST', '/billing/checkout', { plan, email }); },
     async billingPortal() { return req('POST', '/billing/portal', {}); },
     async recipeAi(action, body) { return req('POST', '/recipe-ai/' + action, body); },
+    async recipeAiStatus() { return req('GET', '/recipe-ai/status'); },
+    async recipeAiSaveKey(openaiApiKey) { return req('PUT', '/recipe-ai/settings', { openaiApiKey }); },
+    async recipeAiRemoveKey() { return req('PUT', '/recipe-ai/settings', { removeKey: true }); },
+    async recipeAiCheckout() { return req('POST', '/recipe-ai/checkout', {}); },
+    async recipeAiGrant(email, enable) { return req('POST', '/recipe-ai/grant', { email, enable }); },
   };
 
   window.Api = Api;

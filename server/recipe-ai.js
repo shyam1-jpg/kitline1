@@ -10,15 +10,22 @@ function configured() {
   return ENABLED && !!OPENAI_KEY;
 }
 
-async function openaiJson(messages) {
-  const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
+function clientOpts(apiKey) {
+  const key = (apiKey || OPENAI_KEY || '').trim();
+  if (!key) throw new Error('No OpenAI API key');
+  return { apiKey: key, base: OPENAI_BASE, chatModel: CHAT_MODEL, imageModel: IMAGE_MODEL };
+}
+
+async function openaiJson(messages, apiKey) {
+  const c = clientOpts(apiKey);
+  const res = await fetch(`${c.base}/chat/completions`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${OPENAI_KEY}`,
+      Authorization: `Bearer ${c.apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: CHAT_MODEL,
+      model: c.chatModel,
       messages,
       temperature: 0.65,
       response_format: { type: 'json_object' },
@@ -65,7 +72,8 @@ const SYSTEM = `You are a professional chef and food-safety expert helping UK co
 Use metric units (g, kg, ml, l, tsp, tbsp). Quantities must suit the requested servings.
 Return valid JSON only — no markdown.`;
 
-async function suggestIngredients({ name, category, servings, description }) {
+async function suggestIngredients(payload, apiKey) {
+  const { name, category, servings, description } = payload;
   const dish = String(name || '').trim();
   if (!dish) throw new Error('Recipe name required');
   const data = await openaiJson([
@@ -80,11 +88,12 @@ ${description ? `Notes: ${description}` : ''}
 
 Return JSON: {"ingredients":[{"name":"...","qty":"200","unit":"g","notes":""}]}`,
     },
-  ]);
+  ], apiKey);
   return { ingredients: normalizeIngredients(data.ingredients) };
 }
 
-async function parseIngredients({ text, name, servings }) {
+async function parseIngredients(payload, apiKey) {
+  const { text, name, servings } = payload;
   const blob = String(text || '').trim();
   if (!blob) throw new Error('Paste ingredient text first');
   const data = await openaiJson([
@@ -96,11 +105,12 @@ Text: ${blob}
 
 Return JSON: {"ingredients":[{"name":"...","qty":"...","unit":"g|kg|ml|l|tsp|tbsp|each|pinch","notes":""}]}`,
     },
-  ]);
+  ], apiKey);
   return { ingredients: normalizeIngredients(data.ingredients) };
 }
 
-async function generateMethod({ name, category, servings, ingredients, description }) {
+async function generateMethod(payload, apiKey) {
+  const { name, category, servings, ingredients, description } = payload;
   const dish = String(name || '').trim();
   if (!dish) throw new Error('Recipe name required');
   const lines = (ingredients || []).map((i) => {
@@ -130,7 +140,7 @@ Return JSON:
   "chefNotes": "scaling, seasoning, service tips"
 }`,
     },
-  ]);
+  ], apiKey);
   return {
     subtitle: String(data.subtitle || '').trim(),
     prepMins: Math.max(0, Math.round(Number(data.prepMins) || 0)),
@@ -149,18 +159,20 @@ async function fetchImageAsDataUrl(url) {
   return `data:${mime};base64,${buf.toString('base64')}`;
 }
 
-async function generateImage({ name, category, description }) {
+async function generateImage(payload, apiKey) {
+  const { name, category, description } = payload;
+  const c = clientOpts(apiKey);
   const dish = String(name || '').trim();
   if (!dish) throw new Error('Recipe name required');
   const prompt = `Professional food photography of "${dish}"${category ? ` (${category})` : ''}, plated beautifully for a high-end UK restaurant menu. Natural lighting, shallow depth of field, appetising, no text, no watermark, no people.${description ? ` Style: ${description}.` : ''}`;
-  const res = await fetch(`${OPENAI_BASE}/images/generations`, {
+  const res = await fetch(`${c.base}/images/generations`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${OPENAI_KEY}`,
+      Authorization: `Bearer ${c.apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: IMAGE_MODEL,
+      model: c.imageModel,
       prompt,
       n: 1,
       size: '1024x1024',

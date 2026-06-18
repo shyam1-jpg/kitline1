@@ -1,18 +1,25 @@
-/* Kiteline — AI recipe assistant (server-backed OpenAI) */
+/* Kiteline — AI recipe assistant (per-company billing or BYOK) */
 (function () {
   'use strict';
 
-  let configured = null;
+  let statusCache = null;
+
+  async function refreshStatus() {
+    if (!window.Api || !window.Api.token()) {
+      statusCache = { enabled: false, mode: 'none', message: 'Sign in to use AI recipe tools' };
+      return statusCache;
+    }
+    try {
+      statusCache = await window.Api.recipeAiStatus();
+    } catch {
+      statusCache = { enabled: false, mode: 'none', message: 'Could not load Recipe AI status' };
+    }
+    return statusCache;
+  }
 
   async function isConfigured() {
-    if (configured !== null) return configured;
-    try {
-      const cfg = await fetch('/api/config').then((r) => r.json());
-      configured = !!cfg.recipeAi;
-    } catch {
-      configured = false;
-    }
-    return configured;
+    const st = await refreshStatus();
+    return !!st.enabled;
   }
 
   async function call(action, body) {
@@ -23,7 +30,9 @@
   }
 
   window.RecipeAi = {
+    refreshStatus,
     isConfigured,
+    getStatus: refreshStatus,
     suggestIngredients: (payload) => call('ingredients', payload),
     parseIngredients: (payload) => call('parse-ingredients', payload),
     generateMethod: (payload) => call('method', payload),

@@ -62,6 +62,8 @@ const PLAN_ALIASES = {
 const TRIAL_DAYS = Number(process.env.TRIAL_DAYS || 14);
 const TRIAL_MAX_USERS = Number(process.env.TRIAL_MAX_USERS || 5);
 
+const recipeAiAccess = require('./recipe-ai-access');
+
 function ownerEmail() {
   return (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
 }
@@ -301,6 +303,36 @@ async function createCheckout({ plan, email }) {
   return { url: session.url, sessionId: session.id, plan: p.id };
 }
 
+async function createRecipeAiCheckout({ email }) {
+  const addon = recipeAiAccess.addonCatalog();
+  if (!isConfigured()) {
+    throw new Error('Online checkout not configured — email contact@kiteline.uk to enable Recipe AI for your company.');
+  }
+  const em = (email || '').toLowerCase().trim();
+  if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) throw new Error('Valid email required');
+  const base = appBaseUrl();
+  const session = await stripeRequest('/checkout/sessions', {
+    mode: 'subscription',
+    'customer_email': em,
+    'client_reference_id': em,
+    'metadata[plan]': recipeAiAccess.ADDON_ID,
+    'metadata[email]': em,
+    'metadata[product]': 'recipe_ai',
+    'subscription_data[metadata][plan]': recipeAiAccess.ADDON_ID,
+    'subscription_data[metadata][email]': em,
+    'subscription_data[metadata][product]': 'recipe_ai',
+    'line_items[0][quantity]': '1',
+    'line_items[0][price_data][currency]': addon.currency,
+    'line_items[0][price_data][unit_amount]': String(addon.amount),
+    'line_items[0][price_data][recurring][interval]': 'month',
+    'line_items[0][price_data][product_data][name]': addon.name,
+    'line_items[0][price_data][product_data][description]': addon.description,
+    success_url: base + '/billing-success.html?session_id={CHECKOUT_SESSION_ID}&addon=recipe_ai',
+    cancel_url: base + '/app#settings',
+  });
+  return { url: session.url, sessionId: session.id, plan: recipeAiAccess.ADDON_ID };
+}
+
 async function createPortalSession(email, db) {
   const sub = getSubscription(db, email);
   if (!sub || !sub.stripeCustomerId) throw new Error('No active Stripe customer — subscribe first');
@@ -373,7 +405,19 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
     const session = event.data.object;
     const email = ((session.metadata && session.metadata.email) || session.customer_email || session.client_reference_id || '').toLowerCase();
     const plan = resolvePlanId((session.metadata && session.metadata.plan) || 'users_5');
-    if (email && session.subscription) {
+    if (email && session.subscription && plan === recipeAiAccess.ADDON_ID) {
+      recipeAiAccess.activateKitelineAddon(db, email, { subscriptionId: session.subscription });
+      ensureSubscriptions(db);
+      db.subscriptions[email] = Object.assign({}, db.subscriptions[email] || {}, {
+        email,
+        recipeAiActive: true,
+        stripeCustomerId: session.customer,
+        recipeAiStripeSubscriptionId: session.subscription,
+        updatedAt: new Date().toISOString(),
+      });
+      writeDb(db);
+      console.log('[billing] Recipe AI subscribed:', email);
+    } else if (email && session.subscription) {
       let subObj = {
         plan,
         orgPlan: (PLANS[plan] || PLANS.users_5).orgPlan,
@@ -398,6 +442,17 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
     const sub = event.data.object;
     let email = ((sub.metadata && sub.metadata.email) || '').toLowerCase();
     if (!email) email = findEmailByCustomer(db, sub.customer) || '';
+    const metaPlan = sub.metadata && sub.metadata.plan;
+    if (email && metaPlan === recipeAiAccess.ADDON_ID) {
+      if (sub.status === 'active') {
+        recipeAiAccess.activateKitelineAddon(db, email, { subscriptionId: sub.id });
+      } else {
+        recipeAiAccess.deactivateKitelineAddon(db, email);
+      }
+      writeDb(db);
+      console.log('[billing] Recipe AI subscription:', email, sub.status);
+      return { ok: true, type: event.type };
+    }
     const plan = resolvePlanId(
       (sub.metadata && sub.metadata.plan) ||
         (email && getSubscription(db, email) && getSubscription(db, email).plan) ||
@@ -423,6 +478,7 @@ module.exports = {
   planCatalog,
   planById,
   createCheckout,
+  createRecipeAiCheckout,
   createPortalSession,
   getSubscription,
   getUserLimit,

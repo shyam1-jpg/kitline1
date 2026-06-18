@@ -46,6 +46,10 @@ services:
         value: "false"
       - key: OPENAI_API_KEY
         sync: false
+      - key: RECIPE_AI_ENABLED
+        sync: false
+      - key: RECIPE_AI_ADDON_GBP
+        value: "12"
       - key: OPENAI_MODEL
         value: gpt-4o-mini
       - key: OPENAI_IMAGE_MODEL
