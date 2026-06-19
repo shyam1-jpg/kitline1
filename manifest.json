@@ -1,0 +1,26 @@
+{
+  "name": "The Vedanta — Staff Rota",
+  "short_name": "Vedanta Rota",
+  "description": "Staff rota & scheduling for The Vedanta Retreat Centre",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F3EB",
+  "theme_color": "#1C1C1C",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en-GB"
+}
