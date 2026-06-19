@@ -56,5 +56,7 @@ services:
         value: dall-e-3
       - key: STRIPE_SECRET_KEY
         sync: false
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
+      - key: VEDANTA_REPORT_EMAIL
+        value: Operation@thevedanta.org
+      - key: VEDANTA_FB_PROJECT
+        value: the-vedanta

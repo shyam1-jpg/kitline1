@@ -27,9 +27,10 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-19-vedanta-rota';
+const APP_BUILD = '2026-06-19-vedanta-reports';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
+const vedantaReports = require('./vedanta-reports');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
 const security = require('./security');
@@ -342,6 +343,33 @@ async function handleApi(req, res, url) {
   const ip = security.clientIp(req);
   const route = url.pathname.replace(/^\/api/, '');
   const body = (req.method === 'POST' || req.method === 'PUT') ? await readBody(req) : {};
+
+  // GET /api/vedanta/reports/status — where data is stored + email schedule
+  if (route === '/vedanta/reports/status' && req.method === 'GET') {
+    return apiSend(200, {
+      appUrl: 'https://kiteline.uk/vedanta-rota/',
+      dataStore: 'Firebase Firestore (project: the-vedanta)',
+      collections: ['staff', 'rota', 'clock', 'leave_requests', 'audit_log', 'config'],
+      localBackup: 'Browser localStorage on each device (syncs to cloud when online)',
+      emailTo: vedantaReports.reportRecipients(),
+      schedule: {
+        weekly: 'Every Monday ~7:00 UK time',
+        monthly: '27th of each month ~7:00 UK time',
+      },
+      smtpConfigured: notify.smtpConfigured(),
+    }, null, req);
+  }
+
+  // POST /api/vedanta/reports/send — manual test (type: weekly|monthly)
+  if (route === '/vedanta/reports/send' && req.method === 'POST') {
+    const type = (body.type || 'weekly') === 'monthly' ? 'monthly' : 'weekly';
+    try {
+      const result = await vedantaReports.sendReport(type);
+      return apiSend(200, result, null, req);
+    } catch (e) {
+      return apiSend(500, { error: e.message || String(e) }, null, req);
+    }
+  }
 
   // GET /api/config — public app flags (demo UI, registration)
   if (route === '/config' && req.method === 'GET') {
@@ -1069,6 +1097,7 @@ const server = http.createServer(async (req, res) => {
 
 bootstrapDemoKitchen();
 bootstrapProductionDb();
+vedantaReports.startScheduler();
 
 // Listen on several ports locally; single PORT in production (Render, Railway, etc.)
 const envPorts = isProd ? [] : (process.env.PORTS || '').split(',').map(s => parseInt(s.trim(), 10)).filter(Boolean);

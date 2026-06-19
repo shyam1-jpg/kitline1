@@ -614,6 +614,7 @@ body.staff-mode .staff-portal-nav{display:flex}
       <button class="view-tab hidden-tab" onclick="setView('settings')" id="tab-settings">⚙ PIN Settings</button>
       <button class="view-tab" onclick="setView('hours')" id="tab-hours">⏱ Hours</button>
       <button class="view-tab hidden-tab" onclick="setView('clocks')" id="tab-clocks">🕐 Clock Board</button>
+      <button class="view-tab hidden-tab" onclick="setView('activity')" id="tab-activity">📋 Activity</button>
     </div>
 
     <div id="view-clock" style="display:none">
@@ -647,6 +648,12 @@ body.staff-mode .staff-portal-nav{display:flex}
     <div id="view-clocks" style="display:none">
       <div class="sect-title">Live Clock Board — Today</div>
       <div class="clock-board-grid" id="clockBoardGrid"></div>
+    </div>
+
+    <div id="view-activity" style="display:none">
+      <div class="sect-title">Login / Logout Activity</div>
+      <p style="font-size:.74rem;color:var(--charcoal-lite);margin:-6px 0 12px">Every staff and manager login, logout, clock in and clock out is recorded — synced to cloud for backup and email reports.</p>
+      <div id="activityLogList"></div>
     </div>
 
     <div id="view-week">
@@ -694,6 +701,21 @@ body.staff-mode .staff-portal-nav{display:flex}
     <div id="view-settings" style="display:none">
       <div class="sect-title">PIN Settings — Admin Only</div>
       <div class="info-box" style="margin-bottom:14px">
+        <h3>💾 Data &amp; Backup</h3>
+        <p><strong>Cloud (primary):</strong> Firebase Firestore project <em>the-vedanta</em> — staff, rotas, clock times, leave, PINs &amp; login activity sync from every phone, tablet and PC.</p>
+        <p><strong>Local:</strong> Each device also keeps a copy in browser storage (works offline, syncs when back online).</p>
+        <p><strong>Email backup:</strong> Automatic reports sent to <strong>Operation@thevedanta.org</strong></p>
+        <ul style="font-size:.72rem;margin:8px 0 0 18px;line-height:1.7">
+          <li>Weekly — every <strong>Monday ~7:00</strong> (UK)</li>
+          <li>Monthly — <strong>27th of each month ~7:00</strong> (UK)</li>
+        </ul>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button type="button" class="btn-save-pin" onclick="sendEmailReport('weekly')">📧 Send weekly report now</button>
+          <button type="button" class="btn-save-pin" onclick="sendEmailReport('monthly')">📧 Send monthly report now</button>
+        </div>
+        <p id="emailReportMsg" style="font-size:.7rem;margin-top:8px;color:var(--gold)"></p>
+      </div>
+      <div class="info-box" style="margin-bottom:14px">
         <h3>🔐 Department PINs</h3>
         <p>Each department manager uses their PIN to log in and access only their rota. The Admin PIN gives full access to all departments, staff management, and PIN settings.</p>
         <p><span class="info-tag">⚠️ PINs are stored on this device only. Share new PINs with managers in person.</span></p>
@@ -739,6 +761,7 @@ body.staff-mode .staff-portal-nav{display:flex}
   <button class="bnav-btn" onclick="setView('settings')"       id="bnav-settings" style="display:none"><span class="bicon">⚙️</span>PINs</button>
   <button class="bnav-btn" onclick="setView('hours')"          id="bnav-hours"><span class="bicon">⏱</span>Hours</button>
   <button class="bnav-btn" onclick="setView('clocks')"         id="bnav-clocks" style="display:none"><span class="bicon">🕐</span>Clocks</button>
+  <button class="bnav-btn" onclick="setView('activity')"       id="bnav-activity" style="display:none"><span class="bicon">📋</span>Activity</button>
 </nav>
 
 <nav class="staff-portal-nav" id="staffPortalNav">
@@ -843,6 +866,7 @@ const LS_ROTA='vedanta_rota_v3';
 const LS_PINS='vedanta_pins_v2';
 const LS_CLOCK='vedanta_clock_v1';
 const LS_LEAVE='vedanta_leave_v1';
+const LS_AUDIT='vedanta_audit_v1';
 
 // ════════════════════════════════════════════
 //  DEFAULT PINS
@@ -880,6 +904,66 @@ function staffDefaultPin(id){return String(1000+id).padStart(4,'0')}
 function getStaffPin(s){return(s&&/^\d{4}$/.test(String(s.pin||'')))?String(s.pin):staffDefaultPin(s.id)}
 function ensureStaffPins(){let ch=false;STAFF.forEach(s=>{if(!s.pin||!/^\d{4}$/.test(String(s.pin))){s.pin=staffDefaultPin(s.id);ch=true}});if(ch)ls_save(LS_STAFF,STAFF)}
 
+function auditActorName(){
+  if(session.role==='staff'){
+    const s=STAFF.find(x=>x.id===session.staffId);
+    return s?s.name:'Staff';
+  }
+  if(session.role==='admin')return 'Admin';
+  if(session.dept)return DEPTS[session.dept]?.name||'Manager';
+  return 'User';
+}
+
+function logAudit(action,detail){
+  if(!session.loggedIn&&!['login'].includes(action))return;
+  const entry={
+    id:'aud_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+    action,
+    detail:detail||'',
+    role:session.role||'',
+    staffId:session.staffId||null,
+    staffName:auditActorName(),
+    dept:session.dept||null,
+    at:new Date().toISOString(),
+  };
+  auditLog.unshift(entry);
+  if(auditLog.length>500)auditLog=auditLog.slice(0,500);
+  ls_save(LS_AUDIT,auditLog);
+  if(_fbReady) _db.collection('audit_log').doc(entry.id).set(entry).catch(console.error);
+}
+
+function db_saveAuditEntry(entry){
+  const i=auditLog.findIndex(a=>a.id===entry.id);
+  if(i>=0)auditLog[i]=entry;else auditLog.unshift(entry);
+  ls_save(LS_AUDIT,auditLog);
+  if(_fbReady) _db.collection('audit_log').doc(entry.id).set(entry).catch(console.error);
+}
+
+async function sendEmailReport(type){
+  const msg=document.getElementById('emailReportMsg');
+  if(msg)msg.textContent='Sending…';
+  try{
+    const r=await fetch('/api/vedanta/reports/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||'Send failed');
+    if(msg)msg.textContent='✅ Report emailed to Operation@thevedanta.org ('+(data.result?.mode||'sent')+')';
+  }catch(e){
+    if(msg)msg.textContent='❌ '+e.message+' — set SMTP on Render or check server logs';
+  }
+}
+
+function renderActivityLog(){
+  const box=document.getElementById('activityLogList');
+  if(!box)return;
+  const rows=auditLog.slice(0,80);
+  if(!rows.length){box.innerHTML='<p style="font-size:.78rem;color:var(--charcoal-lite)">No activity yet.</p>';return;}
+  const labels={login:'🟢 Login',logout:'🔴 Logout',clock_in:'⏱ Clock in',clock_out:'⏱ Clock out'};
+  box.innerHTML=rows.map(a=>`<div class="leave-req-item ${a.action==='logout'?'rejected':a.action==='login'?'approved':'pending'}" style="border-left-width:4px">
+    <div class="lr-date">${labels[a.action]||a.action} · ${a.staffName||'—'}</div>
+    <div class="lr-note">${new Date(a.at).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${a.detail?' — '+a.detail.replace(/</g,'&lt;'):''}</div>
+  </div>`).join('');
+}
+
 function applySession(){
   const isAdmin=session.role==='admin';
   const isStaff=session.role==='staff';
@@ -902,11 +986,11 @@ function applySession(){
   document.getElementById('timesheetBtn').style.display=isStaff?'none':'block';
 
   // Admin-only tabs
-  ['tab-manage','tab-settings','tab-clocks'].forEach(id=>{
+  ['tab-manage','tab-settings','tab-clocks','tab-activity'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.classList.toggle('hidden-tab',!isAdmin);
   });
-  ['bnav-manage','bnav-settings','bnav-clocks'].forEach(id=>{
+  ['bnav-manage','bnav-settings','bnav-clocks','bnav-activity'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display=isAdmin?'flex':'none';
   });
@@ -949,6 +1033,7 @@ function applySession(){
 }
 
 function doLogout(){
+  logAudit('logout','Signed out');
   ls_save('vedanta_session_v2',{loggedIn:false});
   session={loggedIn:false,role:null,dept:null,staffId:null};
   pinEntry='';
@@ -1085,6 +1170,7 @@ function checkPin(){
         session={loggedIn:true,role:'staff',staffId:s.id,dept:s.dept};
         document.getElementById('loginScreen').classList.add('hidden');
         ls_save('vedanta_session_v2',session);
+        logAudit('login','Staff portal');
         applySession();
         render();
       },350);
@@ -1102,6 +1188,7 @@ function checkPin(){
       session={loggedIn:true,role:selectedLoginDept==='admin'?'admin':'dept',dept:selectedLoginDept==='admin'?null:selectedLoginDept,staffId:null};
       document.getElementById('loginScreen').classList.add('hidden');
       ls_save('vedanta_session_v2',session);
+      logAudit('login',selectedLoginDept==='admin'?'Admin access':'Manager access');
       applySession();
       render();
     },350);
@@ -1143,6 +1230,7 @@ let STAFF=ls_load(LS_STAFF,null)||JSON.parse(JSON.stringify(DEFAULT_STAFF));
 let rotaData=ls_load(LS_ROTA,{});
 let clockData=ls_load(LS_CLOCK,{});
 let leaveRequests=ls_load(LS_LEAVE,[]);
+let auditLog=ls_load(LS_AUDIT,[]);
 let nextId=Math.max(...STAFF.map(s=>s.id),0)+1;
 ensureStaffPins();
 STAFF.forEach(s=>{if(!s.type)s.type='perm'});
@@ -1210,7 +1298,7 @@ function setView(v){
     ls_save('vedanta_session_v2',session);
   }
   activeView=v;
-  const views=['week','today','annual','manage','settings','hours','clock','clocks','mystaff','myhours','myleave'];
+  const views=['week','today','annual','manage','settings','hours','clock','clocks','mystaff','myhours','myleave','activity'];
   views.forEach(id=>{
     const el=document.getElementById('view-'+id);if(el)el.style.display=id===v?'':'none';
     const tb=document.getElementById('tab-'+id);if(tb)tb.classList.toggle('active',id===v);
@@ -1249,6 +1337,7 @@ function render(){
   if(activeView==='myhours')renderMyHours();
   if(activeView==='myleave')renderMyLeave();
   if(activeView==='manage')renderAdminLeaveQueue();
+  if(activeView==='activity')renderActivityLog();
 }
 
 // ── Weekly rota ─────────────────────────────
@@ -1417,6 +1506,7 @@ function doClockIn(staffId){
   if(rec.clockOut){if(!confirm('You already clocked out today. Clock in again?'))return;}
   const data={clockIn:nowHM(),clockOut:'',clockInAt:nowISO(),clockOutAt:''};
   db_saveClock(key,data);
+  logAudit('clock_in','Clocked in at '+data.clockIn);
   renderClock();
   if(activeView==='clocks')renderClockBoard();
 }
@@ -1429,6 +1519,7 @@ function doClockOut(staffId){
   if(rec.clockOut){alert('Already clocked out');return;}
   const data={...rec,clockOut:nowHM(),clockOutAt:nowISO()};
   db_saveClock(key,data);
+  logAudit('clock_out','Clocked out at '+data.clockOut);
   renderClock();
   if(activeView==='clocks')renderClockBoard();
 }
@@ -1971,6 +2062,16 @@ function startFbListeners(){
     if(activeView==='myleave')renderMyLeave();
     if(activeView==='manage')renderAdminLeaveQueue();
   }));
+
+  // Audit log (login/logout/clock)
+  _unsubs.push(_db.collection('audit_log').onSnapshot(snap=>{
+    auditLog=[];
+    snap.forEach(doc=>auditLog.push(doc.data()));
+    auditLog.sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
+    if(auditLog.length>500)auditLog=auditLog.slice(0,500);
+    ls_save(LS_AUDIT,auditLog);
+    if(activeView==='activity')renderActivityLog();
+  }));
 }
 
 async function uploadLocalData(){
@@ -1997,6 +2098,7 @@ async function uploadLocalData(){
       await b.commit();
     }
     for(const r of leaveRequests) await _db.collection('leave_requests').doc(r.id).set(r);
+    for(const a of auditLog.slice(0,200)) await _db.collection('audit_log').doc(a.id).set(a);
     msg.textContent='✅ All local data uploaded to cloud!';
   }catch(e){msg.textContent='Upload error: '+e.message;}
 }
