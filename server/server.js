@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-18-billing-fix';
+const APP_BUILD = '2026-06-18-tenants';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const waitlist = require('./waitlist');
@@ -35,7 +35,7 @@ const billing = require('./billing');
 const security = require('./security');
 const recipeAi = require('./recipe-ai');
 const recipeAiAccess = require('./recipe-ai-access');
-const { mergeExtraSites } = require('./extra-sites');
+const tenants = require('./tenants');
 
 function ensureBreachAlerts(state) {
   if (!state || !Array.isArray(state.sensors)) return [];
@@ -68,7 +68,14 @@ function ensureDb() {
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
   }
 }
-function readDb() { ensureDb(); return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); }
+function readDb() {
+  ensureDb();
+  const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+  const verBefore = db._tenantVersion || 0;
+  tenants.prepareDb(db);
+  if ((db._tenantVersion || 0) !== verBefore) writeDb(db);
+  return db;
+}
 function writeDb(db) {
   // Synchronous write so newly issued tokens / state are durable before we respond
   // (avoids a read-after-write race on the very next request).
@@ -114,35 +121,14 @@ function bootstrapProductionDb() {
   console.log('  Owner login ready: ' + ownerEmail + ' (password from OWNER_PASSWORD env)');
 }
 
-// Load 100 demo recipes + full kitchen data on Render / fresh installs.
+// Load demo kitchen into owner-only tenant (separate from customer workspaces).
 function bootstrapDemoKitchen() {
-  const seedFile = path.join(__dirname, 'demo-state.json');
-  if (!fs.existsSync(seedFile)) return;
   const db = readDb();
-  const recipes = db.state && Array.isArray(db.state.recipes) ? db.state.recipes.length : 0;
-  if (recipes < 100) {
-    try {
-      db.state = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
-      db.state.currentSite = 'site_grove';
-      writeDb(db);
-      console.log('  Demo kitchen loaded — ' + (db.state.recipes || []).length + ' recipes');
-    } catch (e) {
-      console.warn('  Demo seed failed:', e.message);
-    }
-    return;
-  }
-  // Wrong site selected → empty recipes page (e.g. Crown & Anchor has no recipes)
-  const site = db.state.currentSite || 'site_grove';
-  const forSite = db.state.recipes.filter((r) => r.site === site).length;
-  if (forSite === 0) {
-    db.state.currentSite = 'site_grove';
-    writeDb(db);
-    console.log('  Reset kitchen to The Grove Hotel (recipes live here)');
-  }
-  if (mergeExtraSites(db.state)) {
-    writeDb(db);
-    console.log('  Extra sites merged (Vedanta Kitchen + hotels)');
-  }
+  tenants.bootstrapDemoKitchen(db);
+  writeDb(db);
+  const demo = tenants.getDemoState(db);
+  const n = demo && Array.isArray(demo.recipes) ? demo.recipes.length : 0;
+  if (n >= 100) console.log('  Demo tenant ready — ' + n + ' recipes (owner login only)');
 }
 function newToken() { return crypto.randomBytes(32).toString('hex'); }
 
@@ -276,7 +262,6 @@ function applyRegistrationProfile(db, email, profile) {
   if (!profile || !profile.businessName) return;
   const user = db.users[email];
   if (!user) return;
-  user.profile = profile;
   user.lang = profile.lang || 'en';
   const fullName = `${(profile.firstName || '').trim()} ${(profile.lastName || '').trim()}`.trim();
   if (fullName) user.name = fullName;
@@ -288,47 +273,7 @@ function applyRegistrationProfile(db, email, profile) {
     ...profile,
   });
 
-  if (!db.state) return;
-  const siteId = 'site_' + crypto.randomBytes(6).toString('hex');
-  const biz = String(profile.businessName).trim();
-  const site = {
-    id: siteId,
-    name: biz,
-    legalName: (profile.legalName || '').trim() || biz,
-    city: (profile.city || '').trim() || '—',
-    postcode: (profile.postcode || '').trim(),
-    address: (profile.address || '').trim(),
-    country: profile.country || 'United Kingdom',
-    type: profile.businessType || 'Restaurant',
-    timezone: 'Europe/London',
-    manager: user.name,
-    phone: (profile.phone || '').trim(),
-    email,
-    status: 'Active',
-  };
-  db.state.sites = db.state.sites || [];
-  db.state.sites.push(site);
-  db.state.currentSite = siteId;
-  db.state.org = db.state.org || { products: {}, channels: {} };
-  db.state.org.name = biz;
-  if (profile.legalName) db.state.org.legalName = profile.legalName.trim();
-  db.state.org.products = db.state.org.products || { fss: true, allerq: true, labels: true, waste: true };
-  (profile.modules || []).forEach((m) => {
-    if (m !== 'sensors' && db.state.org.products[m] !== undefined) db.state.org.products[m] = true;
-  });
-
-  const initials = ((profile.firstName || '')[0] || '') + ((profile.lastName || '')[0] || '');
-  db.state.team = db.state.team || [];
-  db.state.team.push({
-    id: 'u_' + crypto.randomBytes(4).toString('hex'),
-    name: user.name,
-    email,
-    phone: (profile.phone || '').trim(),
-    role: profile.jobRole || 'Owner / Director',
-    access: 'Admin',
-    siteId,
-    initials: (initials.toUpperCase() || 'OW').slice(0, 2),
-  });
+  tenants.createTenantForRegistration(db, user, email, profile);
 }
 
 /* ---------------- http helpers ---------------- */
@@ -733,15 +678,16 @@ async function handleApi(req, res, url) {
   if (route === '/ingest' && req.method === 'POST') {
     const key = req.headers['x-api-key'] || '';
     if (key !== INGEST_KEY) return apiSend( 401, { error: 'Invalid or missing x-api-key' });
-    if (!db.state || !Array.isArray(db.state.sensors)) {
-      return apiSend( 409, { error: 'No kitchen state yet — open the app once so sensors exist.' });
+    const kitchen = tenants.getDemoState(db);
+    if (!kitchen || !Array.isArray(kitchen.sensors)) {
+      return apiSend( 409, { error: 'No demo kitchen sensors yet — owner demo tenant not seeded.' });
     }
     const readings = Array.isArray(body.readings) ? body.readings : [body];
-    db.state.alerts = db.state.alerts || [];
+    kitchen.alerts = kitchen.alerts || [];
     let updated = 0; const unknown = [];
     readings.forEach(r => {
       const id = r.sensorId || r.id;
-      const s = db.state.sensors.find(x => x.id === id);
+      const s = kitchen.sensors.find(x => x.id === id);
       if (!s) { unknown.push(id); return; }
       if (typeof r.temp === 'number') { s.temp = +r.temp.toFixed(1); s.history = (s.history || []).concat(s.temp).slice(-24); }
       if (typeof r.battery === 'number') s.battery = r.battery;
@@ -749,11 +695,12 @@ async function handleApi(req, res, url) {
       s.updated = r.ts || new Date().toISOString();
       updated++;
     });
-    const prevState = JSON.parse(JSON.stringify(db.state));
-    ensureBreachAlerts(db.state);
-    const mail = await notify.processNewAlerts(prevState, db.state);
-    db.state._updatedAt = new Date().toISOString();
-    db.state._updatedBy = 'device';
+    const prevState = JSON.parse(JSON.stringify(kitchen));
+    ensureBreachAlerts(kitchen);
+    const mail = await notify.processNewAlerts(prevState, kitchen);
+    kitchen._updatedAt = new Date().toISOString();
+    kitchen._updatedBy = 'device';
+    db.state = kitchen;
     writeDb(db);
     return apiSend( 200, { ok: true, updated, unknown, notified: mail.length });
   }
@@ -764,14 +711,16 @@ async function handleApi(req, res, url) {
   if (route === '/maintenance/update' && req.method === 'POST') {
     const key = req.headers['x-api-key'] || '';
     if (key !== INGEST_KEY) return apiSend( 401, { error: 'Invalid or missing x-api-key' });
-    if (!db.state || !Array.isArray(db.state.maintenance)) return apiSend( 409, { error: 'No tickets yet.' });
-    const t = db.state.maintenance.find(x => x.id === body.ticketId || (body.ref && x.ref === body.ref));
+    const kitchen = tenants.getDemoState(db);
+    if (!kitchen || !Array.isArray(kitchen.maintenance)) return apiSend( 409, { error: 'No tickets yet.' });
+    const t = kitchen.maintenance.find(x => x.id === body.ticketId || (body.ref && x.ref === body.ref));
     if (!t) return apiSend( 404, { error: 'Ticket not found' });
     if (body.status) t.status = body.status;
     if (body.ref) t.ref = body.ref;
     if (body.message) t.thread.push({ at: new Date().toISOString(), by: body.by || t.dept || 'Maintenance', type: 'dept', body: String(body.message) });
-    db.state._updatedAt = new Date().toISOString();
-    db.state._updatedBy = 'dept';
+    kitchen._updatedAt = new Date().toISOString();
+    kitchen._updatedBy = 'dept';
+    db.state = kitchen;
     writeDb(db);
     return apiSend( 200, { ok: true, ticket: { id: t.id, status: t.status, messages: t.thread.length } });
   }
@@ -797,47 +746,71 @@ async function handleApi(req, res, url) {
     return apiSend( 200, { ok: true });
   }
 
-  // Shared org state (cross-device, multi-user, last-write-wins)
+  // Per-company workspace (tenant-scoped; demo tenant is owner-only)
   if (route === '/state' && req.method === 'GET') {
-    if (db.state && db.state.org && db.state.org.name === 'Brigade') {
-      db.state.org.name = 'Kiteline';
-      db.state.org.plan = 'Complete Kiteline';
+    const state = tenants.getStateForUser(db, me.email);
+    if (!state) return apiSend(409, { error: 'No workspace for this account — contact support.' });
+    if (state.org && state.org.name === 'Brigade') {
+      state.org.name = 'Kiteline';
+      state.org.plan = 'Complete Kiteline';
       writeDb(db);
     }
-    if (db.state && Array.isArray(db.state.recipes)) {
-      const site = db.state.currentSite || 'site_grove';
-      if (!db.state.recipes.some((r) => r.site === site)) {
-        db.state.currentSite = 'site_grove';
+    if (Array.isArray(state.recipes)) {
+      const site = state.currentSite || (state.sites && state.sites[0] && state.sites[0].id);
+      if (site && !state.recipes.some((r) => r.site === site) && state.sites && state.sites[0]) {
+        state.currentSite = state.sites[0].id;
         writeDb(db);
       }
     }
-    return apiSend( 200, { state: db.state });
+    return apiSend(200, { state, tenant: tenants.tenantInfo(db, me.email) });
   }
   if (route === '/state' && req.method === 'PUT') {
-    const prevState = db.state ? JSON.parse(JSON.stringify(db.state)) : null;
-    db.state = body.state || db.state;
-    ensureBreachAlerts(db.state);
-    const mail = await notify.processNewAlerts(prevState, db.state);
-    db.state._updatedAt = new Date().toISOString();
-    db.state._updatedBy = me.email;
+    const prevState = tenants.getStateForUser(db, me.email);
+    if (!prevState) return apiSend(409, { error: 'No workspace for this account' });
+    const next = body.state || prevState;
+    const prevCopy = JSON.parse(JSON.stringify(prevState));
+    ensureBreachAlerts(next);
+    const mail = await notify.processNewAlerts(prevCopy, next);
+    next._updatedAt = new Date().toISOString();
+    next._updatedBy = me.email;
+    if (!tenants.setStateForUser(db, me.email, next)) {
+      return apiSend(403, { error: 'Cannot save this workspace' });
+    }
     writeDb(db);
-    return apiSend( 200, { ok: true, _updatedAt: db.state._updatedAt, notified: mail });
+    return apiSend(200, { ok: true, _updatedAt: next._updatedAt, notified: mail });
+  }
+
+  // GET /api/workspace/export — GDPR data export for the signed-in organisation
+  if (route === '/workspace/export' && req.method === 'GET') {
+    const state = tenants.getStateForUser(db, me.email);
+    if (!state) return apiSend(409, { error: 'No workspace to export' });
+    const user = db.users[me.email];
+    return apiSend(200, {
+      exportedAt: new Date().toISOString(),
+      service: 'kiteline',
+      build: APP_BUILD,
+      email: me.email,
+      tenant: tenants.tenantInfo(db, me.email),
+      profile: user && user.profile ? user.profile : null,
+      workspace: state,
+    });
   }
 
   // POST /api/notify/test — send test email and/or SMS
   if (route === '/notify/test' && req.method === 'POST') {
-    if (!db.state) return apiSend( 409, { error: 'No kitchen state yet' });
+    const kitchen = tenants.getStateForUser(db, me.email);
+    if (!kitchen) return apiSend( 409, { error: 'No kitchen state yet' });
     const channel = (body.channel || 'email').toLowerCase();
     if (channel === 'sms') {
-      const result = await notify.sendTestSms(db.state);
+      const result = await notify.sendTestSms(kitchen);
       return apiSend( 200, { ok: true, result });
     }
     if (channel === 'both') {
-      const email = await notify.sendTestEmail(db.state);
-      const sms = await notify.sendTestSms(db.state);
+      const email = await notify.sendTestEmail(kitchen);
+      const sms = await notify.sendTestSms(kitchen);
       return apiSend( 200, { ok: true, result: { email, sms } });
     }
-    const result = await notify.sendTestEmail(db.state);
+    const result = await notify.sendTestEmail(kitchen);
     return apiSend( 200, { ok: true, result });
   }
 
@@ -896,7 +869,8 @@ async function handleApi(req, res, url) {
         users: db.users,
         subscriptions: db.subscriptions || {},
         registrations: db.registrations || [],
-        state: db.state,
+        tenants: db.tenants || {},
+        state: tenants.getDemoState(db),
         waitlist: waitlist.read(),
         auditLog: (db.auditLog || []).slice(0, 200),
       },
@@ -931,7 +905,8 @@ async function handleApi(req, res, url) {
     billing.syncOrgAccess(db, me.email);
     writeDb(db);
     const sub = billing.getSubscription(db, me.email);
-    const teamCount = (db.state && db.state.team && db.state.team.length) || 0;
+    const kitchen = tenants.getStateForUser(db, me.email);
+    const teamCount = (kitchen && kitchen.team && kitchen.team.length) || 0;
     const maxUsers = billing.getUserLimit(db, me.email);
     const trial = billing.getTrialStatus(db, me.email);
     return apiSend( 200, {
@@ -1072,6 +1047,11 @@ const server = http.createServer(async (req, res) => {
     // App at "/app" — serve SPA for all /app/* paths (hash router + deep links)
     if (url.pathname === '/app' || url.pathname.startsWith('/app/')) {
       return serveFile(res, path.join(ROOT, 'index.html'));
+    }
+
+    // Vedanta Staff Rota (static site under site/vedanta-rota/)
+    if (url.pathname === '/vedanta-rota' || url.pathname === '/vedanta-rota/') {
+      return serveFile(res, path.join(ROOT, 'site', 'vedanta-rota', 'index.html'));
     }
 
     // Static files (css, js, marketing pages). Try root first.

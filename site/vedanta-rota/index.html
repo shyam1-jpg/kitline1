@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vedanta Rota">
+<meta name="theme-color" content="#1C1C1C">
+<link rel="manifest" id="pwa-manifest">
+<title>The Vedanta — Staff Rota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --cream:#F7F3EB;--cream-mid:#EDE7D9;--cream-dark:#E2D9C8;
+  --gold:#B8963E;--gold-light:#D4B86A;--gold-pale:#F0E4C2;
+  --charcoal:#1C1C1C;--charcoal-mid:#3A3530;--charcoal-lite:#6B6560;
+  --warm-white:#FDFAF4;--shadow:rgba(28,28,28,.10);--nav-h:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);color:var(--charcoal);overscroll-behavior:none}
+
+/* ══════════════════════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════════════════════ */
+.login-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#1C1C1C 0%,#2E2A26 60%,#3A3530 100%);
+  display:flex;flex-direction:column;align-items:center;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  overflow-y:auto;
+  transition:opacity .4s,transform .4s;
+}
+.login-screen.hidden{opacity:0;pointer-events:none;transform:scale(.97)}
+.login-logo-area{text-align:center;padding:36px 20px 24px;flex-shrink:0}
+.login-logo-area svg{height:80px;width:auto;margin-bottom:14px}
+.login-logo-area h1{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600;color:var(--warm-white);letter-spacing:.14em;text-transform:uppercase;line-height:1.1}
+.login-logo-area p{font-size:.65rem;color:var(--gold-light);letter-spacing:.28em;text-transform:uppercase;margin-top:5px}
+.gold-rule-thin{width:120px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 28px}
+
+/* Step 1 — department select */
+.login-step{width:100%;max-width:560px;padding:0 16px 32px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.login-step-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:500;color:var(--gold-light);letter-spacing:.08em;text-align:center;margin-bottom:16px}
+.dept-login-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:420px){.dept-login-grid{grid-template-columns:1fr 1fr 1fr}}
+.dept-login-btn{
+  background:rgba(253,250,244,.07);border:1px solid rgba(184,150,62,.25);
+  border-radius:12px;padding:18px 12px;cursor:pointer;text-align:center;
+  color:var(--warm-white);transition:all .18s;display:flex;flex-direction:column;
+  align-items:center;gap:8px;min-height:90px;
+}
+.dept-login-btn:active,.dept-login-btn:hover{background:rgba(184,150,62,.18);border-color:var(--gold)}
+.dept-login-btn .dlb-icon{font-size:1.8rem;line-height:1}
+.dept-login-btn .dlb-name{font-size:.72rem;font-weight:700;letter-spacing:.05em;line-height:1.3}
+.admin-login-btn{
+  grid-column:1/-1;
+  background:rgba(184,150,62,.12);border:1px solid var(--gold);
+  color:var(--gold-light);
+}
+.admin-login-btn:hover,.admin-login-btn:active{background:rgba(184,150,62,.25)}
+.admin-login-btn .dlb-icon{font-size:1.5rem}
+
+/* Step 2 — PIN pad */
+.pin-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.pin-back-btn{background:none;border:1px solid rgba(184,150,62,.35);color:var(--gold-light);padding:8px 14px;border-radius:7px;cursor:pointer;font-size:.78rem;font-family:'Raleway',sans-serif;font-weight:600;min-height:40px}
+.pin-dept-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--warm-white);flex:1;text-align:center}
+.pin-dept-name span{font-size:1.5rem;display:block;margin-bottom:2px}
+.pin-instruction{text-align:center;font-size:.76rem;color:rgba(253,250,244,.55);margin-bottom:22px;letter-spacing:.04em}
+.pin-dots{display:flex;justify-content:center;gap:16px;margin-bottom:28px}
+.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(184,150,62,.5);background:transparent;transition:all .2s}
+.pin-dot.filled{background:var(--gold);border-color:var(--gold)}
+.pin-dot.error{background:#EF5350;border-color:#EF5350;animation:shake .4s ease}
+.pin-dot.success{background:#4CAF50;border-color:#4CAF50}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto}
+.pin-key{
+  background:rgba(253,250,244,.09);border:1px solid rgba(253,250,244,.1);
+  border-radius:12px;padding:0;height:64px;font-family:'Raleway',sans-serif;
+  font-size:1.4rem;font-weight:600;color:var(--warm-white);cursor:pointer;
+  transition:all .12s;display:flex;align-items:center;justify-content:center;
+}
+.pin-key:active{background:rgba(184,150,62,.3);border-color:var(--gold);transform:scale(.94)}
+.pin-key.zero{grid-column:2}
+.pin-key.del{background:rgba(239,83,80,.12);border-color:rgba(239,83,80,.25);color:#EF9A9A;font-size:1.1rem}
+.pin-error-msg{text-align:center;color:#EF9A9A;font-size:.76rem;font-weight:600;margin-top:14px;min-height:20px;letter-spacing:.04em}
+
+/* ══════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════ */
+.site-header{background:var(--charcoal);position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.35)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;gap:10px}
+.logo-area{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.building-logo{height:44px;width:auto;flex-shrink:0}
+.logo-divider{width:1px;height:36px;background:linear-gradient(180deg,transparent,var(--gold),transparent);flex-shrink:0}
+.logo-text h1{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--warm-white);letter-spacing:.1em;text-transform:uppercase;line-height:1.1;white-space:nowrap}
+.logo-text p{font-size:.56rem;color:var(--gold-light);letter-spacing:.2em;text-transform:uppercase;margin-top:2px;font-weight:500}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.week-nav{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(184,150,62,.3);border-radius:6px;padding:4px 8px}
+.week-nav button{background:none;border:none;color:var(--gold-light);font-size:1rem;cursor:pointer;padding:4px 8px;border-radius:4px;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center}
+.week-nav button:active{background:rgba(212,184,106,.2)}
+.week-label{font-family:'Cormorant Garamond',serif;font-size:.82rem;color:var(--warm-white);white-space:nowrap;min-width:130px;text-align:center}
+.hdr-btn{background:transparent;border:1px solid var(--gold);color:var(--gold-light);padding:7px 12px;border-radius:4px;cursor:pointer;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-family:'Raleway',sans-serif;font-weight:600;min-height:40px;white-space:nowrap}
+.hdr-btn:active,.hdr-btn:hover{background:var(--gold);color:var(--charcoal)}
+.logout-btn{background:rgba(239,83,80,.15);border:1px solid rgba(239,83,80,.4);color:#EF9A9A;padding:7px 12px;border-radius:4px;cursor:pointer;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-family:'Raleway',sans-serif;font-weight:700;min-height:40px;white-space:nowrap}
+.logout-btn:active,.logout-btn:hover{background:rgba(239,83,80,.3)}
+
+/* Session badge */
+.session-badge{display:flex;align-items:center;gap:6px;background:rgba(184,150,62,.18);border:1px solid rgba(184,150,62,.35);border-radius:20px;padding:4px 10px 4px 6px;font-size:.66rem;font-weight:700;color:var(--gold-light);white-space:nowrap}
+.session-badge .sb-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;flex-shrink:0}
+.gold-rule{height:3px;background:linear-gradient(90deg,var(--charcoal),var(--gold),var(--gold-light),var(--gold),var(--charcoal))}
+
+/* ══════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════ */
+.app-body{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 83px)}
+@media(max-width:768px){.app-body{grid-template-columns:1fr;min-height:calc(100vh - 83px - var(--nav-h))}}
+
+/* ══════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════ */
+.sidebar{background:var(--charcoal-mid);padding:18px 0 30px;border-right:1px solid rgba(184,150,62,.2)}
+@media(max-width:768px){.sidebar{display:none}}
+.sidebar-label{font-size:.56rem;color:var(--gold);letter-spacing:.26em;text-transform:uppercase;padding:10px 16px 5px;font-weight:700}
+.dept-btn{width:100%;display:flex;align-items:center;gap:8px;padding:10px 16px;background:none;border:none;border-left:3px solid transparent;color:rgba(253,250,244,.6);cursor:pointer;font-size:.74rem;font-family:'Raleway',sans-serif;text-align:left;transition:all .15s;font-weight:500;min-height:44px}
+.dept-btn:active,.dept-btn:hover{background:rgba(184,150,62,.12);color:var(--warm-white);border-left-color:rgba(184,150,62,.5)}
+.dept-btn.active{background:rgba(184,150,62,.18);color:var(--gold-light);border-left-color:var(--gold);font-weight:700}
+.dept-btn.locked{opacity:.35;cursor:not-allowed;pointer-events:none}
+.dept-icon{font-size:.9rem;width:18px;text-align:center}
+.dept-badge{margin-left:auto;background:rgba(184,150,62,.22);color:var(--gold-light);font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:20px}
+.dept-btn.active .dept-badge{background:var(--gold);color:var(--charcoal)}
+.sidebar-rule{height:1px;background:linear-gradient(90deg,transparent,rgba(184,150,62,.3),transparent);margin:8px 16px}
+.legend{padding:5px 14px;display:flex;flex-direction:column;gap:5px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:.66rem;color:rgba(253,250,244,.6);font-weight:500}
+.legend-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ══════════════════════════════════════════════
+   MOBILE NAV
+══════════════════════════════════════════════ */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--charcoal);border-top:2px solid var(--gold);z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+@media(max-width:768px){.bottom-nav{display:flex}}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:rgba(253,250,244,.5);cursor:pointer;font-size:.52rem;font-family:'Raleway',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 4px;min-width:52px;transition:color .15s}
+.bnav-btn .bicon{font-size:1.25rem;line-height:1}
+.bnav-btn.active{color:var(--gold-light)}
+.bnav-btn:active{color:var(--gold)}
+.mobile-dept-bar{display:none;overflow-x:auto;padding:10px 12px 2px;gap:7px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.mobile-dept-bar::-webkit-scrollbar{display:none}
+@media(max-width:768px){.mobile-dept-bar{display:flex}}
+.dept-chip{background:var(--warm-white);border:2px solid transparent;border-radius:20px;padding:7px 14px;font-size:.68rem;font-weight:700;white-space:nowrap;cursor:pointer;transition:all .15s;font-family:'Raleway',sans-serif;color:var(--charcoal-lite)}
+.dept-chip.active{background:var(--charcoal);color:var(--gold-light);border-color:var(--gold)}
+.dept-chip.locked{opacity:.35;pointer-events:none}
+
+/* ══════════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════════ */
+.main-content{padding:14px 14px 18px;overflow-x:auto;background:var(--cream)}
+@media(min-width:769px){.main-content{padding:18px 22px}}
+.overview-row{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:14px}
+@media(max-width:640px){.overview-row{grid-template-columns:repeat(3,1fr)}}
+.ov-card{background:var(--warm-white);border-radius:8px;padding:12px 8px;text-align:center;box-shadow:0 1px 8px var(--shadow);border-top:3px solid transparent}
+.ov-card.c-total{border-top-color:var(--gold)}.ov-card.c-duty{border-top-color:#4CAF50}.ov-card.c-off{border-top-color:#42A5F5}.ov-card.c-sick{border-top-color:#EF5350}.ov-card.c-leave{border-top-color:#AB47BC}
+.ov-icon{font-size:1.1rem;margin-bottom:2px}
+.ov-num{font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:600;line-height:1;margin-bottom:3px}
+.c-total .ov-num{color:var(--gold)}.c-duty .ov-num{color:#2E7D32}.c-off .ov-num{color:#1565C0}.c-sick .ov-num{color:#C62828}.c-leave .ov-num{color:#6A1B9A}
+.ov-lbl{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--charcoal-lite);font-weight:700}
+.view-tabs{display:flex;width:fit-content;margin-bottom:13px;border:1px solid var(--cream-dark);border-radius:6px;overflow:hidden;background:var(--warm-white);box-shadow:0 1px 5px var(--shadow)}
+@media(max-width:768px){.view-tabs{display:none}}
+.view-tab{padding:8px 14px;border:none;background:none;cursor:pointer;font-size:.66rem;font-family:'Raleway',sans-serif;color:var(--charcoal-lite);font-weight:700;transition:all .18s;letter-spacing:.08em;text-transform:uppercase;border-right:1px solid var(--cream-dark);min-height:44px}
+.view-tab:last-child{border-right:none}
+.view-tab.active{background:var(--charcoal);color:var(--gold-light)}
+.view-tab:hover:not(.active){background:var(--cream-mid)}
+.view-tab.hidden-tab{display:none}
+.sect-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--charcoal-mid);letter-spacing:.06em;margin-bottom:11px;display:flex;align-items:center;gap:10px}
+.sect-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-light),transparent)}
+.table-wrap{background:var(--warm-white);border-radius:10px;box-shadow:0 2px 14px var(--shadow);overflow:hidden;margin-bottom:16px}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ══════════════════════════════════════════════
+   ROTA TABLE
+══════════════════════════════════════════════ */
+.rota-table{width:100%;border-collapse:collapse;font-size:.73rem}
+.rota-table thead th{background:var(--charcoal);color:var(--gold-light);padding:9px 6px;font-family:'Cormorant Garamond',serif;font-size:.75rem;font-weight:600;letter-spacing:.05em;text-align:center;white-space:nowrap;border-right:1px solid rgba(255,255,255,.06)}
+.rota-table thead th.name-col{text-align:left;padding-left:12px;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;position:sticky;left:0;z-index:2;min-width:118px;background:var(--charcoal)}
+.rota-table thead th.today-h{background:#2A2218;color:var(--gold);box-shadow:inset 0 -2px 0 var(--gold)}
+.dept-header-row td{background:var(--charcoal-mid);padding:10px 16px;font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold-light);font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-top:3px solid var(--gold)}
+.rota-table tbody tr{transition:background .12s}
+.rota-table tbody tr:hover{background:var(--gold-pale)!important}
+.rota-table tbody tr:nth-child(even){background:#FDFAF5}
+.name-cell{padding:6px 12px;font-weight:600;color:var(--charcoal);border-right:2px solid var(--cream-mid);white-space:nowrap;position:sticky;left:0;background:inherit;z-index:1;cursor:pointer}
+.name-cell:hover .edit-hint{opacity:1}
+.name-cell-inner{display:flex;align-items:center;gap:5px}
+.staff-role-sm{display:block;font-size:.6rem;color:var(--charcoal-lite);font-weight:400;margin-top:1px}
+.edit-hint{opacity:0;transition:opacity .2s;font-size:.62rem;color:var(--gold)}
+.name-input-inline{border:none;background:var(--gold-pale);font-family:'Raleway',sans-serif;font-size:.73rem;font-weight:600;color:var(--charcoal);outline:none;padding:3px 6px;border-radius:4px;border:1.5px solid var(--gold);width:110px}
+.day-cell{padding:3px 3px;text-align:center;border-right:1px solid #F0EDE6;vertical-align:middle;min-width:100px}
+.day-cell.today-h{background:rgba(184,150,62,.05)}
+.spill{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:5px 5px;border-radius:5px;font-size:.61rem;font-weight:700;cursor:pointer;transition:filter .15s,transform .12s;border:none;width:100%;letter-spacing:.03em;text-transform:uppercase;min-height:44px;line-height:1.3}
+.spill:active{transform:scale(.97)}
+.spill-label{font-size:.61rem;font-weight:700;letter-spacing:.04em}
+.spill-time{font-size:.61rem;font-weight:500;letter-spacing:0;text-transform:none;opacity:.9;line-height:1.2}
+.spill-split{font-size:.57rem;font-weight:500;letter-spacing:0;text-transform:none;opacity:.85;line-height:1.25}
+.s-duty{background:#E8F5E9;color:#1B5E20}.s-off{background:#E3F2FD;color:#0D47A1}.s-sick{background:#FFEBEE;color:#B71C1C}.s-annual{background:#F3E5F5;color:#4A148C}.s-lieu{background:#E0F7FA;color:#006064}.s-urgent{background:#FFF3E0;color:#E65100}.s-bank{background:#FFF8E1;color:#F57F17}
+
+/* ══════════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(28,28,28,.65);z-index:999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+@media(min-width:640px){.overlay{align-items:center}}
+.modal{background:var(--warm-white);border-radius:16px 16px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:100%;box-shadow:0 -8px 40px rgba(0,0,0,.25);border:1px solid var(--cream-dark);animation:slideUp .2s ease;max-height:92vh;overflow-y:auto}
+@media(min-width:640px){.modal{border-radius:12px;max-width:400px;animation:rise .2s ease;max-height:88vh}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-drag{width:36px;height:4px;background:var(--cream-dark);border-radius:2px;margin:0 auto 14px;display:block}
+@media(min-width:640px){.modal-drag{display:none}}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--charcoal);margin-bottom:1px}
+.modal-sub{font-size:.7rem;color:var(--charcoal-lite);margin-bottom:14px}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.sopt{padding:9px 7px;border-radius:7px;cursor:pointer;text-align:center;font-size:.65rem;font-weight:700;border:2px solid transparent;transition:all .14s;letter-spacing:.04em;text-transform:uppercase;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sopt:active{transform:scale(.97)}
+.sopt.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,150,62,.18)}
+.sopt-icon{font-size:1.15rem;margin-bottom:2px;display:block}
+.time-section{background:var(--cream);border-radius:8px;padding:11px 13px;margin-bottom:11px;border:1px solid var(--cream-dark)}
+.time-section-title{font-size:.63rem;font-weight:700;color:var(--charcoal-lite);letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px}
+.time-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:7px}
+.time-field label{display:block;font-size:.6rem;font-weight:700;color:var(--charcoal-lite);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.time-field input[type="time"]{width:100%;padding:8px 9px;border:1.5px solid var(--cream-dark);border-radius:6px;font-size:.84rem;font-family:'Raleway',sans-serif;background:white;color:var(--charcoal);outline:none;-webkit-appearance:none}
+.time-field input[type="time"]:focus{border-color:var(--gold)}
+.split-toggle{display:flex;align-items:center;gap:9px;padding:9px 0 7px;border-top:1px solid var(--cream-dark);margin-top:3px}
+.split-toggle label{font-size:.72rem;font-weight:600;color:var(--charcoal-mid);cursor:pointer;display:flex;align-items:center;gap:8px}
+.split-toggle input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--gold)}
+.note-row{margin-bottom:11px}
+.note-row input{width:100%;padding:9px 11px;border:1.5px solid var(--cream-dark);border-radius:6px;font-size:.78rem;font-family:'Raleway',sans-serif;background:var(--cream);color:var(--charcoal);outline:none}
+.note-row input:focus{border-color:var(--gold)}
+.modal-btns{display:flex;gap:9px}
+.btn-save{flex:1;padding:12px;background:var(--charcoal);color:var(--gold-light);border:none;border-radius:8px;cursor:pointer;font-family:'Raleway',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;min-height:48px}
+.btn-save:active{background:var(--charcoal-mid)}
+.btn-cancel{padding:12px 14px;background:none;border:1.5px solid var(--cream-dark);border-radius:8px;cursor:pointer;font-size:.72rem;color:var(--charcoal-lite);font-family:'Raleway',sans-serif;font-weight:600;min-height:48px}
+
+/* ══════════════════════════════════════════════
+   MANAGE + ANNUAL + TODAY
+══════════════════════════════════════════════ */
+.add-form{display:flex;flex-direction:column;gap:10px;margin-bottom:13px}
+.add-form label{display:block;font-size:.62rem;font-weight:700;color:var(--charcoal-lite);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.add-form input,.add-form select{width:100%;padding:10px 11px;border:1.5px solid var(--cream-dark);border-radius:6px;font-size:.79rem;font-family:'Raleway',sans-serif;background:var(--cream);color:var(--charcoal);outline:none;-webkit-appearance:none}
+.add-form input:focus,.add-form select:focus{border-color:var(--gold)}
+.manage-table{width:100%;border-collapse:collapse;font-size:.76rem}
+.manage-table thead th{background:var(--charcoal);color:var(--gold-light);padding:10px 12px;text-align:left;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;letter-spacing:.08em}
+.manage-table tbody td{padding:8px 12px;border-bottom:1px solid var(--cream-mid);vertical-align:middle}
+.manage-table tbody tr:hover td{background:var(--gold-pale)}
+.manage-table tbody tr:nth-child(even) td{background:#FDFAF5}
+.manage-table tbody tr:nth-child(even):hover td{background:var(--gold-pale)}
+.editable-field{border:none;background:transparent;font-family:'Raleway',sans-serif;font-size:.76rem;font-weight:600;color:var(--charcoal);width:100%;outline:none;padding:4px 6px;border-radius:4px;border:1.5px solid transparent;min-height:36px;transition:all .15s}
+.editable-field:hover{background:var(--cream);border-color:var(--cream-dark)}
+.editable-field:focus{background:white;border-color:var(--gold)}
+.dept-select{border:none;background:transparent;font-family:'Raleway',sans-serif;font-size:.72rem;color:var(--charcoal-lite);cursor:pointer;outline:none;padding:4px 6px;border:1.5px solid transparent;border-radius:4px;min-height:36px;-webkit-appearance:none}
+.dept-select:hover{background:var(--cream);border-color:var(--cream-dark)}
+.btn-remove{background:none;border:1px solid #EF9A9A;color:#C62828;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:.64rem;font-family:'Raleway',sans-serif;font-weight:700;min-height:34px}
+.btn-add-staff{background:var(--charcoal);color:var(--gold-light);border:none;padding:12px 20px;border-radius:7px;cursor:pointer;font-family:'Raleway',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:13px;min-height:48px;width:100%}
+@media(min-width:480px){.btn-add-staff{width:auto}}
+.save-notice{display:none;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;padding:7px 12px;border-radius:6px;font-size:.72rem;font-weight:600;margin-bottom:11px;align-items:center;gap:8px}
+.save-notice.show{display:flex}
+.dept-today-card{background:var(--warm-white);border-radius:10px;padding:14px 16px;margin-bottom:11px;box-shadow:0 1px 8px var(--shadow);border-left:4px solid var(--gold)}
+.dtc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dtc-name{font-family:'Cormorant Garamond',serif;font-size:.94rem;font-weight:600;color:var(--charcoal-mid)}
+.dtc-stats{font-size:.65rem;color:var(--charcoal-lite);margin-top:1px}
+.dtc-count{margin-left:auto;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:white;flex-shrink:0}
+.staff-chips{display:flex;flex-wrap:wrap;gap:6px}
+.s-chip{padding:5px 11px;border-radius:20px;font-size:.68rem;font-weight:600;line-height:1.3}
+.annual-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.annual-table thead th{background:var(--charcoal);color:var(--gold-light);padding:10px 12px;text-align:left;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;letter-spacing:.07em}
+.annual-table thead th.c{text-align:center}
+.annual-table tbody td{padding:8px 12px;border-bottom:1px solid var(--cream-mid)}
+.annual-table tbody tr:last-child td{border-bottom:none}
+.annual-table tbody tr:hover td{background:var(--gold-pale)}
+.annual-table tbody tr:nth-child(even) td{background:#FDFAF5}
+.annual-table tbody tr:nth-child(even):hover td{background:var(--gold-pale)}
+.annual-dept-row td{background:var(--cream-dark)!important;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;color:var(--charcoal-mid);border-top:1px solid var(--cream-mid);padding:5px 12px}
+.bar-wrap{background:var(--cream-dark);border-radius:20px;height:7px;overflow:hidden;min-width:60px}
+.bar-fill{height:100%;border-radius:20px;transition:width .4s}
+
+/* ══════════════════════════════════════════════
+   HOURS VIEW
+══════════════════════════════════════════════ */
+.hours-summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}
+@media(max-width:600px){.hours-summary-row{grid-template-columns:repeat(2,1fr)}}
+.hours-card{background:var(--warm-white);border-radius:8px;padding:13px 10px;text-align:center;box-shadow:0 1px 8px var(--shadow);border-top:3px solid var(--gold)}
+.hours-card-num{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:4px}
+.hours-card-lbl{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--charcoal-lite);font-weight:700}
+.hours-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.hours-table thead th{background:var(--charcoal);color:var(--gold-light);padding:10px 12px;text-align:left;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;letter-spacing:.07em}
+.hours-table thead th.r{text-align:right}
+.hours-table tbody td{padding:8px 12px;border-bottom:1px solid var(--cream-mid);vertical-align:middle}
+.hours-table tbody td.r{text-align:right;font-weight:700;font-family:'Cormorant Garamond',serif;font-size:.88rem}
+.hours-table tbody tr:hover td{background:var(--gold-pale)}
+.hours-table tbody tr:nth-child(even) td{background:#FDFAF5}
+.hours-table tbody tr:nth-child(even):hover td{background:var(--gold-pale)}
+.hours-dept-row td{background:var(--cream-dark)!important;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;color:var(--charcoal-mid);border-top:1px solid var(--cream-mid);padding:5px 12px}
+.hours-dept-row td.r{text-align:right;font-weight:700}
+.hours-total-row td{background:var(--charcoal)!important;color:var(--gold-light);font-weight:700;font-family:'Cormorant Garamond',serif;font-size:.84rem;padding:9px 12px}
+.hours-total-row td.r{text-align:right}
+.hrs-pill{display:inline-block;background:var(--cream);padding:2px 7px;border-radius:4px;font-family:'Cormorant Garamond',serif;font-size:.82rem;font-weight:600;color:var(--charcoal)}
+.hrs-pill.hi{background:#E8F5E9;color:#1B5E20}
+.hrs-pill.warn{background:#FFF3E0;color:#E65100}
+.hrs-pill.lo{background:#FFEBEE;color:#C62828}
+
+/* Firebase status */
+.fb-badge{display:flex;align-items:center;gap:5px;font-size:.63rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid;white-space:nowrap;font-family:'Raleway',sans-serif;cursor:default}
+.fb-badge.offline{background:rgba(107,101,96,.12);border-color:rgba(107,101,96,.3);color:var(--charcoal-lite)}
+.fb-badge.connecting{background:rgba(255,193,7,.12);border-color:rgba(255,193,7,.4);color:#856404}
+.fb-badge.online{background:rgba(76,175,80,.12);border-color:rgba(76,175,80,.4);color:#1B5E20}
+.fb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fb-badge.offline .fb-dot{background:var(--charcoal-lite)}
+.fb-badge.connecting .fb-dot{background:#FFC107;animation:pulse .8s infinite}
+.fb-badge.online .fb-dot{background:#4CAF50}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.config-area{width:100%;height:120px;padding:9px;border:1.5px solid var(--cream-dark);border-radius:6px;font-family:monospace;font-size:.72rem;background:var(--cream);color:var(--charcoal);outline:none;resize:vertical}
+.config-area:focus{border-color:var(--gold)}
+.sync-upload-btn{background:#1565C0;color:white;border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:.68rem;font-weight:700;font-family:'Raleway',sans-serif;letter-spacing:.06em;text-transform:uppercase;min-height:38px}
+.sync-upload-btn:active{background:#0D47A1}
+.add-staff-dept-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:12px;background:rgba(184,150,62,.1);border:2px dashed var(--gold);border-radius:8px;cursor:pointer;font-size:.73rem;font-weight:700;color:var(--gold);font-family:'Raleway',sans-serif;letter-spacing:.05em;margin-top:8px;min-height:48px;transition:all .15s}
+.add-staff-dept-btn:hover{background:rgba(184,150,62,.2)}
+
+/* ══════════════════════════════════════════════
+   SETTINGS (PIN management)
+══════════════════════════════════════════════ */
+.pin-settings-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.pin-settings-table thead th{background:var(--charcoal);color:var(--gold-light);padding:10px 14px;text-align:left;font-family:'Cormorant Garamond',serif;font-size:.78rem;font-weight:600;letter-spacing:.08em}
+.pin-settings-table tbody td{padding:10px 14px;border-bottom:1px solid var(--cream-mid);vertical-align:middle}
+.pin-settings-table tbody tr:hover td{background:var(--gold-pale)}
+.pin-settings-table tbody tr:nth-child(even) td{background:#FDFAF5}
+.pin-settings-table tbody tr:nth-child(even):hover td{background:var(--gold-pale)}
+.pin-field{display:flex;align-items:center;gap:8px}
+.pin-field input{width:90px;padding:7px 10px;border:1.5px solid var(--cream-dark);border-radius:6px;font-size:.88rem;font-family:'Raleway',sans-serif;font-weight:700;text-align:center;letter-spacing:.15em;background:var(--cream);color:var(--charcoal);outline:none}
+.pin-field input:focus{border-color:var(--gold)}
+.btn-save-pin{background:var(--charcoal);color:var(--gold-light);border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:.67rem;font-weight:700;font-family:'Raleway',sans-serif;letter-spacing:.08em;text-transform:uppercase;min-height:36px}
+.btn-save-pin:active{background:var(--charcoal-mid)}
+.pin-saved-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4CAF50;opacity:0;transition:opacity .3s;margin-left:4px}
+.info-box{background:var(--warm-white);border:1px solid var(--cream-dark);border-radius:10px;padding:15px 17px;margin-bottom:13px;box-shadow:0 1px 6px var(--shadow)}
+.info-box h3{font-family:'Cormorant Garamond',serif;font-size:.94rem;font-weight:600;color:var(--charcoal-mid);margin-bottom:6px}
+.info-box p{font-size:.74rem;color:var(--charcoal-lite);line-height:1.7;margin-bottom:6px}
+.info-box p:last-child{margin-bottom:0}
+.info-tag{display:inline-block;background:var(--gold-pale);color:var(--charcoal-mid);padding:2px 8px;border-radius:4px;font-size:.63rem;font-weight:700;margin:2px;letter-spacing:.03em}
+@media(min-width:769px){[data-tip]{position:relative}[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100%+5px);left:50%;transform:translateX(-50%);background:var(--charcoal);color:var(--gold-light);padding:3px 8px;border-radius:4px;font-size:.62rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s;z-index:999;font-family:'Raleway',sans-serif;font-weight:600}[data-tip]:hover::after{opacity:1}}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  @page{size:A3 landscape;margin:8mm}
+  .site-header,.sidebar,.bottom-nav,.login-screen,.overlay,
+  .view-tabs,.overview-row,.mobile-dept-bar,.logout-btn,.hdr-btn,
+  .fb-badge,.session-badge,.week-nav,.add-staff-dept-btn,
+  .edit-hint,.name-cell .staff-role-sm{display:none!important}
+  body{background:white!important;font-size:8pt}
+  .app-body{display:block!important;min-height:auto}
+  .main-content{padding:4px!important;overflow:visible!important;background:white}
+  .table-wrap{box-shadow:none!important;overflow:visible!important;border:1px solid #bbb;margin-bottom:8px}
+  .table-scroll{overflow:visible!important}
+  .rota-table{font-size:7pt!important;width:100%!important;border-collapse:collapse}
+  .rota-table thead th{font-size:7pt!important;padding:4px 3px!important;white-space:normal!important;background:#1C1C1C!important;color:#D4B86A!important;border:1px solid #444}
+  .rota-table thead th.name-col{min-width:80px!important;position:static!important;font-size:6pt!important}
+  .rota-table thead th.today-h{background:#2A2218!important;color:#D4B86A!important}
+  .name-cell{padding:3px 5px!important;font-size:7.5pt!important;font-weight:700!important;position:static!important;white-space:normal!important;border-right:2px solid #ddd!important;min-width:80px!important}
+  .day-cell{padding:2px!important;min-width:70px!important;border:1px solid #eee!important}
+  .spill{min-height:auto!important;padding:3px 2px!important;font-size:6.5pt!important;border:none!important;cursor:default!important}
+  .spill-label{font-size:6.5pt!important}
+  .spill-time{font-size:6pt!important}
+  .spill-split{font-size:5.5pt!important}
+  .dept-header-row td{font-size:9pt!important;padding:5px 10px!important;background:#3A3530!important;color:#D4B86A!important;border-top:2px solid #B8963E!important;letter-spacing:.06em}
+  .sect-title{font-size:10pt!important;margin-bottom:6px!important}
+  .rota-table tbody tr:nth-child(even){background:#FAFAF7!important}
+  .s-duty{background:#E8F5E9!important;color:#1B5E20!important}
+  .s-off{background:#E3F2FD!important;color:#0D47A1!important}
+  .s-sick{background:#FFEBEE!important;color:#B71C1C!important}
+  .s-annual{background:#F3E5F5!important;color:#4A148C!important}
+  .s-lieu{background:#E0F7FA!important;color:#006064!important}
+  .s-urgent{background:#FFF3E0!important;color:#E65100!important}
+  .s-bank{background:#FFF8E1!important;color:#F57F17!important}
+  /* Print header showing week */
+  .print-only{display:block!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo-area">
+    <svg viewBox="0 0 310 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#3A3835"><rect x="28" y="52" width="178" height="100"/><polygon points="28,52 90,52 59,10"/><polygon points="82,52 148,52 115,4"/><polygon points="140,52 206,52 173,12"/><rect x="0" y="133" width="18" height="19"/><rect x="8" y="124" width="14" height="9"/><rect x="14" y="117" width="14" height="7"/><rect x="210" y="74" width="46" height="78"/><rect x="262" y="62" width="48" height="90"/><polygon points="262,62 310,62 286,35"/></g>
+      <rect x="35" y="62" width="16" height="28" fill="#7A7672"/><rect x="57" y="62" width="16" height="28" fill="#7A7672"/><rect x="79" y="62" width="16" height="28" fill="#7A7672"/><rect x="101" y="62" width="16" height="28" fill="#7A7672"/><rect x="123" y="62" width="16" height="28" fill="#7A7672"/><rect x="145" y="62" width="16" height="28" fill="#7A7672"/><rect x="167" y="62" width="16" height="28" fill="#7A7672"/>
+      <rect x="35" y="100" width="16" height="28" fill="#7A7672"/><rect x="57" y="100" width="16" height="28" fill="#7A7672"/><rect x="79" y="100" width="16" height="28" fill="#7A7672"/><rect x="102" y="108" width="22" height="44" fill="#1E1C1A"/><rect x="135" y="100" width="16" height="28" fill="#7A7672"/><rect x="157" y="100" width="16" height="28" fill="#7A7672"/><rect x="179" y="100" width="16" height="28" fill="#7A7672"/>
+      <rect x="216" y="84" width="14" height="22" fill="#7A7672"/><rect x="235" y="84" width="14" height="22" fill="#7A7672"/><rect x="269" y="74" width="13" height="20" fill="#7A7672"/><rect x="287" y="74" width="13" height="20" fill="#7A7672"/><rect x="269" y="102" width="13" height="20" fill="#7A7672"/><rect x="287" y="102" width="13" height="20" fill="#7A7672"/>
+    </svg>
+    <h1>The Vedanta</h1>
+    <p>Staff Rota &amp; Scheduling</p>
+  </div>
+  <div class="gold-rule-thin"></div>
+
+  <!-- Step 1: Choose department -->
+  <div class="login-step" id="loginStep1">
+    <p class="login-step-title">Select Your Department</p>
+    <div class="dept-login-grid" id="deptLoginGrid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Step 2: PIN entry -->
+  <div class="login-step" id="loginStep2" style="display:none">
+    <div class="pin-header">
+      <button class="pin-back-btn" onclick="backToStep1()">← Back</button>
+      <div class="pin-dept-name" id="pinDeptDisplay"></div>
+    </div>
+    <p class="pin-instruction">Enter your 4-digit PIN</p>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key zero" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinDel()">⌫</button>
+    </div>
+    <p class="pin-error-msg" id="pinError"></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <svg class="building-logo" viewBox="0 0 310 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g fill="#3A3835"><rect x="28" y="52" width="178" height="100"/><polygon points="28,52 90,52 59,10"/><polygon points="82,52 148,52 115,4"/><polygon points="140,52 206,52 173,12"/><rect x="0" y="133" width="18" height="19"/><rect x="8" y="124" width="14" height="9"/><rect x="14" y="117" width="14" height="7"/><rect x="210" y="74" width="46" height="78"/><rect x="262" y="62" width="48" height="90"/><polygon points="262,62 310,62 286,35"/></g>
+        <rect x="35" y="62" width="16" height="28" fill="#7A7672"/><rect x="57" y="62" width="16" height="28" fill="#7A7672"/><rect x="79" y="62" width="16" height="28" fill="#7A7672"/><rect x="101" y="62" width="16" height="28" fill="#7A7672"/><rect x="123" y="62" width="16" height="28" fill="#7A7672"/><rect x="145" y="62" width="16" height="28" fill="#7A7672"/><rect x="167" y="62" width="16" height="28" fill="#7A7672"/>
+        <rect x="35" y="100" width="16" height="28" fill="#7A7672"/><rect x="57" y="100" width="16" height="28" fill="#7A7672"/><rect x="79" y="100" width="16" height="28" fill="#7A7672"/><rect x="102" y="108" width="22" height="44" fill="#1E1C1A"/><rect x="135" y="100" width="16" height="28" fill="#7A7672"/><rect x="157" y="100" width="16" height="28" fill="#7A7672"/><rect x="179" y="100" width="16" height="28" fill="#7A7672"/>
+        <rect x="216" y="84" width="14" height="22" fill="#7A7672"/><rect x="235" y="84" width="14" height="22" fill="#7A7672"/><rect x="269" y="74" width="13" height="20" fill="#7A7672"/><rect x="287" y="74" width="13" height="20" fill="#7A7672"/><rect x="269" y="102" width="13" height="20" fill="#7A7672"/><rect x="287" y="102" width="13" height="20" fill="#7A7672"/>
+      </svg>
+      <div class="logo-divider"></div>
+      <div class="logo-text">
+        <h1>The Vedanta</h1>
+        <p>Staff Rota</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="fb-badge offline" id="fbBadge" title="Firebase sync status"><div class="fb-dot"></div><span id="fbLabel">Offline</span></div>
+      <div class="session-badge" id="sessionBadge" style="display:none">
+        <div class="sb-dot"></div>
+        <span id="sessionLabel">–</span>
+      </div>
+      <div class="week-nav" id="weekNavEl">
+        <button onclick="changeWeek(-1)">&#8592;</button>
+        <span class="week-label" id="weekLabel">—</span>
+        <button onclick="changeWeek(1)">&#8594;</button>
+      </div>
+      <button class="hdr-btn" id="printBtn" onclick="window.print()" style="display:none">🖨 Print Rota</button>
+      <button class="hdr-btn" id="timesheetBtn" onclick="openTimesheetPrint()" style="display:none">📋 Timesheet</button>
+      <button class="logout-btn" onclick="doLogout()">Log Out</button>
+    </div>
+  </div>
+  <div class="gold-rule"></div>
+</header>
+
+<div class="app-body">
+  <aside class="sidebar">
+    <div class="sidebar-label">Departments</div>
+    <button class="dept-btn active" onclick="filterDept('all')" id="btn-all"><span class="dept-icon">🏛</span>All Departments<span class="dept-badge" id="badge-all">–</span></button>
+    <button class="dept-btn" onclick="filterDept('foh')"   id="btn-foh"><span class="dept-icon">🛎</span>Front of House<span class="dept-badge" id="badge-foh">–</span></button>
+    <button class="dept-btn" onclick="filterDept('ops')"   id="btn-ops"><span class="dept-icon">⚙️</span>Operations<span class="dept-badge" id="badge-ops">–</span></button>
+    <button class="dept-btn" onclick="filterDept('rest')"  id="btn-rest"><span class="dept-icon">🍽</span>Restaurant<span class="dept-badge" id="badge-rest">–</span></button>
+    <button class="dept-btn" onclick="filterDept('hk')"    id="btn-hk"><span class="dept-icon">🛏</span>Housekeeping<span class="dept-badge" id="badge-hk">–</span></button>
+    <button class="dept-btn" onclick="filterDept('grd')"   id="btn-grd"><span class="dept-icon">🌿</span>Grounds<span class="dept-badge" id="badge-grd">–</span></button>
+    <button class="dept-btn" onclick="filterDept('maint')" id="btn-maint"><span class="dept-icon">🔧</span>Maintenance &amp; Premises<span class="dept-badge" id="badge-maint">–</span></button>
+    <button class="dept-btn" onclick="filterDept('kit')"   id="btn-kit"><span class="dept-icon">👨‍🍳</span>Kitchen<span class="dept-badge" id="badge-kit">–</span></button>
+    <div class="sidebar-rule"></div>
+    <div class="sidebar-label">Status Key</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-pip" style="background:#4CAF50"></div>On Duty</div>
+      <div class="legend-item"><div class="legend-pip" style="background:#42A5F5"></div>Day Off</div>
+      <div class="legend-item"><div class="legend-pip" style="background:#EF5350"></div>Sick / Absent</div>
+      <div class="legend-item"><div class="legend-pip" style="background:#AB47BC"></div>Annual Leave</div>
+      <div class="legend-item"><div class="legend-pip" style="background:#26C6DA"></div>Lieu Day</div>
+      <div class="legend-item"><div class="legend-pip" style="background:#FFA726"></div>Urgent Day Off</div>
+      <div class="legend-item"><div class="legend-pip" style="background:#FFCA28"></div>Bank Holiday</div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="mobile-dept-bar" id="mobileDeptBar">
+      <button class="dept-chip active" onclick="filterDept('all')"   id="chip-all">🏛 All</button>
+      <button class="dept-chip" onclick="filterDept('foh')"          id="chip-foh">🛎 FOH</button>
+      <button class="dept-chip" onclick="filterDept('ops')"          id="chip-ops">⚙️ Ops</button>
+      <button class="dept-chip" onclick="filterDept('rest')"         id="chip-rest">🍽 Restaurant</button>
+      <button class="dept-chip" onclick="filterDept('hk')"           id="chip-hk">🛏 Housekeeping</button>
+      <button class="dept-chip" onclick="filterDept('grd')"          id="chip-grd">🌿 Grounds</button>
+      <button class="dept-chip" onclick="filterDept('maint')"        id="chip-maint">🔧 Maintenance</button>
+      <button class="dept-chip" onclick="filterDept('kit')"          id="chip-kit">👨‍🍳 Kitchen</button>
+    </div>
+
+    <div class="overview-row">
+      <div class="ov-card c-total"><div class="ov-icon">👥</div><div class="ov-num" id="ov-total">–</div><div class="ov-lbl">Total</div></div>
+      <div class="ov-card c-duty"><div class="ov-icon">✅</div><div class="ov-num" id="ov-duty">–</div><div class="ov-lbl">On Duty</div></div>
+      <div class="ov-card c-off"><div class="ov-icon">🏖</div><div class="ov-num" id="ov-off">–</div><div class="ov-lbl">Day Off</div></div>
+      <div class="ov-card c-sick"><div class="ov-icon">🤒</div><div class="ov-num" id="ov-sick">–</div><div class="ov-lbl">Sick</div></div>
+      <div class="ov-card c-leave"><div class="ov-icon">📅</div><div class="ov-num" id="ov-leave">–</div><div class="ov-lbl">Leave</div></div>
+    </div>
+
+    <div class="view-tabs">
+      <button class="view-tab active" onclick="setView('week')"   id="tab-week">Weekly Rota</button>
+      <button class="view-tab" onclick="setView('today')"         id="tab-today">Today's Duty</button>
+      <button class="view-tab" onclick="setView('annual')"        id="tab-annual">Annual Leave</button>
+      <button class="view-tab hidden-tab" onclick="setView('manage')"  id="tab-manage">Manage Staff</button>
+      <button class="view-tab hidden-tab" onclick="setView('settings')" id="tab-settings">⚙ PIN Settings</button>
+      <button class="view-tab" onclick="setView('hours')" id="tab-hours">⏱ Hours</button>
+    </div>
+
+    <div id="view-week">
+      <div class="sect-title" id="rotaTitle">Full Building Rota</div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table class="rota-table"><thead id="rotaHead"></thead><tbody id="rotaBody"></tbody></table>
+      </div></div>
+      <button class="add-staff-dept-btn" id="addStaffDeptBtn" style="display:none" onclick="openAddModalForDept()">＋ Add New Staff Member to My Department</button>
+    </div>
+    <div id="view-today" style="display:none">
+      <div class="sect-title">Today On Duty</div><div id="todayContent"></div>
+    </div>
+    <div id="view-annual" style="display:none">
+      <div class="sect-title">Annual Leave Tracker</div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table class="annual-table">
+          <thead><tr><th>Staff Member</th><th>Department</th><th class="c">Entitlement</th><th class="c">Used</th><th class="c">Remaining</th><th>Progress</th></tr></thead>
+          <tbody id="annualBody"></tbody>
+        </table>
+      </div></div>
+    </div>
+    <div id="view-manage" style="display:none">
+      <div class="sect-title">Manage Staff</div>
+      <div class="save-notice" id="saveNotice">✅ Saved</div>
+      <button class="btn-add-staff" onclick="openAddModal()">+ Add New Staff Member</button>
+      <div class="table-wrap"><div class="table-scroll">
+        <table class="manage-table">
+          <thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Leave Left</th><th></th></tr></thead>
+          <tbody id="manageBody"></tbody>
+        </table>
+      </div></div>
+    </div>
+    <div id="view-hours" style="display:none">
+      <div class="sect-title">Hours Tracker</div>
+      <div class="hours-summary-row" id="hoursSummary"></div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table class="hours-table">
+          <thead><tr><th>Staff Member</th><th>Department</th><th class="r">This Week</th><th class="r">This Month</th><th class="r">This Year (YTD)</th><th class="r">Proj. Annual</th></tr></thead>
+          <tbody id="hoursBody"></tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <div id="view-settings" style="display:none">
+      <div class="sect-title">PIN Settings — Admin Only</div>
+      <div class="info-box" style="margin-bottom:14px">
+        <h3>🔐 Department PINs</h3>
+        <p>Each department manager uses their PIN to log in and access only their rota. The Admin PIN gives full access to all departments, staff management, and PIN settings.</p>
+        <p><span class="info-tag">⚠️ PINs are stored on this device only. Share new PINs with managers in person.</span></p>
+      </div>
+      <!-- Firebase Cloud Sync -->
+      <div class="info-box" style="margin-bottom:14px">
+        <h3>☁️ Cloud Sync — Firebase</h3>
+        <p>Status: <strong id="fbSettingsStatus">Not connected</strong></p>
+        <p style="margin-top:8px">To connect, go to <strong>console.firebase.google.com</strong> → create a project → add a Web App → copy the config object and paste it below:</p>
+        <textarea class="config-area" id="fbConfigInput" placeholder='Paste your Firebase config here, e.g.:
+{
+  "apiKey": "AIza...",
+  "authDomain": "yourproject.firebaseapp.com",
+  "projectId": "yourproject",
+  "storageBucket": "yourproject.appspot.com",
+  "messagingSenderId": "123456789",
+  "appId": "1:123..."
+}'></textarea>
+        <div style="display:flex;gap:9px;margin-top:9px;flex-wrap:wrap">
+          <button class="btn-save-pin" onclick="connectFirebase()" style="background:var(--gold);color:var(--charcoal)">Connect</button>
+          <button class="sync-upload-btn" onclick="uploadLocalData()" id="uploadBtn" style="display:none">⬆ Upload Local Data to Cloud</button>
+          <button class="btn-save-pin" onclick="disconnectFirebase()" style="background:#C62828;margin-left:auto">Disconnect</button>
+        </div>
+        <p id="fbConnectMsg" style="font-size:.7rem;margin-top:8px;color:var(--gold)"></p>
+        <p style="margin-top:10px;font-size:.68rem;color:var(--charcoal-lite)"><strong>Firestore rules</strong> — in Firebase console → Firestore → Rules, set:<br/><code style="font-size:.68rem;background:var(--cream-dark);padding:2px 5px;border-radius:3px">allow read, write: if true;</code></p>
+      </div>
+
+      <div class="table-wrap">
+        <table class="pin-settings-table">
+          <thead><tr><th>Department</th><th>Current PIN</th><th>New PIN</th><th></th></tr></thead>
+          <tbody id="pinTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<nav class="bottom-nav">
+  <button class="bnav-btn active" onclick="setView('week')"    id="bnav-week"><span class="bicon">📅</span>Rota</button>
+  <button class="bnav-btn" onclick="setView('today')"          id="bnav-today"><span class="bicon">✅</span>Today</button>
+  <button class="bnav-btn" onclick="setView('annual')"         id="bnav-annual"><span class="bicon">📊</span>Leave</button>
+  <button class="bnav-btn" onclick="setView('manage')"         id="bnav-manage" style="display:none"><span class="bicon">👥</span>Staff</button>
+  <button class="bnav-btn" onclick="setView('settings')"       id="bnav-settings" style="display:none"><span class="bicon">⚙️</span>PINs</button>
+  <button class="bnav-btn" onclick="setView('hours')"          id="bnav-hours"><span class="bicon">⏱</span>Hours</button>
+</nav>
+
+<!-- STATUS MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <span class="modal-drag"></span>
+    <div class="modal-title" id="mTitle">Edit Status</div>
+    <div class="modal-sub" id="mSub"></div>
+    <div class="status-grid" id="mGrid"></div>
+    <div class="time-section" id="timeSection">
+      <div class="time-section-title">Shift Times</div>
+      <div class="time-row">
+        <div class="time-field"><label>Start Time</label><input type="time" id="startTime" value="09:00"/></div>
+        <div class="time-field"><label>Finish Time</label><input type="time" id="endTime" value="17:00"/></div>
+      </div>
+      <div class="split-toggle">
+        <label><input type="checkbox" id="splitCheck" onchange="toggleSplit()"/> Split Shift</label>
+      </div>
+      <div id="split2Section" style="display:none">
+        <div class="time-row" style="margin-top:8px">
+          <div class="time-field"><label>2nd Start</label><input type="time" id="start2Time" value="18:00"/></div>
+          <div class="time-field"><label>2nd Finish</label><input type="time" id="end2Time" value="22:00"/></div>
+        </div>
+      </div>
+    </div>
+    <div class="note-row"><input type="text" id="mNote" placeholder="Note — e.g. Doctor's appointment…"/></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal(null)">Cancel</button>
+      <button class="btn-save" onclick="saveStatus()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD STAFF MODAL -->
+<div class="overlay" id="addOverlay" onclick="closeAddModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <span class="modal-drag"></span>
+    <div class="modal-title">Add New Staff Member</div>
+    <div class="modal-sub">Fill in the details below</div>
+    <div class="add-form">
+      <div><label>Full Name</label><input type="text" id="addName" placeholder="e.g. Sarah Jones" autocomplete="off"/></div>
+      <div><label>Job Title / Role</label><input type="text" id="addRole" placeholder="e.g. Kitchen Team" autocomplete="off"/></div>
+      <div><label>Department</label>
+        <select id="addDept">
+          <option value="foh">Front of House</option><option value="ops">Operations</option><option value="rest">Restaurant</option>
+          <option value="hk">Housekeeping</option><option value="grd">Grounds</option><option value="maint">Maintenance &amp; Premises</option><option value="kit">Kitchen</option>
+        </select>
+      </div>
+      <div><label>Annual Leave Remaining (days)</label><input type="number" id="addLeave" value="28" min="0" max="50"/></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAddModal(null)">Cancel</button>
+      <button class="btn-save" onclick="addStaff()">Add Staff Member</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  PWA
+// ════════════════════════════════════════════
+(function(){
+  const m={name:"The Vedanta — Staff Rota",short_name:"Vedanta Rota",start_url:location.href,display:"standalone",background_color:"#F7F3EB",theme_color:"#1C1C1C",orientation:"any",icons:[{src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" fill="#1C1C1C"/><text y="130" x="96" text-anchor="middle" font-size="110" fill="#B8963E">🏛</text></svg>'),sizes:"192x192",type:"image/svg+xml"}]};
+  try{const b=new Blob([JSON.stringify(m)],{type:'application/json'});document.getElementById('pwa-manifest').href=URL.createObjectURL(b);}catch(e){}
+})();
+
+// ════════════════════════════════════════════
+//  CONSTANTS
+// ════════════════════════════════════════════
+const STATUS={
+  duty:  {label:'On Duty',       icon:'✅',cls:'s-duty',  showTime:true},
+  off:   {label:'Day Off',       icon:'🏖',cls:'s-off',   showTime:false},
+  sick:  {label:'Sick / Absent', icon:'🤒',cls:'s-sick',  showTime:false},
+  annual:{label:'Annual Leave',  icon:'📅',cls:'s-annual',showTime:false},
+  lieu:  {label:'Lieu Day',      icon:'🔄',cls:'s-lieu',  showTime:false},
+  urgent:{label:'Urgent Day Off',icon:'⚡',cls:'s-urgent',showTime:false},
+  bank:  {label:'Bank Holiday',  icon:'🏦',cls:'s-bank',  showTime:false},
+};
+const DEPTS={
+  foh:  {name:'Front of House',         icon:'🛎',color:'#5D4037'},
+  ops:  {name:'Operations',             icon:'⚙️',color:'#37474F'},
+  rest: {name:'Restaurant',             icon:'🍽',color:'#3E2723'},
+  hk:   {name:'Housekeeping',           icon:'🛏',color:'#1565C0'},
+  grd:  {name:'Grounds',               icon:'🌿',color:'#2E7D32'},
+  maint:{name:'Maintenance & Premises', icon:'🔧',color:'#BF360C'},
+  kit:  {name:'Kitchen',               icon:'👨‍🍳',color:'#6A1B9A'},
+};
+const ANNUAL_DAYS=28;
+const LS_STAFF='vedanta_staff_v3';
+const LS_ROTA='vedanta_rota_v3';
+const LS_PINS='vedanta_pins_v2';
+
+// ════════════════════════════════════════════
+//  DEFAULT PINS
+// ════════════════════════════════════════════
+const DEFAULT_PINS={
+  admin:'0000',
+  foh:'1111',
+  ops:'2222',
+  rest:'3333',
+  hk:'4444',
+  grd:'5555',
+  maint:'6666',
+  kit:'7777',
+};
+
+// ════════════════════════════════════════════
+//  STORAGE HELPERS
+// ════════════════════════════════════════════
+function ls_load(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch(e){return fb}}
+function ls_save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let PINS=ls_load(LS_PINS,null)||JSON.parse(JSON.stringify(DEFAULT_PINS));
+function showSaveNotice(){const n=document.getElementById('saveNotice');if(n){n.classList.add('show');setTimeout(()=>n.classList.remove('show'),2000)}}
+
+// ════════════════════════════════════════════
+//  SESSION STATE
+// ════════════════════════════════════════════
+// role: 'admin' | 'dept'   dept: 'foh'|'ops'|... (null for admin)
+let session={loggedIn:false,role:null,dept:null};
+
+function applySession(){
+  const isAdmin=session.role==='admin';
+  const deptKey=session.dept;
+
+  // Session badge
+  const badge=document.getElementById('sessionBadge');
+  const label=document.getElementById('sessionLabel');
+  badge.style.display='flex';
+  label.textContent=isAdmin?'Admin — Full Access':DEPTS[deptKey]?.name||'';
+
+  // Print btns
+  document.getElementById('printBtn').style.display='block';
+  document.getElementById('timesheetBtn').style.display='block';
+
+  // Admin-only tabs
+  ['tab-manage','tab-settings'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle('hidden-tab',!isAdmin);
+  });
+  ['bnav-manage','bnav-settings'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=isAdmin?'flex':'none';
+  });
+
+  // Sidebar locking (non-admin can only see their dept)
+  Object.keys(DEPTS).forEach(dk=>{
+    const btn=document.getElementById('btn-'+dk);
+    const chip=document.getElementById('chip-'+dk);
+    const locked=!isAdmin&&dk!==deptKey;
+    if(btn){btn.classList.toggle('locked',locked);}
+    if(chip){chip.classList.toggle('locked',locked);}
+  });
+  // All-depts button only for admin
+  const allBtn=document.getElementById('btn-all');
+  const allChip=document.getElementById('chip-all');
+  if(allBtn) allBtn.classList.toggle('locked',!isAdmin);
+  if(allChip) allChip.classList.toggle('locked',!isAdmin);
+
+  // Show dept add-staff button for dept managers
+  const dab=document.getElementById('addStaffDeptBtn');
+  if(dab) dab.style.display=(!isAdmin&&deptKey)?'':'none';
+
+  // Set active dept
+  if(!isAdmin){
+    activeDept=deptKey;
+    document.querySelectorAll('.dept-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.dept-chip').forEach(b=>b.classList.remove('active'));
+    const sb=document.getElementById('btn-'+deptKey);if(sb)sb.classList.add('active');
+    const cb=document.getElementById('chip-'+deptKey);if(cb)cb.classList.add('active');
+  }
+}
+
+function doLogout(){
+  ls_save('vedanta_session_v2',{loggedIn:false});
+  session={loggedIn:false,role:null,dept:null};
+  pinEntry='';
+  selectedLoginDept=null;
+  document.getElementById('loginScreen').classList.remove('hidden');
+  backToStep1();
+}
+
+// ════════════════════════════════════════════
+//  LOGIN LOGIC
+// ════════════════════════════════════════════
+let selectedLoginDept=null;
+let pinEntry='';
+
+function buildLoginGrid(){
+  const grid=document.getElementById('deptLoginGrid');
+  let html='';
+  Object.entries(DEPTS).forEach(([k,d])=>{
+    html+=`<button class="dept-login-btn" onclick="selectLoginDept('${k}')">
+      <span class="dlb-icon">${d.icon}</span>
+      <span class="dlb-name">${d.name}</span>
+    </button>`;
+  });
+  html+=`<button class="dept-login-btn admin-login-btn" onclick="selectLoginDept('admin')">
+    <span class="dlb-icon">🔑</span>
+    <span class="dlb-name">Admin</span>
+  </button>`;
+  grid.innerHTML=html;
+}
+
+function selectLoginDept(key){
+  selectedLoginDept=key;
+  pinEntry='';
+  updatePinDots();
+  document.getElementById('pinError').textContent='';
+  const isAdmin=key==='admin';
+  const display=document.getElementById('pinDeptDisplay');
+  display.innerHTML=isAdmin
+    ?`<span>🔑</span>Admin Access`
+    :`<span>${DEPTS[key]?.icon||''}</span>${DEPTS[key]?.name||''}`;
+  document.getElementById('loginStep1').style.display='none';
+  document.getElementById('loginStep2').style.display='block';
+}
+
+function backToStep1(){
+  selectedLoginDept=null;pinEntry='';
+  document.getElementById('loginStep2').style.display='none';
+  document.getElementById('loginStep1').style.display='block';
+  document.getElementById('pinError').textContent='';
+  updatePinDots();
+}
+
+function pinKey(n){
+  if(pinEntry.length>=4)return;
+  pinEntry+=n;
+  updatePinDots();
+  if(pinEntry.length===4) setTimeout(checkPin,80);
+}
+function pinDel(){
+  pinEntry=pinEntry.slice(0,-1);
+  updatePinDots();
+  document.getElementById('pinError').textContent='';
+}
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    const dot=document.getElementById('d'+i);
+    if(!dot)continue;
+    dot.classList.remove('filled','error','success');
+    if(i<pinEntry.length) dot.classList.add('filled');
+  }
+}
+function setDotsState(state){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('d'+i);
+    if(!d)return;
+    d.classList.remove('filled','error','success');
+    d.classList.add(state);
+  }
+}
+
+function checkPin(){
+  const correct=PINS[selectedLoginDept];
+  if(pinEntry===correct){
+    setDotsState('success');
+    setTimeout(()=>{
+      session={loggedIn:true,role:selectedLoginDept==='admin'?'admin':'dept',dept:selectedLoginDept==='admin'?null:selectedLoginDept};
+      document.getElementById('loginScreen').classList.add('hidden');
+      ls_save('vedanta_session_v2',session);
+      applySession();
+      render();
+    },350);
+  } else {
+    setDotsState('error');
+    document.getElementById('pinError').textContent='Incorrect PIN — please try again';
+    setTimeout(()=>{pinEntry='';updatePinDots();},700);
+  }
+}
+
+// ════════════════════════════════════════════
+//  DEFAULT STAFF & ROTA DATA
+// ════════════════════════════════════════════
+const DEFAULT_STAFF=[
+  {id:1, name:'Kerie',        role:'Front of House',         dept:'foh',  annualLeft:22},
+  {id:2, name:'Shannon',      role:'Operations',             dept:'ops',  annualLeft:18},
+  {id:3, name:'Chetan',       role:'Restaurant Manager',     dept:'rest', annualLeft:14},
+  {id:4, name:'Luxay',        role:'Restaurant Team',        dept:'rest', annualLeft:21},
+  {id:5, name:'Nikhil',       role:'Restaurant Team',        dept:'rest', annualLeft:24},
+  {id:6, name:'Bev',          role:'Restaurant Team',        dept:'rest', annualLeft:27},
+  {id:7, name:'Varsha',       role:'Restaurant Team',        dept:'rest', annualLeft:20},
+  {id:8, name:'Julia',        role:'Housekeeping',           dept:'hk',   annualLeft:20},
+  {id:9, name:'Shruti',       role:'Housekeeping',           dept:'hk',   annualLeft:23},
+  {id:10,name:'Nick',         role:'Housekeeping',           dept:'hk',   annualLeft:25},
+  {id:11,name:'Srushti',      role:'Housekeeping',           dept:'hk',   annualLeft:28},
+  {id:12,name:'Krishna',      role:'Housekeeping',           dept:'hk',   annualLeft:17},
+  {id:13,name:'Harriet',      role:'Grounds Team',           dept:'grd',  annualLeft:25},
+  {id:14,name:'Graham',       role:'Maintenance & Premises', dept:'maint',annualLeft:16},
+  {id:15,name:'Alexey',       role:'Maintenance & Premises', dept:'maint',annualLeft:22},
+  {id:16,name:'Shyam Prasad', role:'Head Chef',              dept:'kit',  annualLeft:12},
+  {id:17,name:'Saurabh Unial',role:'Chef',                   dept:'kit',  annualLeft:20},
+  {id:18,name:'Justin Jose',  role:'Chef',                   dept:'kit',  annualLeft:24},
+  {id:19,name:'Agnieszka',    role:'Kitchen Team',           dept:'kit',  annualLeft:26},
+  {id:20,name:'Adam',         role:'Kitchen Team',           dept:'kit',  annualLeft:28},
+  {id:21,name:'Ebenezer',     role:'Kitchen Porter',         dept:'kit',  annualLeft:28},
+];
+
+let STAFF=ls_load(LS_STAFF,null)||JSON.parse(JSON.stringify(DEFAULT_STAFF));
+let rotaData=ls_load(LS_ROTA,{});
+let nextId=Math.max(...STAFF.map(s=>s.id),0)+1;
+
+(function(){
+  if(Object.keys(rotaData).length>0)return;
+  const BASE=new Date('2026-06-15');
+  const pats={1:['duty','duty','duty','duty','duty','off','off'],2:['duty','duty','duty','duty','duty','off','off'],3:['duty','duty','duty','duty','duty','off','off'],4:['off','duty','duty','duty','duty','duty','off'],5:['duty','duty','off','duty','duty','duty','off'],6:['duty','off','duty','duty','duty','off','duty'],7:['duty','duty','duty','duty','off','off','duty'],8:['duty','duty','duty','duty','duty','off','off'],9:['off','duty','duty','duty','duty','off','duty'],10:['duty','duty','duty','off','duty','duty','off'],11:['duty','duty','off','duty','duty','off','duty'],12:['off','off','duty','duty','duty','duty','duty'],13:['duty','duty','duty','duty','off','off','duty'],14:['duty','duty','duty','duty','duty','off','off'],15:['duty','off','duty','duty','duty','off','duty'],16:['duty','duty','duty','duty','duty','off','off'],17:['off','duty','duty','duty','duty','duty','off'],18:['duty','duty','off','duty','duty','off','duty'],19:['duty','duty','duty','off','duty','duty','off'],20:['off','duty','duty','duty','off','duty','duty'],21:['duty','duty','duty','duty','off','off','duty']};
+  for(let w=-3;w<=6;w++){DEFAULT_STAFF.forEach(s=>{const pat=pats[s.id]||['duty','duty','duty','duty','duty','off','off'];for(let d=0;d<7;d++){const date=addDays(BASE,w*7+d);const isDuty=pat[d%7]==='duty';rotaData[dKey(s.id,date)]={status:pat[d%7],note:'',startTime:isDuty?'09:00':'',endTime:isDuty?'17:00':'',splitShift:false,start2Time:'',end2Time:''};}});}
+  ls_save(LS_ROTA,rotaData);
+})();
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let weekStart=getMonday(new Date());
+let activeDept='all';
+let activeView='week';
+let editCell=null;
+let editStatus=null;
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function dKey(id,date){return`${id}_${date.toISOString().slice(0,10)}`}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function getMonday(d){const x=new Date(d);const day=x.getDay();x.setDate(x.getDate()-day+(day===0?-6:1));x.setHours(0,0,0,0);return x}
+function isToday(d){const t=new Date();return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate()}
+function fmt(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}
+function fmtDay(d){return d.toLocaleDateString('en-GB',{weekday:'short'})}
+function fmtLong(d){return d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}
+function getSt(id,date){return rotaData[dKey(id,date)]||{status:'off',note:'',startTime:'',endTime:'',splitShift:false,start2Time:'',end2Time:''}}
+function fmtTime(t){if(!t)return'';const[h,m]=t.split(':');return`${parseInt(h)}:${m}`}
+function getFiltered(){return activeDept==='all'?STAFF:STAFF.filter(s=>s.dept===activeDept)}
+function pillHTML(rec){
+  const st=STATUS[rec.status]||STATUS.off;
+  let t='';
+  if(st.showTime&&rec.startTime&&rec.endTime){
+    t=rec.splitShift&&rec.start2Time?`<span class="spill-split">${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}<br>${fmtTime(rec.start2Time)}–${fmtTime(rec.end2Time)}</span>`:`<span class="spill-time">${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}</span>`;
+  }
+  return`<span class="spill-label">${st.icon} ${st.label}</span>${t}`;
+}
+
+// ════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════
+function changeWeek(n){weekStart=addDays(weekStart,n*7);render()}
+function filterDept(d){
+  if(!session.loggedIn)return;
+  const isAdmin=session.role==='admin';
+  if(!isAdmin&&d!==session.dept&&d!=='all')return;
+  if(!isAdmin&&d==='all')return;
+  activeDept=d;
+  document.querySelectorAll('.dept-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.dept-chip').forEach(b=>b.classList.remove('active'));
+  const sb=document.getElementById('btn-'+d);if(sb)sb.classList.add('active');
+  const cb=document.getElementById('chip-'+d);if(cb)cb.classList.add('active');
+  render();
+}
+function setView(v){
+  activeView=v;
+  const views=['week','today','annual','manage','settings','hours'];
+  views.forEach(id=>{
+    const el=document.getElementById('view-'+id);if(el)el.style.display=id===v?'':'none';
+    const tb=document.getElementById('tab-'+id);if(tb)tb.classList.toggle('active',id===v);
+    const nb=document.getElementById('bnav-'+id);if(nb)nb.classList.toggle('active',id===v);
+  });
+  render();
+}
+
+// ════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════
+function render(){
+  document.getElementById('weekLabel').textContent=`${fmt(weekStart)} — ${fmt(addDays(weekStart,6))}`;
+  const today=new Date();today.setHours(0,0,0,0);
+  let duty=0,off=0,sick=0,leave=0;
+  const countStaff=activeDept==='all'?STAFF:STAFF.filter(s=>s.dept===activeDept);
+  countStaff.forEach(s=>{const st=getSt(s.id,today).status;if(st==='duty')duty++;else if(st==='off'||st==='urgent'||st==='lieu')off++;else if(st==='sick')sick++;else if(st==='annual'||st==='bank')leave++;});
+  document.getElementById('ov-total').textContent=countStaff.length;
+  document.getElementById('ov-duty').textContent=duty;
+  document.getElementById('ov-off').textContent=off;
+  document.getElementById('ov-sick').textContent=sick;
+  document.getElementById('ov-leave').textContent=leave;
+  Object.keys(DEPTS).forEach(dk=>{const ds=STAFF.filter(s=>s.dept===dk);const d=ds.filter(s=>getSt(s.id,today).status==='duty').length;const el=document.getElementById('badge-'+dk);if(el)el.textContent=`${d}/${ds.length}`;});
+  const allD=STAFF.filter(s=>getSt(s.id,today).status==='duty').length;
+  document.getElementById('badge-all').textContent=`${allD}/${STAFF.length}`;
+  if(activeView==='week')renderWeek();
+  if(activeView==='today')renderToday();
+  if(activeView==='annual')renderAnnual();
+  if(activeView==='manage')renderManage();
+  if(activeView==='settings')renderPinSettings();
+  if(activeView==='hours')renderHours();
+}
+
+// ── Weekly rota ─────────────────────────────
+function renderWeek(){
+  const days=Array.from({length:7},(_,i)=>addDays(weekStart,i));
+  const staff=getFiltered();
+  document.getElementById('rotaHead').innerHTML='<tr><th class="name-col">Staff</th>'+days.map(d=>`<th class="${isToday(d)?'today-h':''}">${fmtDay(d)}<br/><small style="font-size:.63rem;font-weight:400">${fmt(d)}</small></th>`).join('')+'</tr>';
+  const dks=activeDept==='all'?Object.keys(DEPTS):[activeDept];
+  let html='';
+  dks.forEach(dk=>{
+    const ds=staff.filter(s=>s.dept===dk);if(!ds.length)return;
+    if(activeDept==='all')html+=`<tr class="dept-header-row"><td colspan="8">${DEPTS[dk].icon} ${DEPTS[dk].name}</td></tr>`;
+    ds.forEach(s=>{
+      const sn=s.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      html+=`<tr><td class="name-cell" onclick="startEditName(event,${s.id})" title="Tap to edit name"><div class="name-cell-inner"><div><span id="nd-${s.id}">${s.name}</span><span class="staff-role-sm">${s.role}</span></div><span class="edit-hint">✏️</span></div></td>`;
+      days.forEach(day=>{const rec=getSt(s.id,day);const st=STATUS[rec.status]||STATUS.off;html+=`<td class="day-cell${isToday(day)?' today-h':''}" data-tip="${rec.note?`${st.label} — ${rec.note}`:st.label}"><button class="spill ${st.cls}" onclick="openModal(${s.id},'${day.toISOString().slice(0,10)}','${sn}','${fmtLong(day)}')">${pillHTML(rec)}</button></td>`;});
+      html+='</tr>';
+    });
+  });
+  document.getElementById('rotaBody').innerHTML=html;
+  const d=activeDept==='all'?'Full Building':(DEPTS[activeDept]?.name||'');
+  document.getElementById('rotaTitle').textContent=`${d} Rota — w/c ${fmt(weekStart)}`;
+}
+
+function startEditName(e,id){
+  e.stopPropagation();
+  const s=STAFF.find(x=>x.id===id);if(!s)return;
+  const display=document.getElementById('nd-'+id);if(!display)return;
+  const inp=document.createElement('input');
+  inp.className='name-input-inline';inp.value=s.name;
+  inp.onclick=ev=>ev.stopPropagation();
+  inp.onblur=()=>{const n=inp.value.trim();if(n){s.name=n;db_saveStaff(s);showSaveNotice();}render();};
+  inp.onkeydown=ev=>{if(ev.key==='Enter')inp.blur();if(ev.key==='Escape'){inp.value=s.name;inp.blur();}};
+  display.parentNode.replaceChild(inp,display);inp.focus();inp.select();
+}
+
+function renderToday(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const dks=activeDept==='all'?Object.keys(DEPTS):[activeDept];
+  let html='';
+  dks.forEach(dk=>{
+    const d=DEPTS[dk];const ds=STAFF.filter(s=>s.dept===dk);
+    const on=ds.filter(s=>getSt(s.id,today).status==='duty');
+    const ab=ds.filter(s=>getSt(s.id,today).status!=='duty');
+    html+=`<div class="dept-today-card" style="border-left-color:${d.color}"><div class="dtc-head"><div><div class="dtc-name">${d.icon} ${d.name}</div><div class="dtc-stats">${on.length} on duty · ${ab.length} away · ${ds.length} total</div></div><div class="dtc-count" style="background:${d.color}">${on.length}</div></div><div class="staff-chips">`;
+    on.forEach(s=>{const rec=getSt(s.id,today);const t=rec.startTime&&rec.endTime?` ${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}`:'';html+=`<span class="s-chip s-duty">✅ ${s.name}${t}</span>`;});
+    ab.forEach(s=>{const rec=getSt(s.id,today);const st=STATUS[rec.status]||STATUS.off;html+=`<span class="s-chip ${st.cls}">${st.icon} ${s.name}</span>`;});
+    html+=`</div></div>`;
+  });
+  document.getElementById('todayContent').innerHTML=html;
+}
+
+function renderAnnual(){
+  const staff=getFiltered();const dks=activeDept==='all'?Object.keys(DEPTS):[activeDept];let html='';
+  dks.forEach(dk=>{const ds=staff.filter(s=>s.dept===dk);if(!ds.length)return;const d=DEPTS[dk];if(activeDept==='all')html+=`<tr class="annual-dept-row"><td colspan="6">${d.icon} ${d.name}</td></tr>`;
+  ds.forEach(s=>{const used=ANNUAL_DAYS-s.annualLeft;const pct=Math.round((used/ANNUAL_DAYS)*100);const barC=pct>=90?'#C62828':pct>=70?'#E65100':'#B8963E';const remC=s.annualLeft<=5?'#C62828':s.annualLeft<=10?'#E65100':'#2E7D32';
+  html+=`<tr><td style="font-weight:600">${s.name}<br/><span style="font-size:.6rem;color:#6B6560;font-weight:400">${s.role}</span></td><td><span style="background:${d.color}18;color:${d.color};padding:2px 8px;border-radius:20px;font-size:.64rem;font-weight:700">${d.name}</span></td><td style="text-align:center;font-weight:600">${ANNUAL_DAYS}</td><td style="text-align:center;font-weight:700;color:${barC}">${used}</td><td style="text-align:center"><input type="number" value="${s.annualLeft}" min="0" max="${ANNUAL_DAYS}" style="width:50px;text-align:center;border:1.5px solid var(--cream-dark);border-radius:4px;padding:3px;font-size:.76rem;font-weight:700;color:${remC}" onchange="updateLeave(${s.id},this.value)"/></td><td><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${barC}"></div></div><div style="font-size:.59rem;color:#999;margin-top:2px">${pct}%</div></td></tr>`;});});
+  document.getElementById('annualBody').innerHTML=html;
+}
+function updateLeave(id,val){const s=STAFF.find(x=>x.id===id);if(s){s.annualLeft=Math.max(0,Math.min(ANNUAL_DAYS,parseInt(val)||0));ls_save(LS_STAFF,STAFF);}}
+
+function renderManage(){
+  let html='';
+  Object.keys(DEPTS).forEach(dk=>{const ds=STAFF.filter(s=>s.dept===dk);if(!ds.length)return;const d=DEPTS[dk];
+  html+=`<tr><td colspan="5" style="background:var(--cream-dark);padding:5px 12px;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;color:var(--charcoal-mid);border-top:1px solid var(--cream-mid)">${d.icon} ${d.name}</td></tr>`;
+  ds.forEach(s=>{html+=`<tr><td><input class="editable-field" value="${s.name.replace(/"/g,'&quot;')}" onchange="updateField(${s.id},'name',this.value)"/></td><td><input class="editable-field" value="${s.role.replace(/"/g,'&quot;')}" onchange="updateField(${s.id},'role',this.value)"/></td><td><select class="dept-select" onchange="updateField(${s.id},'dept',this.value)">${Object.entries(DEPTS).map(([k,v])=>`<option value="${k}"${k===s.dept?' selected':''}>${v.name}</option>`).join('')}</select></td><td style="text-align:center"><input type="number" value="${s.annualLeft}" min="0" max="${ANNUAL_DAYS}" style="width:50px;text-align:center;border:1.5px solid var(--cream-dark);border-radius:4px;padding:3px;font-size:.74rem" onchange="updateField(${s.id},'annualLeft',parseInt(this.value)||0)"/></td><td><button class="btn-remove" onclick="removeStaff(${s.id})">Remove</button></td></tr>`;});});
+  document.getElementById('manageBody').innerHTML=html;
+}
+function updateField(id,field,value){const s=STAFF.find(x=>x.id===id);if(s){s[field]=value;db_saveStaff(s);showSaveNotice();}}
+function removeStaff(id){const s=STAFF.find(x=>x.id===id);if(!s)return;if(!confirm(`Remove ${s.name}? This cannot be undone.`))return;STAFF=STAFF.filter(x=>x.id!==id);db_deleteStaff(id);render();}
+
+// ── PIN Settings ─────────────────────────────
+function renderPinSettings(){
+  const deptList=[{key:'admin',name:'Admin (Full Access)',icon:'🔑'},...Object.entries(DEPTS).map(([k,d])=>({key:k,name:d.name,icon:d.icon}))];
+  let html='';
+  deptList.forEach(({key,name,icon})=>{
+    html+=`<tr>
+      <td style="font-weight:600">${icon} ${name}</td>
+      <td><span style="font-family:monospace;font-size:.9rem;letter-spacing:.2em;background:var(--cream);padding:4px 10px;border-radius:4px">${PINS[key]||'????'}</span></td>
+      <td><div class="pin-field"><input type="text" id="newpin-${key}" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="New PIN" style="width:90px;padding:7px 10px;border:1.5px solid var(--cream-dark);border-radius:6px;font-size:.88rem;font-family:'Raleway',sans-serif;font-weight:700;text-align:center;letter-spacing:.15em;background:var(--cream);color:var(--charcoal);outline:none"/></div></td>
+      <td><button class="btn-save-pin" onclick="savePin('${key}')">Save</button> <span class="pin-saved-dot" id="pdot-${key}"></span></td>
+    </tr>`;
+  });
+  document.getElementById('pinTableBody').innerHTML=html;
+}
+function savePin(key){
+  const inp=document.getElementById('newpin-'+key);
+  const val=inp.value.trim();
+  if(!/^\d{4}$/.test(val)){alert('PIN must be exactly 4 digits');return;}
+  db_savePins({...PINS,[key]:val});
+  inp.value='';
+  const dot=document.getElementById('pdot-'+key);
+  if(dot){dot.style.opacity='1';setTimeout(()=>dot.style.opacity='0',1500);}
+  renderPinSettings();
+}
+
+// ════════════════════════════════════════════
+//  ADD STAFF
+// ════════════════════════════════════════════
+function openAddModal(){document.getElementById('addOverlay').classList.add('open')}
+function closeAddModal(e){if(e===null||e.target===document.getElementById('addOverlay'))document.getElementById('addOverlay').classList.remove('open')}
+function addStaff(){
+  const name=document.getElementById('addName').value.trim();const role=document.getElementById('addRole').value.trim()||'Staff';const dept=document.getElementById('addDept').value;const leave=parseInt(document.getElementById('addLeave').value)||ANNUAL_DAYS;
+  if(!name){alert('Please enter a name');return;}
+  const ns={id:nextId++,name,role,dept,annualLeft:leave};STAFF.push(ns);
+  const base=new Date('2026-06-15');for(let w=-3;w<=6;w++){for(let d=0;d<7;d++){const date=addDays(base,w*7+d);const iw=date.getDay()===0||date.getDay()===6;const rec={status:iw?'off':'duty',note:'',startTime:iw?'':'09:00',endTime:iw?'':'17:00',splitShift:false,start2Time:'',end2Time:''};db_saveRota(dKey(ns.id,date),rec);}}
+  db_saveStaff(ns);
+  // Re-enable dept selector for next add
+  const sel=document.getElementById('addDept');if(sel)sel.disabled=false;
+  document.getElementById('addName').value='';document.getElementById('addRole').value='';document.getElementById('addLeave').value='28';
+  document.getElementById('addOverlay').classList.remove('open');render();
+}
+
+// ════════════════════════════════════════════
+//  STATUS MODAL
+// ════════════════════════════════════════════
+function openModal(staffId,dateStr,name,dayLabel){
+  editCell={staffId,dateStr};const rec=rotaData[`${staffId}_${dateStr}`]||{status:'off',note:'',startTime:'',endTime:'',splitShift:false,start2Time:'',end2Time:''};editStatus=rec.status;
+  document.getElementById('mTitle').textContent=name;document.getElementById('mSub').textContent=dayLabel;document.getElementById('mNote').value=rec.note||'';
+  document.getElementById('startTime').value=rec.startTime||'09:00';document.getElementById('endTime').value=rec.endTime||'17:00';
+  document.getElementById('splitCheck').checked=!!rec.splitShift;document.getElementById('start2Time').value=rec.start2Time||'18:00';document.getElementById('end2Time').value=rec.end2Time||'22:00';
+  document.getElementById('split2Section').style.display=rec.splitShift?'':'none';
+  document.getElementById('mGrid').innerHTML=Object.entries(STATUS).map(([k,v])=>`<div class="sopt ${v.cls}${k===rec.status?' sel':''}" onclick="pickStatus('${k}',this)"><span class="sopt-icon">${v.icon}</span>${v.label}</div>`).join('');
+  document.getElementById('timeSection').style.display=rec.status==='duty'?'':'none';
+  document.getElementById('overlay').classList.add('open');
+}
+function pickStatus(k,el){editStatus=k;document.querySelectorAll('.sopt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');document.getElementById('timeSection').style.display=k==='duty'?'':'none';}
+function toggleSplit(){document.getElementById('split2Section').style.display=document.getElementById('splitCheck').checked?'':'none';}
+function saveStatus(){
+  if(!editCell||!editStatus)return;const isDuty=editStatus==='duty';
+  const _k=`${editCell.staffId}_${editCell.dateStr}`;
+  const _d={status:editStatus,note:document.getElementById('mNote').value,startTime:isDuty?document.getElementById('startTime').value:'',endTime:isDuty?document.getElementById('endTime').value:'',splitShift:isDuty&&document.getElementById('splitCheck').checked,start2Time:isDuty&&document.getElementById('splitCheck').checked?document.getElementById('start2Time').value:'',end2Time:isDuty&&document.getElementById('splitCheck').checked?document.getElementById('end2Time').value:''};
+  db_saveRota(_k,_d);closeModal(null);render();
+}
+function closeModal(e){if(e===null||e.target===document.getElementById('overlay')){document.getElementById('overlay').classList.remove('open');editCell=null;editStatus=null;}}
+
+// ════════════════════════════════════════════
+//  HOURS CALCULATION
+// ════════════════════════════════════════════
+function calcHours(t1,t2){
+  if(!t1||!t2)return 0;
+  const [h1,m1]=t1.split(':').map(Number);
+  const [h2,m2]=t2.split(':').map(Number);
+  const mins=(h2*60+m2)-(h1*60+m1);
+  return Math.max(0,mins/60);
+}
+function shiftHours(rec){
+  if(!rec||rec.status!=='duty')return 0;
+  let h=calcHours(rec.startTime,rec.endTime);
+  if(rec.splitShift&&rec.start2Time&&rec.end2Time) h+=calcHours(rec.start2Time,rec.end2Time);
+  // fallback: if no times recorded but status=duty, assume 8h
+  if(h===0&&rec.status==='duty') h=8;
+  return h;
+}
+function fmtHrs(h){
+  const wh=Math.floor(h);const wm=Math.round((h-wh)*60);
+  return wm>0?`${wh}h ${wm}m`:`${wh}h`;
+}
+function hrsInRange(staffId,from,to){
+  let total=0,d=new Date(from);
+  while(d<=to){total+=shiftHours(rotaData[dKey(staffId,d)]);d=addDays(d,1);}
+  return total;
+}
+function renderHours(){
+  const now=new Date();now.setHours(0,0,0,0);
+  // Week: Mon–Sun of current week
+  const wk0=getMonday(now);
+  const wk1=addDays(wk0,6);
+  // Month: 1st to last day of current month
+  const mo0=new Date(now.getFullYear(),now.getMonth(),1);
+  const mo1=new Date(now.getFullYear(),now.getMonth()+1,0);
+  // Year: Jan 1 to Dec 31
+  const yr0=new Date(now.getFullYear(),0,1);
+  const yr1=new Date(now.getFullYear(),11,31);
+  // Week days remaining in year (for projection)
+  const daysInYear=(yr1-yr0)/86400000+1;
+  const daysPassed=(now-yr0)/86400000+1;
+
+  const staff=getFiltered();
+  let totalWk=0,totalMo=0,totalYr=0;
+
+  // Summary cards
+  staff.forEach(s=>{
+    totalWk+=hrsInRange(s.id,wk0,wk1);
+    totalMo+=hrsInRange(s.id,mo0,mo1);
+    totalYr+=hrsInRange(s.id,yr0,now);
+  });
+  const projAnnual=daysPassed>0?Math.round(totalYr/daysPassed*daysInYear*10)/10:0;
+  document.getElementById('hoursSummary').innerHTML=`
+    <div class="hours-card"><div class="hours-card-num">${fmtHrs(totalWk)}</div><div class="hours-card-lbl">This Week (all staff)</div></div>
+    <div class="hours-card"><div class="hours-card-num">${fmtHrs(totalMo)}</div><div class="hours-card-lbl">This Month</div></div>
+    <div class="hours-card"><div class="hours-card-num">${fmtHrs(totalYr)}</div><div class="hours-card-lbl">Year to Date</div></div>
+    <div class="hours-card"><div class="hours-card-num">${fmtHrs(projAnnual)}</div><div class="hours-card-lbl">Projected Full Year</div></div>`;
+
+  const dks=activeDept==='all'?Object.keys(DEPTS):[activeDept];
+  let html='';
+  let gWk=0,gMo=0,gYr=0,gProj=0;
+
+  dks.forEach(dk=>{
+    const ds=staff.filter(s=>s.dept===dk);if(!ds.length)return;
+    const d=DEPTS[dk];
+    let dWk=0,dMo=0,dYr=0;
+    ds.forEach(s=>{dWk+=hrsInRange(s.id,wk0,wk1);dMo+=hrsInRange(s.id,mo0,mo1);dYr+=hrsInRange(s.id,yr0,now);});
+    const dProj=daysPassed>0?dYr/daysPassed*daysInYear:0;
+    if(activeDept==='all') html+=`<tr class="hours-dept-row"><td colspan="2">${d.icon} ${d.name}</td><td class="r">${fmtHrs(dWk)}</td><td class="r">${fmtHrs(dMo)}</td><td class="r">${fmtHrs(dYr)}</td><td class="r">${fmtHrs(dProj)}</td></tr>`;
+    ds.forEach(s=>{
+      const wk=hrsInRange(s.id,wk0,wk1);
+      const mo=hrsInRange(s.id,mo0,mo1);
+      const yr=hrsInRange(s.id,yr0,now);
+      const proj=daysPassed>0?yr/daysPassed*daysInYear:0;
+      // colour coding: under 30h/wk=warn, under 15=lo
+      const wkcls=wk>=30?'hi':wk>=15?'warn':'lo';
+      gWk+=wk;gMo+=mo;gYr+=yr;gProj+=proj;
+      html+=`<tr>
+        <td style="font-weight:600">${s.name}<br/><span style="font-size:.6rem;color:#6B6560;font-weight:400">${s.role}</span></td>
+        <td><span style="background:${d.color}18;color:${d.color};padding:2px 8px;border-radius:20px;font-size:.64rem;font-weight:700">${d.name}</span></td>
+        <td class="r"><span class="hrs-pill ${wkcls}">${fmtHrs(wk)}</span></td>
+        <td class="r"><span class="hrs-pill">${fmtHrs(mo)}</span></td>
+        <td class="r"><span class="hrs-pill">${fmtHrs(yr)}</span></td>
+        <td class="r"><span class="hrs-pill">${fmtHrs(proj)}</span></td>
+      </tr>`;
+    });
+  });
+
+  // Grand total row
+  html+=`<tr class="hours-total-row">
+    <td colspan="2">🏛 Grand Total — All Staff</td>
+    <td class="r">${fmtHrs(gWk)}</td>
+    <td class="r">${fmtHrs(gMo)}</td>
+    <td class="r">${fmtHrs(gYr)}</td>
+    <td class="r">${fmtHrs(gProj)}</td>
+  </tr>`;
+
+  document.getElementById('hoursBody').innerHTML=html;
+}
+
+// ════════════════════════════════════════════
+//  TIMESHEET PRINT
+// ════════════════════════════════════════════
+function openTimesheetPrint(){
+  const dks=activeDept==='all'?Object.keys(DEPTS):[activeDept];
+  const days=Array.from({length:7},(_,i)=>addDays(weekStart,i));
+  const wcDate=weekStart.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  let pages='';
+  dks.forEach(dk=>{
+    const d=DEPTS[dk];
+    const staff=STAFF.filter(s=>s.dept===dk);
+    if(!staff.length)return;
+
+    let rows='';
+    staff.forEach(s=>{
+      let wkPlanned=0;
+      let dayCells='';
+      days.forEach(day=>{
+        const rec=getSt(s.id,day);
+        const st=STATUS[rec.status]||STATUS.off;
+        const isDuty=rec.status==='duty';
+        let plannedLine='';
+        if(isDuty&&rec.startTime&&rec.endTime){
+          wkPlanned+=shiftHours(rec);
+          plannedLine=`<div class="planned">${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}${rec.splitShift&&rec.start2Time?' / '+fmtTime(rec.start2Time)+'–'+fmtTime(rec.end2Time):''}</div>`;
+        }
+        dayCells+=`<td class="dc ${isDuty?'dc-duty':rec.status==='sick'?'dc-sick':rec.status==='annual'?'dc-ann':'dc-off'}">
+          <div class="st-lbl">${st.icon} ${st.label}</div>
+          ${plannedLine}
+          ${isDuty?`<div class="write-line">In: <span class="blank"></span></div>
+          <div class="write-line">Out: <span class="blank"></span></div>
+          <div class="write-line">Hrs: <span class="blank"></span></div>`:''}
+        </td>`;
+      });
+      rows+=`<tr><td class="nc"><strong>${s.name}</strong><br/><span class="role">${s.role}</span></td>${dayCells}<td class="tot">${wkPlanned>0?fmtHrs(wkPlanned):'—'}<br/><span class="blank-tot"></span></td></tr>`;
+    });
+
+    pages+=`<div class="page">
+      <div class="ts-header">
+        <div class="ts-logo">
+          <svg viewBox="0 0 310 155" height="50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g fill="#3A3835"><rect x="28" y="52" width="178" height="100"/><polygon points="28,52 90,52 59,10"/><polygon points="82,52 148,52 115,4"/><polygon points="140,52 206,52 173,12"/><rect x="210" y="74" width="46" height="78"/><rect x="262" y="62" width="48" height="90"/><polygon points="262,62 310,62 286,35"/></g>
+            <rect x="35" y="62" width="16" height="28" fill="#7A7672"/><rect x="57" y="62" width="16" height="28" fill="#7A7672"/><rect x="79" y="62" width="16" height="28" fill="#7A7672"/><rect x="101" y="62" width="16" height="28" fill="#7A7672"/><rect x="123" y="62" width="16" height="28" fill="#7A7672"/><rect x="145" y="62" width="16" height="28" fill="#7A7672"/><rect x="167" y="62" width="16" height="28" fill="#7A7672"/>
+          </svg>
+        </div>
+        <div class="ts-titles">
+          <h1>The Vedanta Retreat Centre</h1>
+          <h2>${d.icon} ${d.name} — Weekly Timesheet</h2>
+          <p>Week commencing: <strong>${wcDate}</strong></p>
+        </div>
+        <div class="ts-status-key">
+          <span class="sk duty">✅ On Duty</span>
+          <span class="sk off">🏖 Day Off</span>
+          <span class="sk sick">🤒 Sick</span>
+          <span class="sk ann">📅 Annual Leave</span>
+          <span class="sk lieu">🔄 Lieu Day</span>
+          <span class="sk urg">⚡ Urgent</span>
+          <span class="sk bank">🏦 Bank Hol</span>
+        </div>
+      </div>
+
+      <table class="ts-table">
+        <thead><tr>
+          <th class="th-name">Staff Member</th>
+          ${days.map(day=>`<th class="${isToday(day)?'th-today':''}">${fmtDay(day)}<br/><span style="font-weight:400;font-size:7pt">${fmt(day)}</span></th>`).join('')}
+          <th class="th-tot">Total<br/>Hours</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div class="ts-footer">
+        <div class="ts-footer-block">
+          <div class="sig-label">Manager Name</div>
+          <div class="sig-line"></div>
+        </div>
+        <div class="ts-footer-block">
+          <div class="sig-label">Signature</div>
+          <div class="sig-line"></div>
+        </div>
+        <div class="ts-footer-block">
+          <div class="sig-label">Date Approved</div>
+          <div class="sig-line"></div>
+        </div>
+        <div class="ts-footer-block" style="text-align:right;font-size:7pt;color:#888;padding-top:14px">
+          Generated: ${new Date().toLocaleDateString('en-GB')}<br/>
+          The Vedanta Retreat Centre, Lincoln
+        </div>
+      </div>
+    </div>`;
+  });
+
+  const css=`
+    *{box-sizing:border-box;margin:0;padding:0}
+    @page{size:A4 landscape;margin:8mm}
+    body{font-family:Arial,Helvetica,sans-serif;font-size:8pt;color:#1C1C1C;background:white}
+    .page{page-break-after:always;padding:2mm}
+    .page:last-child{page-break-after:auto}
+    .ts-header{display:flex;align-items:flex-start;gap:10px;border-bottom:3px solid #B8963E;padding-bottom:8px;margin-bottom:8px}
+    .ts-logo{flex-shrink:0}
+    .ts-titles{flex:1}
+    .ts-titles h1{font-size:13pt;letter-spacing:2px;text-transform:uppercase;color:#1C1C1C;margin-bottom:2px}
+    .ts-titles h2{font-size:10pt;color:#B8963E;margin-bottom:2px}
+    .ts-titles p{font-size:8pt;color:#555}
+    .ts-status-key{display:flex;flex-wrap:wrap;gap:4px;align-items:flex-start;padding-top:2px}
+    .sk{font-size:6.5pt;padding:2px 5px;border-radius:3px;font-weight:700;white-space:nowrap}
+    .sk.duty{background:#E8F5E9;color:#1B5E20}.sk.off{background:#E3F2FD;color:#0D47A1}
+    .sk.sick{background:#FFEBEE;color:#B71C1C}.sk.ann{background:#F3E5F5;color:#4A148C}
+    .sk.lieu{background:#E0F7FA;color:#006064}.sk.urg{background:#FFF3E0;color:#E65100}
+    .sk.bank{background:#FFF8E1;color:#7B6600}
+    .ts-table{width:100%;border-collapse:collapse;margin-bottom:10px}
+    .ts-table thead th{background:#1C1C1C;color:#D4B86A;padding:5px 3px;text-align:center;font-size:7.5pt;border:1px solid #555}
+    .ts-table thead th.th-name{text-align:left;min-width:90px}
+    .ts-table thead th.th-today{background:#2A2218;color:#D4B86A;border-bottom:2px solid #B8963E}
+    .ts-table thead th.th-tot{min-width:55px}
+    .ts-table tbody tr:nth-child(even){background:#FAFAF7}
+    .nc{padding:4px 6px;border:1px solid #ddd;font-size:8pt;min-width:90px;vertical-align:top}
+    .role{font-size:6.5pt;color:#888;font-weight:400}
+    .dc{padding:3px;border:1px solid #ddd;vertical-align:top;min-width:75px}
+    .dc-duty{background:#F1FBF2}.dc-off{background:#F0F6FF}.dc-sick{background:#FFF1F1}.dc-ann{background:#FAF0FF}
+    .st-lbl{font-size:6.5pt;font-weight:700;margin-bottom:2px;color:#333}
+    .planned{font-size:6.5pt;color:#1B5E20;background:rgba(76,175,80,.1);padding:1px 3px;border-radius:2px;margin-bottom:3px}
+    .write-line{font-size:6.5pt;color:#555;display:flex;align-items:center;gap:3px;margin-bottom:2px}
+    .blank{display:inline-block;border-bottom:1px solid #aaa;flex:1;min-width:30px;height:8px}
+    .tot{text-align:center;padding:3px;border:1px solid #ddd;font-weight:700;font-size:8pt;color:#B8963E;vertical-align:top}
+    .blank-tot{display:block;border-bottom:1px solid #aaa;margin-top:4px;height:10px}
+    .ts-footer{display:flex;gap:12px;margin-top:8px;border-top:2px solid #B8963E;padding-top:8px}
+    .ts-footer-block{flex:1}
+    .sig-label{font-size:7pt;color:#888;margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+    .sig-line{border-bottom:1px solid #555;height:20px}
+  `;
+
+  const w=window.open('','_blank','width=1000,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Vedanta Timesheet — ${wcDate}</title><style>${css}</style></head><body>${pages}</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),600);
+}
+
+// ════════════════════════════════════════════
+//  FIREBASE
+// ════════════════════════════════════════════
+const FB_CFG_KEY='vedanta_firebase_cfg_v1';
+let _db=null,_fbReady=false,_unsubs=[];
+
+function setFbStatus(state,msg){
+  const b=document.getElementById('fbBadge');
+  const l=document.getElementById('fbLabel');
+  const s=document.getElementById('fbSettingsStatus');
+  if(b){b.className='fb-badge '+state;}
+  if(l){l.textContent=state==='online'?'Live Sync':state==='connecting'?'Connecting…':'Offline';}
+  if(s){s.textContent=state==='online'?'✅ Connected & syncing live':state==='connecting'?'Connecting…':'❌ Not connected'+(msg?' — '+msg:'');}
+}
+
+function connectFirebase(){
+  const raw=document.getElementById('fbConfigInput')?.value?.trim();
+  if(!raw){alert('Paste your Firebase config first');return;}
+  let cfg;
+  try{
+    // strip "const firebaseConfig = " wrapper if pasted from Firebase console
+    const cleaned=raw.replace(/^[\s\S]*?({)/,'$1').replace(/};?[\s\S]*$/,'}');
+    cfg=JSON.parse(cleaned);
+  }catch(e){alert('Could not parse config — make sure you paste the { ... } object');return;}
+  ls_save(FB_CFG_KEY,cfg);
+  initFirebase(cfg);
+}
+
+function disconnectFirebase(){
+  _unsubs.forEach(u=>u());_unsubs=[];
+  _fbReady=false;_db=null;
+  ls_save(FB_CFG_KEY,null);
+  setFbStatus('offline');
+  document.getElementById('uploadBtn').style.display='none';
+  document.getElementById('fbConnectMsg').textContent='Disconnected.';
+}
+
+function initFirebase(cfg){
+  try{
+    setFbStatus('connecting');
+    if(firebase.apps.length) firebase.apps.forEach(a=>a.delete());
+    firebase.initializeApp(cfg);
+    _db=firebase.firestore();
+    _db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    _fbReady=true;
+    setFbStatus('online');
+    document.getElementById('uploadBtn').style.display='';
+    document.getElementById('fbConnectMsg').textContent='Connected! Real-time sync is active.';
+    startFbListeners();
+  }catch(e){
+    setFbStatus('offline',e.message);
+    document.getElementById('fbConnectMsg').textContent='Error: '+e.message;
+  }
+}
+
+function startFbListeners(){
+  _unsubs.forEach(u=>u());_unsubs=[];
+
+  // Staff
+  _unsubs.push(_db.collection('staff').onSnapshot(snap=>{
+    if(snap.empty)return;
+    STAFF=[];
+    snap.forEach(doc=>STAFF.push(doc.data()));
+    STAFF.sort((a,b)=>a.id-b.id);
+    nextId=Math.max(...STAFF.map(s=>s.id),0)+1;
+    ls_save(LS_STAFF,STAFF);
+    if(activeView)render();
+  }));
+
+  // Rota
+  _unsubs.push(_db.collection('rota').onSnapshot(snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='removed') delete rotaData[ch.doc.id];
+      else rotaData[ch.doc.id]=ch.doc.data();
+    });
+    ls_save(LS_ROTA,rotaData);
+    if(activeView)render();
+  }));
+
+  // Pins
+  _unsubs.push(_db.collection('config').doc('pins').onSnapshot(doc=>{
+    if(doc.exists){PINS=doc.data();ls_save(LS_PINS,PINS);}
+  }));
+}
+
+async function uploadLocalData(){
+  if(!_fbReady){alert('Connect Firebase first');return;}
+  const msg=document.getElementById('fbConnectMsg');
+  msg.textContent='Uploading…';
+  try{
+    // Staff
+    for(const s of STAFF) await _db.collection('staff').doc(String(s.id)).set(s);
+    // Rota (batch by 400)
+    const entries=Object.entries(rotaData);
+    for(let i=0;i<entries.length;i+=400){
+      const b=_db.batch();
+      entries.slice(i,i+400).forEach(([k,v])=>b.set(_db.collection('rota').doc(k),v));
+      await b.commit();
+    }
+    // Pins
+    await _db.collection('config').doc('pins').set(PINS);
+    msg.textContent='✅ All local data uploaded to cloud!';
+  }catch(e){msg.textContent='Upload error: '+e.message;}
+}
+
+// Wrapped save functions — write to Firestore + localStorage
+function db_saveStaff(s){
+  ls_save(LS_STAFF,STAFF);
+  if(_fbReady) _db.collection('staff').doc(String(s.id)).set(s).catch(console.error);
+}
+function db_deleteStaff(id){
+  ls_save(LS_STAFF,STAFF);
+  if(_fbReady) _db.collection('staff').doc(String(id)).delete().catch(console.error);
+}
+function db_saveRota(key,data){
+  rotaData[key]=data;ls_save(LS_ROTA,rotaData);
+  if(_fbReady) _db.collection('rota').doc(key).set(data).catch(console.error);
+}
+function db_savePins(p){
+  PINS=p;ls_save(LS_PINS,PINS);
+  if(_fbReady) _db.collection('config').doc('pins').set(p).catch(console.error);
+}
+
+// ════════════════════════════════════════════
+//  DEPT ADD STAFF (visible to dept managers)
+// ════════════════════════════════════════════
+function openAddModalForDept(){
+  document.getElementById('addOverlay').classList.add('open');
+  // Pre-select and lock dept
+  const sel=document.getElementById('addDept');
+  if(sel&&session.dept){sel.value=session.dept;sel.disabled=true;}
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+buildLoginGrid();
+setFbStatus('offline');
+
+// Hardcoded Firebase config for The Vedanta
+const VEDANTA_FB_CONFIG={
+  apiKey:"AIzaSyAufPj-x1FK5czAAnxOmVrm9lwMJ9oSTd0",
+  authDomain:"the-vedanta.firebaseapp.com",
+  projectId:"the-vedanta",
+  storageBucket:"the-vedanta.firebasestorage.app",
+  messagingSenderId:"726105094774",
+  appId:"1:726105094774:web:6544efc4065646274f3d57",
+  measurementId:"G-YC9J10G0V7"
+};
+// Use hardcoded config, or any previously saved override
+const savedCfg=ls_load(FB_CFG_KEY,null);
+const cfgToUse=savedCfg&&savedCfg.projectId?savedCfg:VEDANTA_FB_CONFIG;
+ls_save(FB_CFG_KEY,cfgToUse);
+initFirebase(cfgToUse);
+
+// Restore persistent login session
+const savedSession=ls_load('vedanta_session_v2',null);
+if(savedSession&&savedSession.loggedIn){
+  session=savedSession;
+  document.getElementById('loginScreen').classList.add('hidden');
+  applySession();
+  render();
+}
+</script>
+</body>
+</html>
