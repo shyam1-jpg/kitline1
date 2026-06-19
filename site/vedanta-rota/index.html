@@ -370,7 +370,42 @@ html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);c
 .cbc-badge.away{background:#F5F5F5;color:#888}
 body.staff-mode .sidebar,body.staff-mode .mobile-dept-bar,body.staff-mode .view-tabs,body.staff-mode .overview-row,body.staff-mode #weekNavEl,body.staff-mode #printBtn,body.staff-mode #timesheetBtn{display:none!important}
 body.staff-mode .app-body{grid-template-columns:1fr}
-body.staff-mode .main-content{padding-top:20px}
+body.staff-mode .main-content{padding-top:12px;padding-bottom:calc(var(--nav-h) + 12px)}
+.staff-portal-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--charcoal);border-top:2px solid var(--gold);z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+body.staff-mode .staff-portal-nav{display:flex}
+.spnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:rgba(253,250,244,.5);cursor:pointer;font-size:.52rem;font-family:'Raleway',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 4px;min-width:52px}
+.spnav-btn .bicon{font-size:1.25rem;line-height:1}
+.spnav-btn.active{color:var(--gold-light)}
+.my-shift-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--warm-white);border-radius:10px;margin-bottom:8px;box-shadow:0 1px 6px var(--shadow);border-left:4px solid #ccc}
+.my-shift-row.duty{border-left-color:#4CAF50}
+.my-shift-row.off{border-left-color:#42A5F5}
+.my-shift-row.leave{border-left-color:#AB47BC}
+.my-shift-row.sick{border-left-color:#EF5350}
+.my-shift-day{font-weight:700;font-size:.82rem}
+.my-shift-date{font-size:.65rem;color:var(--charcoal-lite);margin-top:2px}
+.my-shift-status{font-size:.72rem;font-weight:700;text-align:right}
+.leave-req-form{background:var(--warm-white);border-radius:12px;padding:16px;box-shadow:0 2px 12px var(--shadow);margin-bottom:14px}
+.leave-req-form label{display:block;font-size:.68rem;font-weight:700;color:var(--charcoal-lite);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.leave-req-form input,.leave-req-form textarea,.leave-req-form select{width:100%;padding:10px 12px;border:1.5px solid var(--cream-dark);border-radius:8px;font-family:'Raleway',sans-serif;font-size:.82rem;margin-bottom:12px;background:var(--cream)}
+.leave-req-item{background:var(--warm-white);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 6px var(--shadow);border-left:4px solid #FFA726}
+.leave-req-item.approved{border-left-color:#4CAF50}
+.leave-req-item.rejected{border-left-color:#EF5350}
+.leave-req-item .lr-date{font-weight:700;font-size:.82rem}
+.leave-req-item .lr-note{font-size:.72rem;color:var(--charcoal-lite);margin-top:4px}
+.leave-req-item .lr-status{font-size:.62rem;font-weight:700;text-transform:uppercase;margin-top:6px;letter-spacing:.06em}
+.staff-type-tag{display:inline-block;font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
+.staff-type-tag.temp{background:#FFF3E0;color:#E65100}
+.staff-type-tag.perm{background:#E8F5E9;color:#1B5E20}
+.dept-add-inline{display:inline-flex;align-items:center;gap:4px;margin-left:auto;font-size:.62rem;font-weight:700;color:var(--gold);cursor:pointer;border:1px solid rgba(184,150,62,.4);background:rgba(184,150,62,.1);padding:4px 10px;border-radius:20px;font-family:'Raleway',sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.dept-add-inline:active{background:rgba(184,150,62,.25)}
+.admin-leave-queue{margin-bottom:16px}
+.admin-leave-card{background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.admin-leave-card .alc-info{flex:1;min-width:180px}
+.admin-leave-card .alc-actions{display:flex;gap:6px}
+.btn-approve{background:#2E7D32;color:#fff;border:none;padding:7px 12px;border-radius:6px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:'Raleway',sans-serif}
+.btn-reject{background:#C62828;color:#fff;border:none;padding:7px 12px;border-radius:6px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:'Raleway',sans-serif}
+.my-hours-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:480px){.my-hours-cards{grid-template-columns:repeat(4,1fr)}}
 
 /* ══════════════════════════════════════════════
    SETTINGS (PIN management)
@@ -450,7 +485,7 @@ body.staff-mode .main-content{padding-top:20px}
 
   <div class="login-mode-bar">
     <button type="button" class="login-mode-btn active" id="modeManager" onclick="setLoginMode('manager')">Manager Login</button>
-    <button type="button" class="login-mode-btn" id="modeStaff" onclick="setLoginMode('staff')">Staff Clock In/Out</button>
+    <button type="button" class="login-mode-btn" id="modeStaff" onclick="setLoginMode('staff')">Staff Login</button>
   </div>
 
   <!-- Step 1: Choose department or staff -->
@@ -585,6 +620,30 @@ body.staff-mode .main-content{padding-top:20px}
       <div class="clock-panel" id="clockPanel"></div>
     </div>
 
+    <div id="view-mystaff" style="display:none">
+      <div class="sect-title" id="myStaffTitle">My Shifts</div>
+      <div id="myStaffList"></div>
+    </div>
+
+    <div id="view-myhours" style="display:none">
+      <div class="sect-title">My Hours</div>
+      <div class="my-hours-cards" id="myHoursCards"></div>
+      <div class="info-box"><p id="myHoursDetail"></p></div>
+    </div>
+
+    <div id="view-myleave" style="display:none">
+      <div class="sect-title">Request Leave</div>
+      <div class="leave-req-form">
+        <label>Date</label>
+        <input type="date" id="leaveReqDate"/>
+        <label>Note (optional)</label>
+        <textarea id="leaveReqNote" rows="2" placeholder="e.g. Family event, appointment…"></textarea>
+        <button type="button" class="clock-action-btn in" style="margin-bottom:0" onclick="submitLeaveRequest()">📅 Submit Leave Request</button>
+      </div>
+      <div class="sect-title" style="margin-top:8px">My Requests</div>
+      <div id="myLeaveList"></div>
+    </div>
+
     <div id="view-clocks" style="display:none">
       <div class="sect-title">Live Clock Board — Today</div>
       <div class="clock-board-grid" id="clockBoardGrid"></div>
@@ -611,11 +670,12 @@ body.staff-mode .main-content{padding-top:20px}
     </div>
     <div id="view-manage" style="display:none">
       <div class="sect-title">Manage Staff</div>
+      <div id="adminLeaveQueue" class="admin-leave-queue"></div>
       <div class="save-notice" id="saveNotice">✅ Saved</div>
       <button class="btn-add-staff" onclick="openAddModal()">+ Add New Staff Member</button>
       <div class="table-wrap"><div class="table-scroll">
         <table class="manage-table">
-          <thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Clock PIN</th><th>Leave Left</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Type</th><th>Clock PIN</th><th>Leave Left</th><th></th></tr></thead>
           <tbody id="manageBody"></tbody>
         </table>
       </div></div>
@@ -681,6 +741,13 @@ body.staff-mode .main-content{padding-top:20px}
   <button class="bnav-btn" onclick="setView('clocks')"         id="bnav-clocks" style="display:none"><span class="bicon">🕐</span>Clocks</button>
 </nav>
 
+<nav class="staff-portal-nav" id="staffPortalNav">
+  <button type="button" class="spnav-btn active" onclick="setView('clock')" id="spnav-clock"><span class="bicon">🕐</span>Clock</button>
+  <button type="button" class="spnav-btn" onclick="setView('mystaff')" id="spnav-mystaff"><span class="bicon">📅</span>Shifts</button>
+  <button type="button" class="spnav-btn" onclick="setView('myhours')" id="spnav-myhours"><span class="bicon">⏱</span>Hours</button>
+  <button type="button" class="spnav-btn" onclick="setView('myleave')" id="spnav-myleave"><span class="bicon">🏖</span>Leave</button>
+</nav>
+
 <!-- STATUS MODAL -->
 <div class="overlay" id="overlay" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
@@ -728,6 +795,10 @@ body.staff-mode .main-content{padding-top:20px}
         </select>
       </div>
       <div><label>Annual Leave Remaining (days)</label><input type="number" id="addLeave" value="28" min="0" max="50"/></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+        <input type="checkbox" id="addTemp" style="width:auto;margin:0"/>
+        <label for="addTemp" style="margin:0;font-size:.78rem;font-weight:600;color:var(--charcoal-lite);text-transform:none;letter-spacing:0">Temporary / cover staff (extra shift worker)</label>
+      </div>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeAddModal(null)">Cancel</button>
@@ -771,6 +842,7 @@ const LS_STAFF='vedanta_staff_v3';
 const LS_ROTA='vedanta_rota_v3';
 const LS_PINS='vedanta_pins_v2';
 const LS_CLOCK='vedanta_clock_v1';
+const LS_LEAVE='vedanta_leave_v1';
 
 // ════════════════════════════════════════════
 //  DEFAULT PINS
@@ -840,10 +912,12 @@ function applySession(){
   });
 
   if(isStaff){
-    setView('clock');
+    document.getElementById('staffPortalNav').style.display='flex';
+    setView(session.staffView||'clock');
     startClockTicker();
     return;
   }
+  document.getElementById('staffPortalNav').style.display='none';
   stopClockTicker();
 
   // Sidebar locking (non-admin can only see their dept)
@@ -910,9 +984,10 @@ function buildStaffLoginList(){
     html+=`<div class="staff-pick-dept">${d.icon} ${d.name}</div>`;
     ds.forEach(s=>{
       const ini=(s.name||'?').trim().charAt(0).toUpperCase();
+      const tempTag=s.type==='temp'?' <span style="opacity:.7;font-size:.62rem">(Cover)</span>':'';
       html+=`<button type="button" class="staff-pick-btn" onclick="selectLoginStaff(${s.id})">
         <span class="sp-avatar">${ini}</span>
-        <span><span class="sp-name">${s.name}</span><span class="sp-role">${s.role}</span></span>
+        <span><span class="sp-name">${s.name}${tempTag}</span><span class="sp-role">${s.role}</span></span>
       </button>`;
     });
   });
@@ -1067,8 +1142,10 @@ const DEFAULT_STAFF=[
 let STAFF=ls_load(LS_STAFF,null)||JSON.parse(JSON.stringify(DEFAULT_STAFF));
 let rotaData=ls_load(LS_ROTA,{});
 let clockData=ls_load(LS_CLOCK,{});
+let leaveRequests=ls_load(LS_LEAVE,[]);
 let nextId=Math.max(...STAFF.map(s=>s.id),0)+1;
 ensureStaffPins();
+STAFF.forEach(s=>{if(!s.type)s.type='perm'});
 
 (function(){
   if(Object.keys(rotaData).length>0)return;
@@ -1126,13 +1203,19 @@ function filterDept(d){
   render();
 }
 function setView(v){
-  if(session.role==='staff'&&v!=='clock')return;
+  const staffViews=['clock','mystaff','myhours','myleave'];
+  if(session.role==='staff'){
+    if(!staffViews.includes(v))return;
+    session.staffView=v;
+    ls_save('vedanta_session_v2',session);
+  }
   activeView=v;
-  const views=['week','today','annual','manage','settings','hours','clock','clocks'];
+  const views=['week','today','annual','manage','settings','hours','clock','clocks','mystaff','myhours','myleave'];
   views.forEach(id=>{
     const el=document.getElementById('view-'+id);if(el)el.style.display=id===v?'':'none';
     const tb=document.getElementById('tab-'+id);if(tb)tb.classList.toggle('active',id===v);
     const nb=document.getElementById('bnav-'+id);if(nb)nb.classList.toggle('active',id===v);
+    const sp=document.getElementById('spnav-'+id);if(sp)sp.classList.toggle('active',id===v);
   });
   render();
 }
@@ -1162,6 +1245,10 @@ function render(){
   if(activeView==='hours')renderHours();
   if(activeView==='clock')renderClock();
   if(activeView==='clocks')renderClockBoard();
+  if(activeView==='mystaff')renderMyStaff();
+  if(activeView==='myhours')renderMyHours();
+  if(activeView==='myleave')renderMyLeave();
+  if(activeView==='manage')renderAdminLeaveQueue();
 }
 
 // ── Weekly rota ─────────────────────────────
@@ -1173,10 +1260,14 @@ function renderWeek(){
   let html='';
   dks.forEach(dk=>{
     const ds=staff.filter(s=>s.dept===dk);if(!ds.length)return;
-    if(activeDept==='all')html+=`<tr class="dept-header-row"><td colspan="8">${DEPTS[dk].icon} ${DEPTS[dk].name}</td></tr>`;
+    if(activeDept==='all'){
+      const canAdd=session.role==='admin'||(session.role==='dept'&&session.dept===dk);
+      html+=`<tr class="dept-header-row"><td colspan="8"><span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${DEPTS[dk].icon} ${DEPTS[dk].name}${canAdd?`<button type="button" class="dept-add-inline" onclick="openAddModalForDeptKey('${dk}')">＋ Add staff</button>`:''}</span></td></tr>`;
+    }
     ds.forEach(s=>{
       const sn=s.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-      html+=`<tr><td class="name-cell" onclick="startEditName(event,${s.id})" title="Tap to edit name"><div class="name-cell-inner"><div><span id="nd-${s.id}">${s.name}</span><span class="staff-role-sm">${s.role}</span></div><span class="edit-hint">✏️</span></div></td>`;
+      const typeTag=s.type==='temp'?`<span class="staff-type-tag temp">Cover</span>`:'';
+      html+=`<tr><td class="name-cell" onclick="startEditName(event,${s.id})" title="Tap to edit name"><div class="name-cell-inner"><div><span id="nd-${s.id}">${s.name}</span>${typeTag}<span class="staff-role-sm">${s.role}</span></div><span class="edit-hint">✏️</span></div></td>`;
       days.forEach(day=>{const rec=getSt(s.id,day);const st=STATUS[rec.status]||STATUS.off;html+=`<td class="day-cell${isToday(day)?' today-h':''}" data-tip="${rec.note?`${st.label} — ${rec.note}`:st.label}"><button class="spill ${st.cls}" onclick="openModal(${s.id},'${day.toISOString().slice(0,10)}','${sn}','${fmtLong(day)}')">${pillHTML(rec)}</button></td>`;});
       html+='</tr>';
     });
@@ -1226,8 +1317,8 @@ function updateLeave(id,val){const s=STAFF.find(x=>x.id===id);if(s){s.annualLeft
 function renderManage(){
   let html='';
   Object.keys(DEPTS).forEach(dk=>{const ds=STAFF.filter(s=>s.dept===dk);if(!ds.length)return;const d=DEPTS[dk];
-  html+=`<tr><td colspan="6" style="background:var(--cream-dark);padding:5px 12px;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;color:var(--charcoal-mid);border-top:1px solid var(--cream-mid)">${d.icon} ${d.name}</td></tr>`;
-  ds.forEach(s=>{html+=`<tr><td><input class="editable-field" value="${s.name.replace(/"/g,'&quot;')}" onchange="updateField(${s.id},'name',this.value)"/></td><td><input class="editable-field" value="${s.role.replace(/"/g,'&quot;')}" onchange="updateField(${s.id},'role',this.value)"/></td><td><select class="dept-select" onchange="updateField(${s.id},'dept',this.value)">${Object.entries(DEPTS).map(([k,v])=>`<option value="${k}"${k===s.dept?' selected':''}>${v.name}</option>`).join('')}</select></td><td style="text-align:center"><input type="text" maxlength="4" inputmode="numeric" value="${getStaffPin(s)}" style="width:56px;text-align:center;border:1.5px solid var(--cream-dark);border-radius:4px;padding:3px;font-size:.74rem;font-family:monospace;letter-spacing:.1em" onchange="updateStaffPin(${s.id},this.value)"/></td><td style="text-align:center"><input type="number" value="${s.annualLeft}" min="0" max="${ANNUAL_DAYS}" style="width:50px;text-align:center;border:1.5px solid var(--cream-dark);border-radius:4px;padding:3px;font-size:.74rem" onchange="updateField(${s.id},'annualLeft',parseInt(this.value)||0)"/></td><td><button class="btn-remove" onclick="removeStaff(${s.id})">Remove</button></td></tr>`;});});
+  html+=`<tr><td colspan="7" style="background:var(--cream-dark);padding:5px 12px;font-family:'Cormorant Garamond',serif;font-size:.76rem;font-weight:600;color:var(--charcoal-mid);border-top:1px solid var(--cream-mid)"><span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${d.icon} ${d.name}<button type="button" class="dept-add-inline" onclick="openAddModalForDeptKey('${dk}')">＋ Add to dept</button></span></td></tr>`;
+  ds.forEach(s=>{html+=`<tr><td><input class="editable-field" value="${s.name.replace(/"/g,'&quot;')}" onchange="updateField(${s.id},'name',this.value)"/></td><td><input class="editable-field" value="${s.role.replace(/"/g,'&quot;')}" onchange="updateField(${s.id},'role',this.value)"/></td><td><select class="dept-select" onchange="updateField(${s.id},'dept',this.value)">${Object.entries(DEPTS).map(([k,v])=>`<option value="${k}"${k===s.dept?' selected':''}>${v.name}</option>`).join('')}</select></td><td><select class="dept-select" onchange="updateField(${s.id},'type',this.value)"><option value="perm"${s.type!=='temp'?' selected':''}>Permanent</option><option value="temp"${s.type==='temp'?' selected':''}>Temp / Cover</option></select></td><td style="text-align:center"><input type="text" maxlength="4" inputmode="numeric" value="${getStaffPin(s)}" style="width:56px;text-align:center;border:1.5px solid var(--cream-dark);border-radius:4px;padding:3px;font-size:.74rem;font-family:monospace;letter-spacing:.1em" onchange="updateStaffPin(${s.id},this.value)"/></td><td style="text-align:center"><input type="number" value="${s.annualLeft}" min="0" max="${ANNUAL_DAYS}" style="width:50px;text-align:center;border:1.5px solid var(--cream-dark);border-radius:4px;padding:3px;font-size:.74rem" onchange="updateField(${s.id},'annualLeft',parseInt(this.value)||0)"/></td><td><button class="btn-remove" onclick="removeStaff(${s.id})">Remove</button></td></tr>`;});});
   document.getElementById('manageBody').innerHTML=html;
 }
 function updateField(id,field,value){const s=STAFF.find(x=>x.id===id);if(s){s[field]=value;db_saveStaff(s);showSaveNotice();}}
@@ -1272,12 +1363,13 @@ function closeAddModal(e){if(e===null||e.target===document.getElementById('addOv
 function addStaff(){
   const name=document.getElementById('addName').value.trim();const role=document.getElementById('addRole').value.trim()||'Staff';const dept=document.getElementById('addDept').value;const leave=parseInt(document.getElementById('addLeave').value)||ANNUAL_DAYS;
   if(!name){alert('Please enter a name');return;}
-  const ns={id:nextId,name,role,dept,annualLeft:leave,pin:staffDefaultPin(nextId)};nextId++;STAFF.push(ns);
+  const ns={id:nextId,name,role,dept,annualLeft:leave,pin:staffDefaultPin(nextId),type:document.getElementById('addTemp')?.checked?'temp':'perm'};nextId++;STAFF.push(ns);
   const base=new Date('2026-06-15');for(let w=-3;w<=6;w++){for(let d=0;d<7;d++){const date=addDays(base,w*7+d);const iw=date.getDay()===0||date.getDay()===6;const rec={status:iw?'off':'duty',note:'',startTime:iw?'':'09:00',endTime:iw?'':'17:00',splitShift:false,start2Time:'',end2Time:''};db_saveRota(dKey(ns.id,date),rec);}}
   db_saveStaff(ns);
   // Re-enable dept selector for next add
   const sel=document.getElementById('addDept');if(sel)sel.disabled=false;
   document.getElementById('addName').value='';document.getElementById('addRole').value='';document.getElementById('addLeave').value='28';
+  if(document.getElementById('addTemp'))document.getElementById('addTemp').checked=false;
   document.getElementById('addOverlay').classList.remove('open');render();
 }
 
@@ -1407,6 +1499,131 @@ function renderClockBoard(){
     </div>`;
   });
   grid.innerHTML=html||'<p style="color:var(--charcoal-lite);font-size:.8rem">No staff in this view.</p>';
+}
+
+// ════════════════════════════════════════════
+//  STAFF PORTAL — My Shifts, Hours, Leave
+// ════════════════════════════════════════════
+function renderMyStaff(){
+  const sid=session.staffId;
+  const s=STAFF.find(x=>x.id===sid);
+  const list=document.getElementById('myStaffList');
+  const title=document.getElementById('myStaffTitle');
+  if(!list||!s)return;
+  title.textContent=`My Shifts — ${s.name}`;
+  const start=getMonday(new Date());
+  let html='';
+  for(let i=0;i<14;i++){
+    const day=addDays(start,i);
+    const rec=getSt(sid,day);
+    const st=STATUS[rec.status]||STATUS.off;
+    let cls='off';
+    if(rec.status==='duty')cls='duty';
+    else if(rec.status==='annual'||rec.status==='bank')cls='leave';
+    else if(rec.status==='sick')cls='sick';
+    const time=st.showTime&&rec.startTime&&rec.endTime?`<div style="font-size:.65rem;color:var(--charcoal-lite);margin-top:2px">${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}</div>`:'';
+    html+=`<div class="my-shift-row ${cls}">
+      <div><div class="my-shift-day">${fmtDay(day)}</div><div class="my-shift-date">${fmtLong(day)}</div></div>
+      <div class="my-shift-status">${st.icon} ${st.label}${time}</div>
+    </div>`;
+  }
+  list.innerHTML=html;
+}
+
+function renderMyHours(){
+  const sid=session.staffId;
+  const cards=document.getElementById('myHoursCards');
+  const detail=document.getElementById('myHoursDetail');
+  if(!cards)return;
+  const now=new Date();now.setHours(0,0,0,0);
+  const wk0=getMonday(now);const wk1=addDays(wk0,6);
+  const mo0=new Date(now.getFullYear(),now.getMonth(),1);
+  const mo1=new Date(now.getFullYear(),now.getMonth()+1,0);
+  const yr0=new Date(now.getFullYear(),0,1);
+  const wk=hrsInRange(sid,wk0,wk1);
+  const mo=hrsInRange(sid,mo0,mo1);
+  const yr=hrsInRange(sid,yr0,now);
+  const today=new Date();today.setHours(0,0,0,0);
+  const ck=getClock(sid,today);
+  cards.innerHTML=`
+    <div class="hours-card"><div class="hours-card-num">${fmtHrs(wk)}</div><div class="hours-card-lbl">This Week</div></div>
+    <div class="hours-card"><div class="hours-card-num">${fmtHrs(mo)}</div><div class="hours-card-lbl">This Month</div></div>
+    <div class="hours-card"><div class="hours-card-num">${fmtHrs(yr)}</div><div class="hours-card-lbl">Year to Date</div></div>
+    <div class="hours-card"><div class="hours-card-num">${ck.clockIn?(ck.clockOut?fmtTime(ck.clockIn)+'–'+fmtTime(ck.clockOut):fmtTime(ck.clockIn)+'…'):'—'}</div><div class="hours-card-lbl">Today Clock</div></div>`;
+  const s=STAFF.find(x=>x.id===sid);
+  if(detail&&s)detail.textContent=`${s.name} · ${s.role} · ${ANNUAL_DAYS - s.annualLeft} days leave used · ${s.annualLeft} days remaining`;
+}
+
+function renderMyLeave(){
+  const sid=session.staffId;
+  const list=document.getElementById('myLeaveList');
+  const dateInp=document.getElementById('leaveReqDate');
+  if(dateInp&&!dateInp.value){
+    const t=new Date();t.setDate(t.getDate()+1);
+    dateInp.value=t.toISOString().slice(0,10);
+    dateInp.min=new Date().toISOString().slice(0,10);
+  }
+  if(!list)return;
+  const mine=leaveRequests.filter(r=>r.staffId===sid).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  if(!mine.length){list.innerHTML='<p style="font-size:.78rem;color:var(--charcoal-lite)">No leave requests yet.</p>';return;}
+  list.innerHTML=mine.map(r=>`<div class="leave-req-item ${r.status}">
+    <div class="lr-date">${new Date(r.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+    ${r.note?`<div class="lr-note">${r.note.replace(/</g,'&lt;')}</div>`:''}
+    <div class="lr-status">${r.status==='pending'?'⏳ Pending manager approval':r.status==='approved'?'✅ Approved':'❌ Declined'}</div>
+  </div>`).join('');
+}
+
+function nextLeaveId(){return 'lr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)}
+
+function db_saveLeaveReq(req){
+  const i=leaveRequests.findIndex(r=>r.id===req.id);
+  if(i>=0)leaveRequests[i]=req;else leaveRequests.push(req);
+  ls_save(LS_LEAVE,leaveRequests);
+  if(_fbReady) _db.collection('leave_requests').doc(req.id).set(req).catch(console.error);
+}
+
+function submitLeaveRequest(){
+  const sid=session.staffId;
+  const s=STAFF.find(x=>x.id===sid);
+  const date=document.getElementById('leaveReqDate')?.value;
+  const note=(document.getElementById('leaveReqNote')?.value||'').trim();
+  if(!date){alert('Pick a date');return;}
+  if(leaveRequests.some(r=>r.staffId===sid&&r.date===date&&r.status==='pending')){alert('You already have a pending request for that date');return;}
+  const req={id:nextLeaveId(),staffId:sid,staffName:s?.name||'',dept:s?.dept||'',date,note,status:'pending',createdAt:new Date().toISOString()};
+  db_saveLeaveReq(req);
+  document.getElementById('leaveReqNote').value='';
+  renderMyLeave();
+  alert('Leave request sent to your manager');
+}
+
+function renderAdminLeaveQueue(){
+  const box=document.getElementById('adminLeaveQueue');
+  if(!box||session.role!=='admin'){if(box)box.innerHTML='';return;}
+  const pending=leaveRequests.filter(r=>r.status==='pending').sort((a,b)=>a.date.localeCompare(b.date));
+  if(!pending.length){box.innerHTML='';return;}
+  box.innerHTML=`<div class="sect-title" style="margin-bottom:8px">Pending Leave Requests (${pending.length})</div>`+
+    pending.map(r=>`<div class="admin-leave-card">
+      <div class="alc-info"><strong>${r.staffName}</strong> · ${DEPTS[r.dept]?.name||''}<br/><span style="font-size:.72rem;color:var(--charcoal-lite)">${new Date(r.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}${r.note?' — '+r.note.replace(/</g,'&lt;'):''}</span></div>
+      <div class="alc-actions"><button type="button" class="btn-approve" onclick="approveLeave('${r.id}')">Approve</button><button type="button" class="btn-reject" onclick="rejectLeave('${r.id}')">Decline</button></div>
+    </div>`).join('');
+}
+
+function approveLeave(id){
+  const req=leaveRequests.find(r=>r.id===id);if(!req)return;
+  req.status='approved';
+  db_saveLeaveReq(req);
+  const key=`${req.staffId}_${req.date}`;
+  db_saveRota(key,{status:'annual',note:req.note||'Leave approved',startTime:'',endTime:'',splitShift:false,start2Time:'',end2Time:''});
+  const s=STAFF.find(x=>x.id===req.staffId);
+  if(s&&s.annualLeft>0){s.annualLeft--;db_saveStaff(s);}
+  render();
+}
+
+function rejectLeave(id){
+  const req=leaveRequests.find(r=>r.id===id);if(!req)return;
+  req.status='rejected';
+  db_saveLeaveReq(req);
+  render();
 }
 
 // ════════════════════════════════════════════
@@ -1713,6 +1930,7 @@ function startFbListeners(){
     STAFF.sort((a,b)=>a.id-b.id);
     nextId=Math.max(...STAFF.map(s=>s.id),0)+1;
     ensureStaffPins();
+    STAFF.forEach(s=>{if(!s.type)s.type='perm'});
     ls_save(LS_STAFF,STAFF);
     if(activeView)render();
   }));
@@ -1742,6 +1960,16 @@ function startFbListeners(){
     if(activeView==='clock')renderClock();
     if(activeView==='clocks')renderClockBoard();
     if(activeView==='today')renderToday();
+    if(activeView==='myhours')renderMyHours();
+  }));
+
+  // Leave requests
+  _unsubs.push(_db.collection('leave_requests').onSnapshot(snap=>{
+    leaveRequests=[];
+    snap.forEach(doc=>leaveRequests.push(doc.data()));
+    ls_save(LS_LEAVE,leaveRequests);
+    if(activeView==='myleave')renderMyLeave();
+    if(activeView==='manage')renderAdminLeaveQueue();
   }));
 }
 
@@ -1768,6 +1996,7 @@ async function uploadLocalData(){
       clockEntries.slice(i,i+400).forEach(([k,v])=>b.set(_db.collection('clock').doc(k),v));
       await b.commit();
     }
+    for(const r of leaveRequests) await _db.collection('leave_requests').doc(r.id).set(r);
     msg.textContent='✅ All local data uploaded to cloud!';
   }catch(e){msg.textContent='Upload error: '+e.message;}
 }
@@ -1795,9 +2024,13 @@ function db_savePins(p){
 // ════════════════════════════════════════════
 function openAddModalForDept(){
   document.getElementById('addOverlay').classList.add('open');
-  // Pre-select and lock dept
   const sel=document.getElementById('addDept');
   if(sel&&session.dept){sel.value=session.dept;sel.disabled=true;}
+}
+function openAddModalForDeptKey(dk){
+  document.getElementById('addOverlay').classList.add('open');
+  const sel=document.getElementById('addDept');
+  if(sel){sel.value=dk;sel.disabled=session.role!=='admin';}
 }
 
 // ════════════════════════════════════════════
