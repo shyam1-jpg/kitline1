@@ -1,11 +1,9 @@
-// Vedanta Rota — Service Worker
-const CACHE = 'vedanta-rota-v3';
-const SHELL = ['/', '/index.html', '/manifest.json', '/icon.svg', '/icon-maskable.svg'];
+// Vedanta Rota — Service Worker (network-first for app updates)
+const CACHE = 'vedanta-rota-v4';
+const SHELL = ['/manifest.json', '/icon.svg', '/icon-maskable.svg'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL).catch(() => {}))
-  );
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL).catch(() => {})));
   self.skipWaiting();
 });
 
@@ -19,9 +17,16 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for Firebase, cache-first for app shell
-  if (e.request.url.includes('firestore') || e.request.url.includes('firebase')) {
-    e.respondWith(fetch(e.request).catch(() => new Response('', {status: 503})));
+  const url = new URL(e.request.url);
+  if (url.pathname.includes('firestore') || url.pathname.includes('firebase') || url.pathname.includes('/api/')) {
+    e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
+    return;
+  }
+  // Always fetch latest HTML/JS — never cache stale clock logic
+  if (url.pathname.includes('vedanta-rota') || url.pathname.endsWith('index.html')) {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    );
     return;
   }
   e.respondWith(
@@ -32,7 +37,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, res.clone()));
         }
         return res;
-      }).catch(() => caches.match('/index.html'));
+      });
     })
   );
 });

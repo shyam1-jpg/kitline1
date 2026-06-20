@@ -316,6 +316,8 @@ function serveFile(res, filePath) {
     const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
     if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
       headers['Cache-Control'] = 'public, max-age=86400';
+    } else if (filePath.includes('vedanta-rota') && (ext === '.html' || ext === '.js')) {
+      headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     }
     const buf = fs.readFileSync(filePath);
     res.writeHead(200, security.securityHeaders(headers));

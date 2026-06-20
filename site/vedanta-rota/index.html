@@ -1711,10 +1711,47 @@ function clockSummaryText(rec){
   return '';
 }
 
+function clockStorageFormat(sessions){
+  return{sessions,v:2};
+}
+
+function mergeClockSessions(localRaw,remoteRaw){
+  const L=normalizeClock(localRaw);
+  const R=normalizeClock(remoteRaw);
+  if(R.sessions.length>L.sessions.length)return R.sessions;
+  if(L.sessions.length>R.sessions.length)return L.sessions;
+  if(clockIsActive(L)&&!clockIsActive(R))return L.sessions;
+  if(clockIsActive(R)&&!clockIsActive(L))return R.sessions;
+  const lt=L.sessions[L.sessions.length-1]?.clockOutAt||L.sessions[L.sessions.length-1]?.clockInAt||'';
+  const rt=R.sessions[R.sessions.length-1]?.clockOutAt||R.sessions[R.sessions.length-1]?.clockInAt||'';
+  return(rt>lt?R:L).sessions;
+}
+
+function ingestClockDoc(key,raw){
+  const merged=mergeClockSessions(clockData[key],raw);
+  clockData[key]=clockStorageFormat(merged);
+}
+
+function migrateAllClockData(){
+  let changed=false;
+  Object.keys(clockData).forEach(key=>{
+    const packed=clockStorageFormat(normalizeClock(clockData[key]).sessions);
+    if(JSON.stringify(clockData[key])!==JSON.stringify(packed)){
+      clockData[key]=packed;
+      changed=true;
+    }
+  });
+  if(changed)ls_save(LS_CLOCK,clockData);
+}
+
 function db_saveClock(key,data){
-  clockData[key]=data;ls_save(LS_CLOCK,clockData);
-  klPatch({c:'clock',id:key,data});
-  if(_fbReady) _db.collection('clock').doc(key).set(data).catch(console.error);
+  const sessions=Array.isArray(data.sessions)?data.sessions:normalizeClock(data).sessions;
+  const packed=clockStorageFormat(sessions);
+  clockData[key]=packed;
+  ls_save(LS_CLOCK,clockData);
+  klPatch({c:'clock',id:key,data:packed});
+  if(_fbReady) _db.collection('clock').doc(key).set(packed).catch(console.error);
+  renderLoginTodayBoard();
 }
 
 function doClockIn(staffId){
@@ -1795,8 +1832,9 @@ function renderClock(tickOnly){
       <div class="clock-status-sub">${statusSub}<br/><span style="opacity:.8">${s.role} · ${DEPTS[s.dept]?.name||''}</span></div>
     </div>
     ${sessionsHtml}
-    <button type="button" class="clock-action-btn in" onclick="doClockIn(${sid})" ${isIn?'disabled':''}>🟢 Clock In</button>
+    <button type="button" class="clock-action-btn in" onclick="doClockIn(${sid})" ${isIn?'disabled':''}>🟢 ${ck.sessions.length&&!isIn?'Clock In Again':'Clock In'}</button>
     <button type="button" class="clock-action-btn out" onclick="doClockOut(${sid})" ${!isIn?'disabled':''}>🔴 Clock Out</button>
+    ${ck.sessions.length&&!isIn?'<p style="font-size:.68rem;color:var(--charcoal-lite);text-align:center;margin:-4px 0 10px">You can clock in and out as many times as you need today.</p>':''}
     <div class="clock-scheduled">${schedTxt}</div>`;
 }
 
@@ -2212,7 +2250,10 @@ function applyKlStore(store){
     ls_save(LS_STAFF,STAFF);
   }
   if(store.rota&&typeof store.rota==='object'){rotaData={...rotaData,...store.rota};ls_save(LS_ROTA,rotaData);}
-  if(store.clock&&typeof store.clock==='object'){clockData={...clockData,...store.clock};ls_save(LS_CLOCK,clockData);}
+  if(store.clock&&typeof store.clock==='object'){
+    Object.entries(store.clock).forEach(([key,raw])=>ingestClockDoc(key,raw));
+    ls_save(LS_CLOCK,clockData);
+  }
   if(Array.isArray(store.leave_requests)&&store.leave_requests.length){leaveRequests=store.leave_requests;ls_save(LS_LEAVE,leaveRequests);}
   if(Array.isArray(store.audit_log)&&store.audit_log.length){
     auditLog=store.audit_log.slice(0,500);
@@ -2351,9 +2392,10 @@ function startFbListeners(){
   _unsubs.push(_db.collection('clock').onSnapshot(snap=>{
     snap.docChanges().forEach(ch=>{
       if(ch.type==='removed') delete clockData[ch.doc.id];
-      else clockData[ch.doc.id]=ch.doc.data();
+      else ingestClockDoc(ch.doc.id,ch.doc.data());
     });
     ls_save(LS_CLOCK,clockData);
+    renderLoginTodayBoard();
     if(activeView==='clock')renderClock();
     if(activeView==='clocks')renderClockBoard();
     if(activeView==='today')renderToday();
@@ -2454,6 +2496,7 @@ buildLoginGrid();
 setFbStatus('offline');
 renderLoginTodayBoard();
 setInterval(renderLoginTodayBoard,60000);
+migrateAllClockData();
 klInitSync();
 
 // Hardcoded Firebase config for The Vedanta
