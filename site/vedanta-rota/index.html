@@ -420,6 +420,13 @@ html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);c
 .clock-action-btn.in{background:linear-gradient(135deg,#2E7D32,#43A047);color:#fff;box-shadow:0 4px 16px rgba(46,125,50,.35)}
 .clock-action-btn.out{background:linear-gradient(135deg,#C62828,#E53935);color:#fff;box-shadow:0 4px 16px rgba(198,40,40,.35)}
 .clock-action-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;filter:grayscale(.3)}
+.clock-sessions{margin-bottom:14px;max-height:180px;overflow-y:auto;padding-right:4px}
+.clock-sessions-title{font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--charcoal-lite);margin-bottom:8px}
+.clock-session-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;margin-bottom:6px;background:var(--cream);border-radius:8px;border:1px solid var(--cream-dark);font-size:.72rem}
+.clock-session-row.open{border-color:rgba(76,175,80,.45);background:rgba(232,245,233,.6)}
+.clock-session-row .cs-times{font-weight:600;color:var(--charcoal)}
+.clock-session-row .cs-meta{font-size:.58rem;color:var(--charcoal-lite);text-align:right}
+.clock-session-total{font-size:.68rem;color:var(--gold);font-weight:700;text-align:center;margin-bottom:12px;padding:6px;background:rgba(184,150,62,.08);border-radius:6px}
 .clock-scheduled{font-size:.72rem;color:var(--charcoal-lite);background:var(--cream-mid);padding:10px 14px;border-radius:8px;margin-top:8px}
 .clock-board-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
 .clock-board-card{background:var(--warm-white);border-radius:10px;padding:12px 14px;box-shadow:0 1px 8px var(--shadow);border-left:4px solid #ccc}
@@ -1419,7 +1426,23 @@ function renderLoginTodayBoard(){
 }
 
 function getSt(id,date){return rotaData[dKey(id,date)]||{status:'off',note:'',startTime:'',endTime:'',splitShift:false,start2Time:'',end2Time:''}}
-function fmtTime(t){if(!t)return'';const[h,m]=t.split(':');return`${parseInt(h)}:${m}`}
+function parseClockHM(val){
+  if(!val)return'';
+  const s=String(val).trim();
+  if(s.includes('T')){
+    try{
+      const d=new Date(s);
+      if(!isNaN(d))return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }catch(e){}
+  }
+  const m=s.match(/^(\d{1,2}):(\d{2})/);
+  if(m)return `${String(parseInt(m[1],10)).padStart(2,'0')}:${m[2]}`;
+  return s;
+}
+function fmtTime(t){
+  if(!t)return'';
+  return parseClockHM(t);
+}
 function getFiltered(){return activeDept==='all'?STAFF:STAFF.filter(s=>s.dept===activeDept)}
 function pillHTML(rec){
   const st=STATUS[rec.status]||STATUS.off;
@@ -1543,7 +1566,7 @@ function renderToday(){
     const on=ds.filter(s=>getSt(s.id,today).status==='duty');
     const ab=ds.filter(s=>getSt(s.id,today).status!=='duty');
     html+=`<div class="dept-today-card" style="border-left-color:${d.color}"><div class="dtc-head"><div><div class="dtc-name">${d.icon} ${d.name}</div><div class="dtc-stats">${on.length} on duty · ${ab.length} away · ${ds.length} total</div></div><div class="dtc-count" style="background:${d.color}">${on.length}</div></div><div class="staff-chips">`;
-    on.forEach(s=>{const rec=getSt(s.id,today);const t=rec.startTime&&rec.endTime?` ${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}`:'';const ck=getClock(s.id,today);const act=ck.clockIn?` · 🕐 In ${fmtTime(ck.clockIn)}${ck.clockOut?' Out '+fmtTime(ck.clockOut):' (working)'}`:'';html+=`<span class="s-chip s-duty">✅ ${s.name}${t}${act}</span>`;});
+    on.forEach(s=>{const rec=getSt(s.id,today);const t=rec.startTime&&rec.endTime?` ${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}`:'';const ck=getClock(s.id,today);const act=clockSummaryText(ck)?` · 🕐 ${clockSummaryText(ck)}`:'';html+=`<span class="s-chip s-duty">✅ ${s.name}${t}${act}</span>`;});
     ab.forEach(s=>{const rec=getSt(s.id,today);const st=STATUS[rec.status]||STATUS.off;html+=`<span class="s-chip ${st.cls}">${st.icon} ${s.name}</span>`;});
     html+=`</div></div>`;
   });
@@ -1642,12 +1665,51 @@ function saveStatus(){
 function closeModal(e){if(e===null||e.target===document.getElementById('overlay')){document.getElementById('overlay').classList.remove('open');editCell=null;editStatus=null;}}
 
 // ════════════════════════════════════════════
-//  CLOCK IN / OUT
+//  CLOCK IN / OUT (multiple sessions per day)
 // ════════════════════════════════════════════
 function clockKey(id,date){return `${id}_${date.toISOString().slice(0,10)}`}
-function getClock(id,date){return clockData[clockKey(id,date)]||{clockIn:'',clockOut:'',clockInAt:'',clockOutAt:''}}
 function nowHM(){const n=new Date();return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`}
 function nowISO(){return new Date().toISOString()}
+
+function normalizeClock(raw){
+  if(!raw)return{sessions:[]};
+  if(Array.isArray(raw.sessions)){
+    return{sessions:raw.sessions.filter(s=>s&&s.clockIn).map(s=>({
+      clockIn:parseClockHM(s.clockIn),
+      clockOut:parseClockHM(s.clockOut),
+      clockInAt:s.clockInAt||'',
+      clockOutAt:s.clockOutAt||'',
+    }))};
+  }
+  if(raw.clockIn||raw.clockOut){
+    return{sessions:[{
+      clockIn:parseClockHM(raw.clockIn),
+      clockOut:parseClockHM(raw.clockOut),
+      clockInAt:raw.clockInAt||'',
+      clockOutAt:raw.clockOutAt||'',
+    }].filter(s=>s.clockIn)};
+  }
+  return{sessions:[]};
+}
+
+function getClock(id,date){
+  return normalizeClock(clockData[clockKey(id,date)]);
+}
+
+function clockIsActive(rec){const s=rec.sessions;return!!(s.length&&s[s.length-1].clockIn&&!s[s.length-1].clockOut)}
+function clockActiveSession(rec){return clockIsActive(rec)?rec.sessions[rec.sessions.length-1]:null}
+function hmToMins(t){if(!t)return 0;const[h,m]=t.split(':').map(Number);return(h||0)*60+(m||0)}
+function sessionMins(s){if(!s.clockIn||!s.clockOut)return 0;return Math.max(0,hmToMins(s.clockOut)-hmToMins(s.clockIn))}
+function clockTotalMins(rec){return rec.sessions.reduce((n,s)=>n+sessionMins(s),0)}
+function fmtClockDuration(mins){if(!mins)return'0h';const h=Math.floor(mins/60),m=mins%60;return m?`${h}h ${m}m`:`${h}h`}
+function clockSummaryText(rec){
+  if(!rec.sessions.length)return'';
+  const active=clockActiveSession(rec);
+  if(active)return `In ${fmtTime(active.clockIn)} (working)`;
+  const last=rec.sessions[rec.sessions.length-1];
+  if(last.clockOut)return `${rec.sessions.length} session${rec.sessions.length>1?'s':''} · ${fmtClockDuration(clockTotalMins(rec))} total`;
+  return '';
+}
 
 function db_saveClock(key,data){
   clockData[key]=data;ls_save(LS_CLOCK,clockData);
@@ -1659,26 +1721,29 @@ function doClockIn(staffId){
   const today=new Date();today.setHours(0,0,0,0);
   const key=clockKey(staffId,today);
   const rec=getClock(staffId,today);
-  if(rec.clockIn&&!rec.clockOut){alert('You are already clocked in');return;}
-  if(rec.clockOut){if(!confirm('You already clocked out today. Clock in again?'))return;}
-  const data={clockIn:nowHM(),clockOut:'',clockInAt:nowISO(),clockOutAt:''};
-  db_saveClock(key,data);
-  logAudit('clock_in','Clocked in at '+data.clockIn);
+  if(clockIsActive(rec)){alert('You are already clocked in — clock out first');return;}
+  const sessions=[...rec.sessions,{clockIn:nowHM(),clockOut:'',clockInAt:nowISO(),clockOutAt:''}];
+  db_saveClock(key,{sessions});
+  logAudit('clock_in','Clocked in at '+sessions[sessions.length-1].clockIn+(sessions.length>1?' (session '+sessions.length+')':''));
   renderClock();
   if(activeView==='clocks')renderClockBoard();
+  if(activeView==='today')renderToday();
 }
 
 function doClockOut(staffId){
   const today=new Date();today.setHours(0,0,0,0);
   const key=clockKey(staffId,today);
   const rec=getClock(staffId,today);
-  if(!rec.clockIn){alert('Clock in first');return;}
-  if(rec.clockOut){alert('Already clocked out');return;}
-  const data={...rec,clockOut:nowHM(),clockOutAt:nowISO()};
-  db_saveClock(key,data);
-  logAudit('clock_out','Clocked out at '+data.clockOut);
+  const active=clockActiveSession(rec);
+  if(!active){alert('Clock in first');return;}
+  const sessions=rec.sessions.slice();
+  const i=sessions.length-1;
+  sessions[i]={...sessions[i],clockOut:nowHM(),clockOutAt:nowISO()};
+  db_saveClock(key,{sessions});
+  logAudit('clock_out','Clocked out at '+sessions[i].clockOut+(sessions.length>1?' (session '+sessions.length+')':''));
   renderClock();
   if(activeView==='clocks')renderClockBoard();
+  if(activeView==='today')renderToday();
 }
 
 function startClockTicker(){
@@ -1697,12 +1762,25 @@ function renderClock(tickOnly){
   const today=new Date();today.setHours(0,0,0,0);
   const ck=getClock(sid,today);
   const sched=getSt(sid,today);
-  const isIn=!!ck.clockIn&&!ck.clockOut;
-  const isDone=!!ck.clockIn&&!!ck.clockOut;
-  let statusCls='out',statusIcon='🕐',statusLbl='Not clocked in',statusSub='Tap Clock In when you start your shift';
-  if(isIn){statusCls='in';statusIcon='✅';statusLbl='On shift';statusSub=`Clocked in at ${fmtTime(ck.clockIn)}`}
-  if(isDone){statusCls='done';statusIcon='🏁';statusLbl='Shift complete';statusSub=`${fmtTime(ck.clockIn)} – ${fmtTime(ck.clockOut)}`}
+  const isIn=clockIsActive(ck);
+  const active=clockActiveSession(ck);
+  const totalMins=clockTotalMins(ck);
+  let statusCls='out',statusIcon='🕐',statusLbl='Not clocked in',statusSub='Tap Clock In when you start';
+  if(isIn&&active){statusCls='in';statusIcon='✅';statusLbl='On shift';statusSub=`Clocked in at ${fmtTime(active.clockIn)}${ck.sessions.length>1?' · session '+ck.sessions.length:''}`}
+  else if(ck.sessions.length&&!isIn){statusCls='done';statusIcon='☕';statusLbl='Between shifts';statusSub=`${ck.sessions.length} session${ck.sessions.length>1?'s':''} today · ${fmtClockDuration(totalMins)} logged — tap Clock In to start again`}
   const schedTxt=sched.status==='duty'&&sched.startTime?`Scheduled: ${fmtTime(sched.startTime)}–${fmtTime(sched.endTime)}`:'No shift scheduled today';
+  const sessionsHtml=ck.sessions.length?`
+    <div class="clock-sessions">
+      <div class="clock-sessions-title">Today's sessions</div>
+      ${ck.sessions.map((s,i)=>{
+        const open=!s.clockOut;
+        return `<div class="clock-session-row${open?' open':''}">
+          <span class="cs-times">${fmtTime(s.clockIn)} → ${s.clockOut?fmtTime(s.clockOut):'…'}</span>
+          <span class="cs-meta">#${i+1}${s.clockOut?' · '+fmtClockDuration(sessionMins(s)):open?' · active':''}</span>
+        </div>`;
+      }).join('')}
+      ${totalMins?`<div class="clock-session-total">Total today: ${fmtClockDuration(totalMins)}</div>`:''}
+    </div>`:'';
   if(tickOnly){
     const live=panel.querySelector('.clock-live');
     if(live)live.textContent=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -1716,11 +1794,8 @@ function renderClock(tickOnly){
       <div class="clock-status-lbl">${s.name}</div>
       <div class="clock-status-sub">${statusSub}<br/><span style="opacity:.8">${s.role} · ${DEPTS[s.dept]?.name||''}</span></div>
     </div>
-    <div class="clock-times">
-      <div class="clock-time-box"><div class="ctl">Clock In</div><div class="ctv ${ck.clockIn?'':'muted'}">${ck.clockIn?fmtTime(ck.clockIn):'—'}</div></div>
-      <div class="clock-time-box"><div class="ctl">Clock Out</div><div class="ctv ${ck.clockOut?'':'muted'}">${ck.clockOut?fmtTime(ck.clockOut):'—'}</div></div>
-    </div>
-    <button type="button" class="clock-action-btn in" onclick="doClockIn(${sid})" ${isIn||isDone?'disabled':''}>🟢 Clock In</button>
+    ${sessionsHtml}
+    <button type="button" class="clock-action-btn in" onclick="doClockIn(${sid})" ${isIn?'disabled':''}>🟢 Clock In</button>
     <button type="button" class="clock-action-btn out" onclick="doClockOut(${sid})" ${!isIn?'disabled':''}>🔴 Clock Out</button>
     <div class="clock-scheduled">${schedTxt}</div>`;
 }
@@ -1735,10 +1810,10 @@ function renderClockBoard(){
     const ck=getClock(s.id,today);
     const sched=getSt(s.id,today);
     let cls='away',badge='away',badgeTxt='Not on shift';
-    if(ck.clockIn&&!ck.clockOut){cls='on';badge='on';badgeTxt='Working now'}
-    else if(ck.clockOut){cls='off';badge='off';badgeTxt='Finished'}
+    if(clockIsActive(ck)){cls='on';badge='on';badgeTxt='Working now'}
+    else if(ck.sessions.length){cls='off';badge='off';badgeTxt=`${ck.sessions.length} session${ck.sessions.length>1?'s':''} · ${fmtClockDuration(clockTotalMins(ck))}`}
     else if(sched.status==='duty'){cls='away';badge='away';badgeTxt='Scheduled — not clocked in'}
-    const times=ck.clockIn?`In: ${fmtTime(ck.clockIn)}${ck.clockOut?'<br/>Out: '+fmtTime(ck.clockOut):'<br/><em>Still on shift</em>'}`:'—';
+    const times=ck.sessions.length?ck.sessions.map((s,i)=>`#${i+1}: ${fmtTime(s.clockIn)}${s.clockOut?'–'+fmtTime(s.clockOut):' (working)'}`).join('<br/>'):'—';
     html+=`<div class="clock-board-card ${cls}">
       <div class="cbc-name">${s.name}</div>
       <div class="cbc-role">${DEPTS[s.dept]?.icon||''} ${s.role}</div>
@@ -1797,7 +1872,7 @@ function renderMyHours(){
     <div class="hours-card"><div class="hours-card-num">${fmtHrs(wk)}</div><div class="hours-card-lbl">This Week</div></div>
     <div class="hours-card"><div class="hours-card-num">${fmtHrs(mo)}</div><div class="hours-card-lbl">This Month</div></div>
     <div class="hours-card"><div class="hours-card-num">${fmtHrs(yr)}</div><div class="hours-card-lbl">Year to Date</div></div>
-    <div class="hours-card"><div class="hours-card-num">${ck.clockIn?(ck.clockOut?fmtTime(ck.clockIn)+'–'+fmtTime(ck.clockOut):fmtTime(ck.clockIn)+'…'):'—'}</div><div class="hours-card-lbl">Today Clock</div></div>`;
+    <div class="hours-card"><div class="hours-card-num">${ck.sessions.length?(clockTotalMins(ck)?fmtClockDuration(clockTotalMins(ck)):clockIsActive(ck)?fmtTime(clockActiveSession(ck).clockIn)+'…':'—'):'—'}</div><div class="hours-card-lbl">Today Clock</div></div>`;
   const s=STAFF.find(x=>x.id===sid);
   if(detail&&s)detail.textContent=`${s.name} · ${s.role} · ${ANNUAL_DAYS - s.annualLeft} days leave used · ${s.annualLeft} days remaining`;
 }

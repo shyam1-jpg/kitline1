@@ -113,10 +113,15 @@ function buildWeeklyReport(data) {
     `<tr><td>${s.name || '—'}</td><td>${s.role || '—'}</td><td>${s.dept || '—'}</td><td>${s.type === 'temp' ? 'Cover' : 'Permanent'}</td><td>${s.annualLeft ?? '—'}</td></tr>`
   ).join('');
 
-  const clockRows = todayClock.map((c) => {
+  const clockRows = todayClock.flatMap((c) => {
     const sid = String(c._id || '').split('_')[0];
     const st = data.staff.find((x) => String(x.id) === sid);
-    return `<tr><td>${st?.name || sid}</td><td>${c.clockIn || '—'}</td><td>${c.clockOut || '—'}</td></tr>`;
+    const name = st?.name || sid;
+    const sessions = c.sessions || (c.clockIn ? [{ clockIn: c.clockIn, clockOut: c.clockOut || '—' }] : []);
+    if (!sessions.length) return [`<tr><td>${name}</td><td>—</td><td>—</td></tr>`];
+    return sessions.map((s, i) =>
+      `<tr><td>${name}${sessions.length > 1 ? ` (#${i + 1})` : ''}</td><td>${s.clockIn || '—'}</td><td>${s.clockOut || '—'}</td></tr>`
+    );
   }).join('') || '<tr><td colspan="3">No clock entries for today in cloud</td></tr>';
 
   const auditRows = recentAudit.map((a) =>
