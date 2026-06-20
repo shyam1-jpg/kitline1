@@ -176,28 +176,37 @@ html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);c
 .sect-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--charcoal-mid);letter-spacing:.06em;margin-bottom:11px;display:flex;align-items:center;gap:10px}
 .sect-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-light),transparent)}
 .table-wrap{background:var(--warm-white);border-radius:10px;box-shadow:0 2px 14px var(--shadow);overflow:hidden;margin-bottom:16px}
+.table-wrap.rota-wrap{background:transparent;box-shadow:none;overflow:visible;margin-bottom:22px}
+.rota-wrap .table-scroll{padding:6px 4px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* ══════════════════════════════════════════════
    ROTA TABLE
 ══════════════════════════════════════════════ */
-.rota-table{width:100%;border-collapse:collapse;font-size:.73rem}
-.rota-table thead th{background:var(--charcoal);color:var(--gold-light);padding:9px 6px;font-family:'Cormorant Garamond',serif;font-size:.75rem;font-weight:600;letter-spacing:.05em;text-align:center;white-space:nowrap;border-right:1px solid rgba(255,255,255,.06)}
-.rota-table thead th.name-col{text-align:left;padding-left:12px;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;position:sticky;left:0;z-index:2;min-width:118px;background:var(--charcoal)}
+.rota-table{width:100%;border-collapse:separate;border-spacing:0 9px;font-size:.72rem}
+.rota-table thead th{background:var(--charcoal);color:var(--gold-light);padding:11px 8px;font-family:'Cormorant Garamond',serif;font-size:.74rem;font-weight:600;letter-spacing:.05em;text-align:center;white-space:nowrap;border:none}
+.rota-table thead th.name-col{text-align:left;padding-left:14px;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;position:sticky;left:0;z-index:4;min-width:124px;background:var(--charcoal);border-radius:8px 0 0 8px}
+.rota-table thead th:last-child{border-radius:0 8px 8px 0}
 .rota-table thead th.today-h{background:#2A2218;color:var(--gold);box-shadow:inset 0 -2px 0 var(--gold)}
-.dept-header-row td{background:var(--charcoal-mid);padding:10px 16px;font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold-light);font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-top:3px solid var(--gold)}
-.rota-table tbody tr{transition:background .12s}
-.rota-table tbody tr:hover{background:var(--gold-pale)!important}
-.rota-table tbody tr:nth-child(even){background:#FDFAF5}
-.name-cell{padding:6px 12px;font-weight:600;color:var(--charcoal);border-right:2px solid var(--cream-mid);white-space:nowrap;position:sticky;left:0;background:inherit;z-index:1;cursor:pointer}
+.rota-table thead tr{box-shadow:0 2px 10px rgba(28,28,28,.12)}
+.dept-header-row td{background:transparent;padding:18px 6px 4px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--charcoal-mid);font-weight:700;letter-spacing:.12em;text-transform:uppercase;border:none}
+.dept-header-row td::before{content:'';display:block;height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin-bottom:10px;opacity:.45}
+.rota-table tbody tr.staff-row{transition:transform .12s,box-shadow .12s}
+.rota-table tbody tr.staff-row{background:var(--warm-white);box-shadow:0 1px 8px rgba(28,28,28,.05)}
+.rota-table tbody tr.staff-row:hover{box-shadow:0 3px 14px rgba(28,28,28,.08);transform:translateY(-1px)}
+.rota-table tbody tr.staff-row td{border-top:1px solid rgba(226,217,200,.55);border-bottom:1px solid rgba(226,217,200,.55);background:var(--warm-white)}
+.rota-table tbody tr.staff-row td:first-child{border-left:1px solid rgba(226,217,200,.55);border-radius:10px 0 0 10px}
+.rota-table tbody tr.staff-row td:last-child{border-right:1px solid rgba(226,217,200,.55);border-radius:0 10px 10px 0}
+.name-cell{padding:10px 14px;font-weight:600;color:var(--charcoal);border-right:1px solid rgba(226,217,200,.4)!important;white-space:nowrap;position:sticky;left:0;background:inherit!important;z-index:2;cursor:pointer}
 .name-cell:hover .edit-hint{opacity:1}
 .name-cell-inner{display:flex;align-items:center;gap:5px}
-.staff-role-sm{display:block;font-size:.6rem;color:var(--charcoal-lite);font-weight:400;margin-top:1px}
+.staff-role-sm{display:block;font-size:.58rem;color:var(--charcoal-lite);font-weight:400;margin-top:2px}
 .edit-hint{opacity:0;transition:opacity .2s;font-size:.62rem;color:var(--gold)}
 .name-input-inline{border:none;background:var(--gold-pale);font-family:'Raleway',sans-serif;font-size:.73rem;font-weight:600;color:var(--charcoal);outline:none;padding:3px 6px;border-radius:4px;border:1.5px solid var(--gold);width:110px}
-.day-cell{padding:3px 3px;text-align:center;border-right:1px solid #F0EDE6;vertical-align:middle;min-width:100px}
-.day-cell.today-h{background:rgba(184,150,62,.05)}
-.spill{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:5px 5px;border-radius:5px;font-size:.61rem;font-weight:700;cursor:pointer;transition:filter .15s,transform .12s;border:none;width:100%;letter-spacing:.03em;text-transform:uppercase;min-height:44px;line-height:1.3}
+.day-cell{padding:8px 6px;text-align:center;border-right:1px solid rgba(240,237,230,.8);vertical-align:middle;min-width:96px}
+.day-cell.today-h{background:rgba(184,150,62,.06)}
+.spill{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px 5px;border-radius:8px;font-size:.6rem;font-weight:700;cursor:pointer;transition:filter .15s,transform .12s,box-shadow .12s;border:none;width:100%;letter-spacing:.03em;text-transform:uppercase;min-height:40px;line-height:1.25;box-shadow:inset 0 0 0 1px rgba(28,28,28,.04)}
+.spill:hover{filter:brightness(.97);box-shadow:inset 0 0 0 1px rgba(28,28,28,.08),0 1px 4px rgba(28,28,28,.06)}
 .spill:active{transform:scale(.97)}
 .spill-label{font-size:.61rem;font-weight:700;letter-spacing:.04em}
 .spill-time{font-size:.61rem;font-weight:500;letter-spacing:0;text-transform:none;opacity:.9;line-height:1.2}
@@ -316,6 +325,14 @@ html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);c
 .fb-badge.offline .fb-dot{background:var(--charcoal-lite)}
 .fb-badge.connecting .fb-dot{background:#FFC107;animation:pulse .8s infinite}
 .fb-badge.online .fb-dot{background:#4CAF50}
+.kl-badge{display:flex;align-items:center;gap:5px;font-size:.63rem;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid;white-space:nowrap;font-family:'Raleway',sans-serif;cursor:default}
+.kl-badge.offline{background:rgba(107,101,96,.12);border-color:rgba(107,101,96,.3);color:var(--charcoal-lite)}
+.kl-badge.connecting{background:rgba(184,150,62,.12);border-color:rgba(184,150,62,.35);color:#8B6914}
+.kl-badge.online{background:rgba(184,150,62,.15);border-color:rgba(184,150,62,.45);color:#6B5420}
+.kl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.kl-badge.offline .kl-dot{background:var(--charcoal-lite)}
+.kl-badge.connecting .kl-dot{background:var(--gold);animation:pulse .8s infinite}
+.kl-badge.online .kl-dot{background:var(--gold)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .config-area{width:100%;height:120px;padding:9px;border:1.5px solid var(--cream-dark);border-radius:6px;font-family:monospace;font-size:.72rem;background:var(--cream);color:var(--charcoal);outline:none;resize:vertical}
 .config-area:focus{border-color:var(--gold)}
@@ -361,14 +378,16 @@ html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);c
 .lts-num.on{color:#81C784}.lts-num.away{color:#90CAF9}.lts-num.total{color:var(--gold-light)}
 .lts-lbl{font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(253,250,244,.48);margin-top:4px;font-weight:700}
 .login-today-title{font-size:.58rem;color:var(--gold);letter-spacing:.24em;text-transform:uppercase;font-weight:700;margin-bottom:10px}
-.login-dept-block{margin-bottom:12px;padding:10px 12px;background:rgba(253,250,244,.04);border-radius:10px;border:1px solid rgba(184,150,62,.12);animation:fadeUp .35s ease}
-.login-dept-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:8px}
-.login-dept-name{font-size:.7rem;font-weight:700;color:var(--gold-light);letter-spacing:.04em}
-.login-dept-count{font-size:.6rem;color:rgba(253,250,244,.45);white-space:nowrap}
-.login-staff-row{display:flex;flex-wrap:wrap;gap:5px}
-.login-chip{font-size:.62rem;padding:4px 9px;border-radius:16px;font-weight:600;line-height:1.3}
-.login-chip.on{background:rgba(76,175,80,.18);color:#A5D6A7;border:1px solid rgba(129,199,132,.35)}
-.login-chip.away{background:rgba(253,250,244,.04);color:rgba(253,250,244,.4);border:1px solid rgba(255,255,255,.07)}
+.login-dept-block{margin-bottom:14px;padding:12px 14px;background:rgba(253,250,244,.05);border-radius:12px;border:1px solid rgba(184,150,62,.14);animation:fadeUp .35s ease}
+.login-dept-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;padding-bottom:8px;border-bottom:1px solid rgba(184,150,62,.12)}
+.login-dept-name{font-size:.72rem;font-weight:700;color:var(--gold-light);letter-spacing:.05em}
+.login-dept-count{font-size:.6rem;color:rgba(253,250,244,.5);white-space:nowrap}
+.login-staff-section{margin-bottom:6px}
+.login-staff-label{font-size:.54rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(253,250,244,.38);font-weight:700;margin-bottom:5px}
+.login-staff-row{display:flex;flex-wrap:wrap;gap:6px}
+.login-chip{font-size:.63rem;padding:5px 10px;border-radius:18px;font-weight:600;line-height:1.35}
+.login-chip.on{background:rgba(76,175,80,.2);color:#C8E6C9;border:1px solid rgba(129,199,132,.4)}
+.login-chip.away{background:rgba(253,250,244,.04);color:rgba(253,250,244,.42);border:1px solid rgba(255,255,255,.08)}
 .login-today-board{max-height:42vh;overflow-y:auto;padding-right:4px}
 @media(min-width:901px){.login-today-board{max-height:calc(100vh - 280px)}}
 .login-today-board::-webkit-scrollbar{width:4px}
@@ -604,6 +623,7 @@ body.staff-mode .staff-portal-nav{display:flex}
       </div>
     </div>
     <div class="header-right">
+      <div class="kl-badge offline" id="klBadge" title="Kiteline server backup"><div class="kl-dot"></div><span id="klLabel">Cloud</span></div>
       <div class="fb-badge offline" id="fbBadge" title="Firebase sync status"><div class="fb-dot"></div><span id="fbLabel">Offline</span></div>
       <div class="session-badge" id="sessionBadge" style="display:none">
         <div class="sb-dot"></div>
@@ -718,7 +738,7 @@ body.staff-mode .staff-portal-nav{display:flex}
 
     <div id="view-week">
       <div class="sect-title" id="rotaTitle">Full Building Rota</div>
-      <div class="table-wrap"><div class="table-scroll">
+      <div class="table-wrap rota-wrap"><div class="table-scroll">
         <table class="rota-table"><thead id="rotaHead"></thead><tbody id="rotaBody"></tbody></table>
       </div></div>
       <button class="add-staff-dept-btn" id="addStaffDeptBtn" style="display:none" onclick="openAddModalForDept()">＋ Add New Staff Member to My Department</button>
@@ -762,7 +782,7 @@ body.staff-mode .staff-portal-nav{display:flex}
       <div class="sect-title">PIN Settings — Admin Only</div>
       <div class="info-box" style="margin-bottom:14px">
         <h3>💾 Data &amp; Backup</h3>
-        <p><strong>Cloud (primary):</strong> Firebase Firestore project <em>the-vedanta</em> — staff, rotas, clock times, leave, PINs &amp; login activity sync from every phone, tablet and PC.</p>
+        <p><strong>Cloud (primary):</strong> <strong>Kiteline server</strong> at kiteline.uk — rota, staff, clock &amp; leave sync automatically. Firebase Firestore also syncs when connected.</p>
         <p><strong>Local:</strong> Each device also keeps a copy in browser storage (works offline, syncs when back online).</p>
         <p><strong>Email reports:</strong> Sent to <strong>Operation@thevedanta.org</strong> (from Kiteline server).</p>
         <p style="margin-top:6px"><span class="info-tag">🧪 Testing mode — no automatic emails. Reports send only when you press a button below.</span></p>
@@ -987,6 +1007,7 @@ function logAudit(action,detail){
   auditLog.unshift(entry);
   if(auditLog.length>500)auditLog=auditLog.slice(0,500);
   ls_save(LS_AUDIT,auditLog);
+  klPatch({c:'audit_log',id:entry.id,data:entry});
   if(_fbReady) _db.collection('audit_log').doc(entry.id).set(entry).catch(console.error);
 }
 
@@ -994,6 +1015,7 @@ function db_saveAuditEntry(entry){
   const i=auditLog.findIndex(a=>a.id===entry.id);
   if(i>=0)auditLog[i]=entry;else auditLog.unshift(entry);
   ls_save(LS_AUDIT,auditLog);
+  klPatch({c:'audit_log',id:entry.id,data:entry});
   if(_fbReady) _db.collection('audit_log').doc(entry.id).set(entry).catch(console.error);
 }
 
@@ -1372,20 +1394,26 @@ function renderLoginTodayBoard(){
     if(!ds.length)return;
     const on=ds.filter(s=>getSt(s.id,today).status==='duty');
     const away=ds.filter(s=>getSt(s.id,today).status!=='duty');
-    html+=`<div class="login-dept-block"><div class="login-dept-head"><span class="login-dept-name">${d.icon} ${d.name}</span><span class="login-dept-count">${on.length} working · ${away.length} away</span></div><div class="login-staff-row">`;
+    html+=`<div class="login-dept-block"><div class="login-dept-head"><span class="login-dept-name">${d.icon} ${d.name}</span><span class="login-dept-count">${on.length} working · ${away.length} away</span></div>`;
     if(on.length){
+      html+=`<div class="login-staff-section"><div class="login-staff-label">Working today</div><div class="login-staff-row">`;
       on.forEach(s=>{
         const rec=getSt(s.id,today);
         const t=rec.startTime&&rec.endTime?` ${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}`:'';
         html+=`<span class="login-chip on">✅ ${s.name}${t}</span>`;
       });
+      html+=`</div></div>`;
     }
-    away.forEach(s=>{
-      const rec=getSt(s.id,today);
-      const st=STATUS[rec.status]||STATUS.off;
-      html+=`<span class="login-chip away">${st.icon} ${s.name}</span>`;
-    });
-    html+=`</div></div>`;
+    if(away.length){
+      html+=`<div class="login-staff-section"><div class="login-staff-label">Not in today</div><div class="login-staff-row">`;
+      away.forEach(s=>{
+        const rec=getSt(s.id,today);
+        const st=STATUS[rec.status]||STATUS.off;
+        html+=`<span class="login-chip away">${st.icon} ${s.name}</span>`;
+      });
+      html+=`</div></div>`;
+    }
+    html+=`</div>`;
   });
   boardEl.innerHTML=html||'<p class="login-today-empty">Team roster loading…</p>';
 }
@@ -1484,7 +1512,7 @@ function renderWeek(){
     ds.forEach(s=>{
       const sn=s.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       const typeTag=s.type==='temp'?`<span class="staff-type-tag temp">Cover</span>`:'';
-      html+=`<tr><td class="name-cell" onclick="startEditName(event,${s.id})" title="Tap to edit name"><div class="name-cell-inner"><div><span id="nd-${s.id}">${s.name}</span>${typeTag}<span class="staff-role-sm">${s.role}</span></div><span class="edit-hint">✏️</span></div></td>`;
+      html+=`<tr class="staff-row"><td class="name-cell" onclick="startEditName(event,${s.id})" title="Tap to edit name"><div class="name-cell-inner"><div><span id="nd-${s.id}">${s.name}</span>${typeTag}<span class="staff-role-sm">${s.role}</span></div><span class="edit-hint">✏️</span></div></td>`;
       days.forEach(day=>{const rec=getSt(s.id,day);const st=STATUS[rec.status]||STATUS.off;html+=`<td class="day-cell${isToday(day)?' today-h':''}" data-tip="${rec.note?`${st.label} — ${rec.note}`:st.label}"><button class="spill ${st.cls}" onclick="openModal(${s.id},'${day.toISOString().slice(0,10)}','${sn}','${fmtLong(day)}')">${pillHTML(rec)}</button></td>`;});
       html+='</tr>';
     });
@@ -1623,6 +1651,7 @@ function nowISO(){return new Date().toISOString()}
 
 function db_saveClock(key,data){
   clockData[key]=data;ls_save(LS_CLOCK,clockData);
+  klPatch({c:'clock',id:key,data});
   if(_fbReady) _db.collection('clock').doc(key).set(data).catch(console.error);
 }
 
@@ -1798,6 +1827,7 @@ function db_saveLeaveReq(req){
   const i=leaveRequests.findIndex(r=>r.id===req.id);
   if(i>=0)leaveRequests[i]=req;else leaveRequests.push(req);
   ls_save(LS_LEAVE,leaveRequests);
+  klPatch({c:'leave_requests',id:req.id,data:req});
   if(_fbReady) _db.collection('leave_requests').doc(req.id).set(req).catch(console.error);
 }
 
@@ -2084,6 +2114,77 @@ function openTimesheetPrint(){
 }
 
 // ════════════════════════════════════════════
+//  KITELINE SERVER SYNC (primary cloud backup)
+// ════════════════════════════════════════════
+let _klReady=false,_klSyncVer=null;
+
+function setKlStatus(state,msg){
+  const b=document.getElementById('klBadge');
+  const l=document.getElementById('klLabel');
+  if(b){b.className='kl-badge '+state;}
+  if(l){l.textContent=state==='online'?'Kiteline ✓':state==='connecting'?'Sync…':'Cloud';}
+  _klReady=state==='online';
+}
+
+function applyKlStore(store){
+  if(!store)return;
+  if(Array.isArray(store.staff)&&store.staff.length){
+    STAFF=store.staff;
+    STAFF.sort((a,b)=>a.id-b.id);
+    nextId=Math.max(...STAFF.map(s=>s.id),0)+1;
+    ensureStaffPins();
+    STAFF.forEach(s=>{if(!s.type)s.type='perm'});
+    ls_save(LS_STAFF,STAFF);
+  }
+  if(store.rota&&typeof store.rota==='object'){rotaData={...rotaData,...store.rota};ls_save(LS_ROTA,rotaData);}
+  if(store.clock&&typeof store.clock==='object'){clockData={...clockData,...store.clock};ls_save(LS_CLOCK,clockData);}
+  if(Array.isArray(store.leave_requests)&&store.leave_requests.length){leaveRequests=store.leave_requests;ls_save(LS_LEAVE,leaveRequests);}
+  if(Array.isArray(store.audit_log)&&store.audit_log.length){
+    auditLog=store.audit_log.slice(0,500);
+    ls_save(LS_AUDIT,auditLog);
+  }
+  if(store.pins&&Object.keys(store.pins).length){PINS=store.pins;ls_save(LS_PINS,PINS);}
+  _klSyncVer=store.updatedAt||null;
+  renderLoginTodayBoard();
+  if(activeView)render();
+}
+
+async function klPatch(op){
+  try{
+    const r=await fetch('/api/vedanta/patch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ops:[op]})});
+    if(r.ok){setKlStatus('online');return true;}
+  }catch(e){console.warn('[kl-sync]',e.message);}
+  setKlStatus('offline');
+  return false;
+}
+
+async function klPullStore(){
+  try{
+    setKlStatus('connecting');
+    const r=await fetch('/api/vedanta/store');
+    if(!r.ok){setKlStatus('offline');return;}
+    const store=await r.json();
+    const empty=!store.staff?.length&&!Object.keys(store.rota||{}).length;
+    if(empty&&(STAFF.length||Object.keys(rotaData).length)){
+      await fetch('/api/vedanta/store',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        staff:STAFF,rota:rotaData,clock:clockData,leave_requests:leaveRequests,audit_log:auditLog.slice(0,200),pins:PINS
+      })});
+      setKlStatus('online');
+      return;
+    }
+    if(!_klSyncVer||!store.updatedAt||store.updatedAt!==_klSyncVer)applyKlStore(store);
+    else setKlStatus('online');
+  }catch(e){
+    setKlStatus('offline');
+  }
+}
+
+async function klInitSync(){
+  await klPullStore();
+  setInterval(klPullStore,45000);
+}
+
+// ════════════════════════════════════════════
 //  FIREBASE
 // ════════════════════════════════════════════
 const FB_CFG_KEY='vedanta_firebase_cfg_v1';
@@ -2236,19 +2337,23 @@ async function uploadLocalData(){
 // Wrapped save functions — write to Firestore + localStorage
 function db_saveStaff(s){
   ls_save(LS_STAFF,STAFF);
+  klPatch({c:'staff',id:String(s.id),data:s});
   if(_fbReady) _db.collection('staff').doc(String(s.id)).set(s).catch(console.error);
 }
 function db_deleteStaff(id){
   ls_save(LS_STAFF,STAFF);
+  klPatch({c:'staff',id:String(id),delete:true});
   if(_fbReady) _db.collection('staff').doc(String(id)).delete().catch(console.error);
 }
 function db_saveRota(key,data){
   rotaData[key]=data;ls_save(LS_ROTA,rotaData);
   renderLoginTodayBoard();
+  klPatch({c:'rota',id:key,data});
   if(_fbReady) _db.collection('rota').doc(key).set(data).catch(console.error);
 }
 function db_savePins(p){
   PINS=p;ls_save(LS_PINS,PINS);
+  klPatch({c:'pins',id:'pins',data:p});
   if(_fbReady) _db.collection('config').doc('pins').set(p).catch(console.error);
 }
 
@@ -2274,6 +2379,7 @@ buildLoginGrid();
 setFbStatus('offline');
 renderLoginTodayBoard();
 setInterval(renderLoginTodayBoard,60000);
+klInitSync();
 
 // Hardcoded Firebase config for The Vedanta
 const VEDANTA_FB_CONFIG={

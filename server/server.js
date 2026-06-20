@@ -31,6 +31,7 @@ const APP_BUILD = '2026-06-19-vedanta-reports';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
+const vedantaStore = require('./vedanta-store');
 const waitlist = require('./waitlist');
 const billing = require('./billing');
 const security = require('./security');
@@ -348,7 +349,8 @@ async function handleApi(req, res, url) {
   if (route === '/vedanta/reports/status' && req.method === 'GET') {
     return apiSend(200, {
       appUrl: 'https://kiteline.uk/vedanta-rota/',
-      dataStore: 'Firebase Firestore (project: the-vedanta)',
+      dataStore: 'Kiteline server + Firebase Firestore (project: the-vedanta)',
+      kitelineStore: true,
       collections: ['staff', 'rota', 'clock', 'leave_requests', 'audit_log', 'config'],
       localBackup: 'Browser localStorage on each device (syncs to cloud when online)',
       emailTo: vedantaReports.reportRecipients(),
@@ -368,6 +370,31 @@ async function handleApi(req, res, url) {
     try {
       const result = await vedantaReports.sendReport(type);
       return apiSend(200, result, null, req);
+    } catch (e) {
+      return apiSend(500, { error: e.message || String(e) }, null, req);
+    }
+  }
+
+  // GET /api/vedanta/store — full rota data on Kiteline server
+  if (route === '/vedanta/store' && req.method === 'GET') {
+    return apiSend(200, vedantaStore.getSnapshot(), null, req);
+  }
+
+  // PUT /api/vedanta/store — bulk merge (first sync / backup upload)
+  if (route === '/vedanta/store' && req.method === 'PUT') {
+    try {
+      const merged = vedantaStore.mergeBulk(body);
+      return apiSend(200, { ok: true, updatedAt: merged.updatedAt }, null, req);
+    } catch (e) {
+      return apiSend(500, { error: e.message || String(e) }, null, req);
+    }
+  }
+
+  // POST /api/vedanta/patch — incremental updates { ops: [{ c, id, data, delete? }] }
+  if (route === '/vedanta/patch' && req.method === 'POST') {
+    try {
+      const merged = vedantaStore.applyPatch(body.ops || body);
+      return apiSend(200, { ok: true, updatedAt: merged.updatedAt }, null, req);
     } catch (e) {
       return apiSend(500, { error: e.message || String(e) }, null, req);
     }
