@@ -352,9 +352,11 @@ async function handleApi(req, res, url) {
       collections: ['staff', 'rota', 'clock', 'leave_requests', 'audit_log', 'config'],
       localBackup: 'Browser localStorage on each device (syncs to cloud when online)',
       emailTo: vedantaReports.reportRecipients(),
+      autoEmailsEnabled: vedantaReports.autoEmailsEnabled(),
+      testingMode: !vedantaReports.autoEmailsEnabled(),
       schedule: {
-        weekly: 'Every Monday ~7:00 UK time',
-        monthly: '27th of each month ~7:00 UK time',
+        weekly: 'Every Monday ~7:00 UK time (when auto emails enabled)',
+        monthly: '27th of each month ~7:00 UK time (when auto emails enabled)',
       },
       smtpConfigured: notify.smtpConfigured(),
     }, null, req);

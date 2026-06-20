@@ -222,7 +222,7 @@ function shouldSendMonthly(now, state) {
 }
 
 async function schedulerTick() {
-  if (process.env.VEDANTA_REPORTS_ENABLED === 'false') return;
+  if (process.env.VEDANTA_REPORTS_ENABLED !== 'true') return;
   const now = ukNow();
   const state = loadState();
   try {
@@ -240,9 +240,13 @@ async function schedulerTick() {
   }
 }
 
+function autoEmailsEnabled() {
+  return process.env.VEDANTA_REPORTS_ENABLED === 'true';
+}
+
 function startScheduler() {
-  if (process.env.VEDANTA_REPORTS_ENABLED === 'false') {
-    console.log('[vedanta-report] Automatic emails disabled (VEDANTA_REPORTS_ENABLED=false)');
+  if (!autoEmailsEnabled()) {
+    console.log('[vedanta-report] Automatic emails off — manual send only (Settings button). Set VEDANTA_REPORTS_ENABLED=true when going live.');
     return;
   }
   console.log('[vedanta-report] Scheduler on →', reportRecipients().join(', '), '| Mon 7:00 weekly · 27th 7:00 monthly (UK)');
@@ -255,4 +259,5 @@ module.exports = {
   loadVedantaData,
   startScheduler,
   reportRecipients,
+  autoEmailsEnabled,
 };

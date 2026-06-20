@@ -29,7 +29,7 @@ html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);c
 .login-screen{
   position:fixed;inset:0;z-index:9999;
   background:linear-gradient(160deg,#1C1C1C 0%,#2E2A26 60%,#3A3530 100%);
-  display:flex;flex-direction:column;align-items:center;
+  display:flex;flex-direction:column;
   padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   overflow-y:auto;
   transition:opacity .4s,transform .4s;
@@ -328,6 +328,52 @@ html,body{height:100%;font-family:'Raleway',sans-serif;background:var(--cream);c
 .login-mode-bar{display:flex;gap:8px;justify-content:center;margin-bottom:18px;padding:0 16px;width:100%;max-width:560px}
 .login-mode-btn{flex:1;padding:11px 8px;border:1px solid rgba(184,150,62,.35);background:rgba(253,250,244,.06);color:rgba(253,250,244,.65);border-radius:8px;cursor:pointer;font-family:'Raleway',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;min-height:44px}
 .login-mode-btn.active{background:rgba(184,150,62,.22);border-color:var(--gold);color:var(--gold-light)}
+
+/* Login — welcome + today's team (public, before sign-in) */
+.login-shell{display:flex;flex:1;width:100%;max-width:1180px;margin:0 auto;align-items:stretch;min-height:0}
+@media(max-width:900px){.login-shell{flex-direction:column;max-width:560px}}
+.login-today-panel{
+  flex:1.15;min-width:0;padding:8px 20px 24px;
+  border-right:1px solid rgba(184,150,62,.18);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+@media(max-width:900px){
+  .login-today-panel{border-right:none;border-bottom:1px solid rgba(184,150,62,.18);padding:12px 16px 18px;order:2}
+}
+.login-auth-panel{
+  flex:0 0 auto;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;
+  padding:0 16px 28px;margin:0 auto;
+}
+@media(min-width:901px){.login-auth-panel{padding:12px 20px 32px;max-width:380px}}
+@media(max-width:900px){.login-auth-panel{order:1;padding-top:8px}}
+.welcome-block{margin-bottom:18px;animation:fadeUp .55s ease}
+.welcome-date{font-size:.6rem;color:rgba(253,250,244,.45);letter-spacing:.22em;text-transform:uppercase;margin-bottom:10px}
+.welcome-msg{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(1.35rem,2.8vw,1.95rem);font-weight:600;
+  color:var(--gold-light);line-height:1.25;margin-bottom:8px;
+  animation:welcomeGlow 4s ease-in-out infinite;
+}
+@keyframes welcomeGlow{0%,100%{text-shadow:0 0 0 transparent}50%{text-shadow:0 0 28px rgba(212,184,106,.25)}}
+.welcome-sub{font-size:.76rem;color:rgba(253,250,244,.62);line-height:1.55;font-weight:400;max-width:420px}
+.login-today-summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.lts-pill{flex:1;min-width:88px;background:rgba(253,250,244,.06);border:1px solid rgba(184,150,62,.22);border-radius:10px;padding:10px 8px;text-align:center}
+.lts-num{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:600;line-height:1}
+.lts-num.on{color:#81C784}.lts-num.away{color:#90CAF9}.lts-num.total{color:var(--gold-light)}
+.lts-lbl{font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(253,250,244,.48);margin-top:4px;font-weight:700}
+.login-today-title{font-size:.58rem;color:var(--gold);letter-spacing:.24em;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+.login-dept-block{margin-bottom:12px;padding:10px 12px;background:rgba(253,250,244,.04);border-radius:10px;border:1px solid rgba(184,150,62,.12);animation:fadeUp .35s ease}
+.login-dept-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:8px}
+.login-dept-name{font-size:.7rem;font-weight:700;color:var(--gold-light);letter-spacing:.04em}
+.login-dept-count{font-size:.6rem;color:rgba(253,250,244,.45);white-space:nowrap}
+.login-staff-row{display:flex;flex-wrap:wrap;gap:5px}
+.login-chip{font-size:.62rem;padding:4px 9px;border-radius:16px;font-weight:600;line-height:1.3}
+.login-chip.on{background:rgba(76,175,80,.18);color:#A5D6A7;border:1px solid rgba(129,199,132,.35)}
+.login-chip.away{background:rgba(253,250,244,.04);color:rgba(253,250,244,.4);border:1px solid rgba(255,255,255,.07)}
+.login-today-board{max-height:42vh;overflow-y:auto;padding-right:4px}
+@media(min-width:901px){.login-today-board{max-height:calc(100vh - 280px)}}
+.login-today-board::-webkit-scrollbar{width:4px}
+.login-today-board::-webkit-scrollbar-thumb{background:rgba(184,150,62,.35);border-radius:4px}
+.login-today-empty{font-size:.72rem;color:rgba(253,250,244,.45);font-style:italic;padding:8px 0}
 .staff-pick-list{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;padding-bottom:8px}
 .staff-pick-dept{font-size:.58rem;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;font-weight:700;padding:8px 4px 2px}
 .staff-pick-btn{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:1px solid rgba(184,150,62,.22);background:rgba(253,250,244,.07);border-radius:10px;color:var(--warm-white);cursor:pointer;text-align:left;font-family:'Raleway',sans-serif;min-height:52px}
@@ -471,6 +517,18 @@ body.staff-mode .staff-portal-nav{display:flex}
      LOGIN SCREEN
 ══════════════════════════════════════════════ -->
 <div class="login-screen" id="loginScreen">
+  <div class="login-shell">
+    <aside class="login-today-panel" id="loginTodayPanel">
+      <div class="welcome-block">
+        <p class="welcome-date" id="welcomeDate">—</p>
+        <h2 class="welcome-msg" id="welcomeMsg">Welcome to The Vedanta Team</h2>
+        <p class="welcome-sub" id="welcomeSub">See who's working today before you sign in.</p>
+      </div>
+      <div class="login-today-summary" id="loginTodaySummary"></div>
+      <p class="login-today-title">Today's team</p>
+      <div class="login-today-board" id="loginTodayBoard"></div>
+    </aside>
+    <div class="login-auth-panel">
   <div class="login-logo-area">
     <svg viewBox="0 0 310 155" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g fill="#3A3835"><rect x="28" y="52" width="178" height="100"/><polygon points="28,52 90,52 59,10"/><polygon points="82,52 148,52 115,4"/><polygon points="140,52 206,52 173,12"/><rect x="0" y="133" width="18" height="19"/><rect x="8" y="124" width="14" height="9"/><rect x="14" y="117" width="14" height="7"/><rect x="210" y="74" width="46" height="78"/><rect x="262" y="62" width="48" height="90"/><polygon points="262,62 310,62 286,35"/></g>
@@ -522,6 +580,8 @@ body.staff-mode .staff-portal-nav{display:flex}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
     </div>
     <p class="pin-error-msg" id="pinError"></p>
+  </div>
+    </div>
   </div>
 </div>
 
@@ -704,14 +764,12 @@ body.staff-mode .staff-portal-nav{display:flex}
         <h3>💾 Data &amp; Backup</h3>
         <p><strong>Cloud (primary):</strong> Firebase Firestore project <em>the-vedanta</em> — staff, rotas, clock times, leave, PINs &amp; login activity sync from every phone, tablet and PC.</p>
         <p><strong>Local:</strong> Each device also keeps a copy in browser storage (works offline, syncs when back online).</p>
-        <p><strong>Email backup:</strong> Automatic reports sent to <strong>Operation@thevedanta.org</strong></p>
-        <ul style="font-size:.72rem;margin:8px 0 0 18px;line-height:1.7">
-          <li>Weekly — every <strong>Monday ~7:00</strong> (UK)</li>
-          <li>Monthly — <strong>27th of each month ~7:00</strong> (UK)</li>
-        </ul>
+        <p><strong>Email reports:</strong> Sent to <strong>Operation@thevedanta.org</strong> (from Kiteline server).</p>
+        <p style="margin-top:6px"><span class="info-tag">🧪 Testing mode — no automatic emails. Reports send only when you press a button below.</span></p>
+        <p style="font-size:.68rem;color:var(--charcoal-lite);margin-top:6px">When you go live, automatic weekly (Monday) and monthly (27th) reports can be turned on on the server.</p>
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          <button type="button" class="btn-save-pin" onclick="sendEmailReport('weekly')">📧 Send weekly report now</button>
-          <button type="button" class="btn-save-pin" onclick="sendEmailReport('monthly')">📧 Send monthly report now</button>
+          <button type="button" class="btn-save-pin" onclick="sendEmailReport('weekly')">📧 Send test weekly report</button>
+          <button type="button" class="btn-save-pin" onclick="sendEmailReport('monthly')">📧 Send test monthly report</button>
         </div>
         <p id="emailReportMsg" style="font-size:.7rem;margin-top:8px;color:var(--gold)"></p>
       </div>
@@ -940,15 +998,17 @@ function db_saveAuditEntry(entry){
 }
 
 async function sendEmailReport(type){
+  const label=type==='monthly'?'monthly':'weekly';
+  if(!confirm('Send a test '+label+' report to Operation@thevedanta.org now?'))return;
   const msg=document.getElementById('emailReportMsg');
   if(msg)msg.textContent='Sending…';
   try{
     const r=await fetch('/api/vedanta/reports/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})});
     const data=await r.json();
     if(!r.ok)throw new Error(data.error||'Send failed');
-    if(msg)msg.textContent='✅ Report emailed to Operation@thevedanta.org ('+(data.result?.mode||'sent')+')';
+    if(msg)msg.textContent='✅ Test report sent to Operation@thevedanta.org ('+(data.result?.mode||'sent')+')';
   }catch(e){
-    if(msg)msg.textContent='❌ '+e.message+' — set SMTP on Render or check server logs';
+    if(msg)msg.textContent='❌ '+e.message+' — add Google App Password as SMTP_PASS on Render, then try again';
   }
 }
 
@@ -1043,6 +1103,7 @@ function doLogout(){
   document.body.classList.remove('staff-mode');
   document.getElementById('loginScreen').classList.remove('hidden');
   backToStep1();
+  renderLoginTodayBoard();
 }
 
 // ════════════════════════════════════════════
@@ -1262,6 +1323,73 @@ function isToday(d){const t=new Date();return d.getFullYear()===t.getFullYear()&
 function fmt(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}
 function fmtDay(d){return d.toLocaleDateString('en-GB',{weekday:'short'})}
 function fmtLong(d){return d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}
+
+const WELCOME_POOL=[
+  {title:'Welcome to The Vedanta Team',sub:'Every shift shapes the day — thank you for being part of something special.'},
+  {title:'Good morning, Team Vedanta',sub:'Strong teams show up for each other. Let\'s make today run beautifully.'},
+  {title:'The Vedanta — One Team',sub:'Where care meets craft. Your presence here matters more than you know.'},
+  {title:'Ready for a Great Day',sub:'Small acts of teamwork create a guest experience people remember.'},
+  {title:'Welcome Back, Family',sub:'At The Vedanta, we rise together — one shift, one spirit, one standard.'},
+  {title:'Today We Shine Together',sub:'Look around — these are the people who make The Vedanta feel like home.'},
+  {title:'Teamwork Makes the Magic',sub:'Every role counts. Every person counts. That\'s The Vedanta way.'},
+  {title:'Another Beautiful Day',sub:'Bring your best — the building runs on hearts like yours.'},
+  {title:'The Vedanta Spirit',sub:'Calm hands, warm smiles, united purpose. That\'s who we are.'},
+  {title:'Hello, Wonderful Team',sub:'Great days start with great people — and you\'re looking at them.'},
+  {title:'Together We Thrive',sub:'Check who\'s on duty today, then step in and do what you do best.'},
+  {title:'Welcome — You Belong Here',sub:'The Vedanta is built on trust, respect, and showing up for one another.'},
+  {title:'Let\'s Make Today Count',sub:'Excellence is a team sport. You\'re on the starting line.'},
+  {title:'The Heart of The Vedanta',sub:'Behind every smooth shift is a team that cares — like this one.'},
+];
+function dailyWelcomeIndex(){
+  const t=new Date();
+  return(t.getFullYear()*372+t.getMonth()*31+t.getDate())%WELCOME_POOL.length;
+}
+function applyDailyWelcome(){
+  const w=WELCOME_POOL[dailyWelcomeIndex()];
+  const today=new Date();
+  const elDate=document.getElementById('welcomeDate');
+  const elMsg=document.getElementById('welcomeMsg');
+  const elSub=document.getElementById('welcomeSub');
+  if(elDate)elDate.textContent=fmtLong(today);
+  if(elMsg)elMsg.textContent=w.title;
+  if(elSub)elSub.textContent=w.sub;
+}
+function renderLoginTodayBoard(){
+  applyDailyWelcome();
+  const sumEl=document.getElementById('loginTodaySummary');
+  const boardEl=document.getElementById('loginTodayBoard');
+  if(!sumEl||!boardEl)return;
+  const today=new Date();today.setHours(0,0,0,0);
+  let onCount=0,awayCount=0;
+  STAFF.forEach(s=>{const st=getSt(s.id,today).status;if(st==='duty')onCount++;else awayCount++;});
+  sumEl.innerHTML=`
+    <div class="lts-pill"><div class="lts-num on">${onCount}</div><div class="lts-lbl">Working today</div></div>
+    <div class="lts-pill"><div class="lts-num away">${awayCount}</div><div class="lts-lbl">Not working</div></div>
+    <div class="lts-pill"><div class="lts-num total">${STAFF.length}</div><div class="lts-lbl">Total team</div></div>`;
+  let html='';
+  Object.keys(DEPTS).forEach(dk=>{
+    const d=DEPTS[dk];const ds=STAFF.filter(s=>s.dept===dk);
+    if(!ds.length)return;
+    const on=ds.filter(s=>getSt(s.id,today).status==='duty');
+    const away=ds.filter(s=>getSt(s.id,today).status!=='duty');
+    html+=`<div class="login-dept-block"><div class="login-dept-head"><span class="login-dept-name">${d.icon} ${d.name}</span><span class="login-dept-count">${on.length} working · ${away.length} away</span></div><div class="login-staff-row">`;
+    if(on.length){
+      on.forEach(s=>{
+        const rec=getSt(s.id,today);
+        const t=rec.startTime&&rec.endTime?` ${fmtTime(rec.startTime)}–${fmtTime(rec.endTime)}`:'';
+        html+=`<span class="login-chip on">✅ ${s.name}${t}</span>`;
+      });
+    }
+    away.forEach(s=>{
+      const rec=getSt(s.id,today);
+      const st=STATUS[rec.status]||STATUS.off;
+      html+=`<span class="login-chip away">${st.icon} ${s.name}</span>`;
+    });
+    html+=`</div></div>`;
+  });
+  boardEl.innerHTML=html||'<p class="login-today-empty">Team roster loading…</p>';
+}
+
 function getSt(id,date){return rotaData[dKey(id,date)]||{status:'off',note:'',startTime:'',endTime:'',splitShift:false,start2Time:'',end2Time:''}}
 function fmtTime(t){if(!t)return'';const[h,m]=t.split(':');return`${parseInt(h)}:${m}`}
 function getFiltered(){return activeDept==='all'?STAFF:STAFF.filter(s=>s.dept===activeDept)}
@@ -2023,6 +2151,7 @@ function startFbListeners(){
     ensureStaffPins();
     STAFF.forEach(s=>{if(!s.type)s.type='perm'});
     ls_save(LS_STAFF,STAFF);
+    renderLoginTodayBoard();
     if(activeView)render();
   }));
 
@@ -2033,6 +2162,7 @@ function startFbListeners(){
       else rotaData[ch.doc.id]=ch.doc.data();
     });
     ls_save(LS_ROTA,rotaData);
+    renderLoginTodayBoard();
     if(activeView)render();
   }));
 
@@ -2114,6 +2244,7 @@ function db_deleteStaff(id){
 }
 function db_saveRota(key,data){
   rotaData[key]=data;ls_save(LS_ROTA,rotaData);
+  renderLoginTodayBoard();
   if(_fbReady) _db.collection('rota').doc(key).set(data).catch(console.error);
 }
 function db_savePins(p){
@@ -2141,6 +2272,8 @@ function openAddModalForDeptKey(dk){
 setLoginMode('manager');
 buildLoginGrid();
 setFbStatus('offline');
+renderLoginTodayBoard();
+setInterval(renderLoginTodayBoard,60000);
 
 // Hardcoded Firebase config for The Vedanta
 const VEDANTA_FB_CONFIG={
