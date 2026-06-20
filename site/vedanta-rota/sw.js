@@ -1,6 +1,6 @@
 // Vedanta Rota — Service Worker (network-first for app updates)
 const CACHE = 'vedanta-rota-v4';
-const SHELL = ['/manifest.json', '/icon.svg', '/icon-maskable.svg'];
+const SHELL = ['/manifest.json', '/icon.svg', '/icon-maskable.svg', '/vedanta-logo.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL).catch(() => {})));
