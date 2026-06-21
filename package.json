@@ -27,6 +27,7 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
     "nodemailer": "^6.9.16"
   }
 }

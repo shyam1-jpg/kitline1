@@ -21,14 +21,18 @@
   </header>
 
   <main class="max-w-3xl mx-auto px-5 py-12 legal">
-    <p class="text-sm text-ink-500 mb-2">Last updated: 16 June 2026</p>
+    <p class="text-sm text-ink-500 mb-2">Last updated: 21 June 2026</p>
     <h1 class="text-3xl font-black mb-2">Privacy Policy</h1>
     <p class="text-ink-500 mb-8">This policy explains how <strong>Vedanta Way Ltd</strong> (“we”) collects and uses personal data when you use <strong>Kiteline</strong> at <a href="https://kiteline.uk" class="text-brand-700 font-semibold">kiteline.uk</a>.</p>
 
     <h2>1. Data controller</h2>
     <p>Vedanta Way Ltd is the data controller for Kiteline. Contact: <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a></p>
 
-    <h2>2. Data we collect</h2>
+    <h2>2. Your organisation’s workspace</h2>
+    <p>Each Kiteline customer gets a <strong>private workspace</strong> for their business. Your recipes, sites, team, temperature logs, checklists, and other operational data are stored separately from other customers. We do not mix your kitchen data with another company’s unless you explicitly share access within your own team (when that feature is enabled).</p>
+    <p>A separate internal sample workspace may be used by Kiteline staff for sales and testing — it is not visible to normal customer accounts.</p>
+
+    <h2>3. Data we collect</h2>
     <ul>
       <li><strong>Account data</strong> — name, email, phone, password (stored hashed), role, language preference.</li>
       <li><strong>Business data</strong> — kitchen name, address, company details you enter at registration.</li>
@@ -38,7 +42,7 @@
       <li><strong>Communications</strong> — emails we send (verification, alerts, support) and messages you send us.</li>
     </ul>
 
-    <h2>3. How we use data</h2>
+    <h2>4. How we use data</h2>
     <ul>
       <li>Provide, secure, and improve the Kiteline service.</li>
       <li>Authenticate users and manage subscriptions.</li>
@@ -47,38 +51,47 @@
       <li>Comply with law and prevent fraud or abuse.</li>
     </ul>
 
-    <h2>4. Legal bases (UK GDPR)</h2>
+    <h2>5. Legal bases (UK GDPR)</h2>
     <p>We rely on: <strong>contract</strong> (to deliver the service), <strong>legitimate interests</strong> (security, product improvement), <strong>consent</strong> (where required, e.g. marketing), and <strong>legal obligation</strong> where applicable.</p>
 
-    <h2>5. Sharing data</h2>
-    <p>We do not sell your personal data. We may share data with:</p>
+    <h2>6. Sharing data &amp; sub-processors</h2>
+    <p id="subprocessors">We do not sell your personal data. We may share data with sub-processors who help us run the service:</p>
     <ul>
-      <li><strong>Hosting</strong> — Render and related infrastructure (EU/US as configured).</li>
-      <li><strong>Payments</strong> — Stripe for billing.</li>
-      <li><strong>Email/SMS</strong> — providers you configure (e.g. SMTP, Twilio) for alerts.</li>
+      <li><strong>Hosting</strong> — Render (application hosting).</li>
+      <li><strong>Database</strong> — Neon Postgres or configured database provider.</li>
+      <li><strong>Payments</strong> — Stripe for billing when enabled.</li>
+      <li><strong>Email</strong> — SMTP or transactional email provider when configured.</li>
+      <li><strong>SMS</strong> — only when SMS alerts are live and you configure a provider (e.g. Twilio).</li>
+      <li><strong>CAPTCHA / security</strong> — Cloudflare Turnstile where enabled (Academy).</li>
       <li><strong>Professional advisers</strong> — lawyers or accountants if required.</li>
       <li><strong>Authorities</strong> — if required by law.</li>
     </ul>
+    <p>B2B customers may request a Data Processing Agreement (DPA) — email <a href="mailto:contact@kiteline.uk?subject=DPA%20request" class="text-brand-700">contact@kiteline.uk</a>.</p>
 
-    <h2>6. Retention</h2>
-    <p>We keep account and kitchen records while your account is active and for a reasonable period afterwards for backups, disputes, and legal compliance. You may request deletion subject to legal and operational requirements.</p>
+    <h2>7. Retention &amp; backups</h2>
+    <p>We keep account and kitchen records while your account is active and for a reasonable period afterwards for backups, disputes, and legal compliance. Operational backups are typically retained for 30–90 days depending on environment. You may request deletion subject to legal and operational requirements.</p>
 
-    <h2>7. Security</h2>
+    <h2>8. Security</h2>
     <p>Passwords are hashed. Sessions use secure tokens. HTTPS is required in production. You should use strong passwords and protect devices used to access Kiteline.</p>
 
-    <h2>8. Your rights</h2>
-    <p>Under UK data protection law you may have rights to access, rectify, erase, restrict, object, and data portability. Contact us to exercise these rights. You may complain to the ICO (<a href="https://ico.org.uk" class="text-brand-700" rel="noopener">ico.org.uk</a>).</p>
+    <h2>9. Your rights</h2>
+    <p>Under UK data protection law you may have rights to <strong>access</strong>, <strong>rectify</strong>, <strong>erase</strong>, <strong>restrict</strong>, <strong>object</strong>, and <strong>data portability</strong>.</p>
+    <ul>
+      <li><strong>Export</strong> — signed-in users can download a JSON export of their organisation’s workspace from Settings (or via <code>GET /api/workspace/export</code>).</li>
+      <li><strong>Deletion</strong> — email <a href="mailto:contact@kiteline.uk" class="text-brand-700">contact@kiteline.uk</a> to request account and workspace deletion. We will remove or anonymise personal data unless we must keep it for legal, billing, or security reasons.</li>
+      <li><strong>Complaints</strong> — you may complain to the ICO (<a href="https://ico.org.uk" class="text-brand-700" rel="noopener">ico.org.uk</a>).</li>
+    </ul>
 
-    <h2>9. Cookies &amp; local storage</h2>
-    <p>We use essential cookies and browser storage for login sessions and app preferences. We do not use third-party advertising cookies on the app.</p>
+    <h2>10. Cookies &amp; local storage</h2>
+    <p>We use essential cookies and browser storage for login sessions and app preferences. See our <a href="cookies.html" class="text-brand-700 font-semibold">Cookie Policy</a>. We do not use third-party advertising cookies on the app.</p>
 
-    <h2>10. International transfers</h2>
+    <h2>11. International transfers</h2>
     <p>Where data is processed outside the UK, we use appropriate safeguards such as standard contractual clauses or providers in adequacy-approved countries.</p>
 
-    <h2>11. Children</h2>
+    <h2>12. Children</h2>
     <p>Kiteline is a business service not intended for children under 16.</p>
 
-    <h2>12. Changes</h2>
+    <h2>13. Changes</h2>
     <p>We may update this policy. The “Last updated” date will change and continued use means you accept the updated policy.</p>
 
     <p class="mt-10 text-sm text-ink-500">Privacy questions: <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a></p>
@@ -90,6 +103,8 @@
       <a href="contact.html" class="hover:text-white">Contact</a>
       <a href="terms.html" class="hover:text-white">Terms &amp; Conditions</a>
       <a href="privacy.html" class="hover:text-white">Privacy Policy</a>
+      <a href="security.html" class="hover:text-white">Security</a>
+      <a href="cookies.html" class="hover:text-white">Cookies</a>
       <a href="/app" class="hover:text-white">App</a>
     </div>
     <p>© 2026 Vedanta Way Ltd. <strong class="text-ink-300">Kiteline</strong> is a trading name. All rights reserved.</p>

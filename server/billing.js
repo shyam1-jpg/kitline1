@@ -1,5 +1,7 @@
 'use strict';
 
+const tenants = require('./tenants');
+
 const crypto = require('crypto');
 
 /** Monthly plans — price scales with team size; larger tiers get a lower per-user rate. Amounts in pence (GBP). */
@@ -126,18 +128,24 @@ function canAccess(db, email) {
   return getTrialInfo(user).active;
 }
 
+function orgForUser(db, email) {
+  const state = tenants.getStateForUser(db, email);
+  return state && state.org;
+}
+
 function syncOrgAccess(db, email) {
-  if (!db.state || !db.state.org) return;
+  const org = orgForUser(db, email);
+  if (!org) return;
   const em = (email || '').toLowerCase().trim();
   if (isOwner(em)) {
     const sub = getSubscription(db, em);
     if (sub && sub.status === 'active' && sub.orgPlan) {
-      db.state.org.plan = sub.orgPlan;
-      if (sub.maxUsers) db.state.org.maxUsers = sub.maxUsers;
-    } else if (/free trial/i.test(db.state.org.plan || '')) {
-      db.state.org.plan = 'Complete Kiteline';
+      org.plan = sub.orgPlan;
+      if (sub.maxUsers) org.maxUsers = sub.maxUsers;
+    } else if (/free trial/i.test(org.plan || '')) {
+      org.plan = 'Complete Kiteline';
     }
-    delete db.state.org.trialEndsAt;
+    delete org.trialEndsAt;
     return;
   }
   if (hasActiveSubscription(db, em)) return;
@@ -145,8 +153,8 @@ function syncOrgAccess(db, email) {
   if (!user) return;
   const trial = getTrialInfo(user);
   if (trial.active) {
-    db.state.org.maxUsers = TRIAL_MAX_USERS;
-    db.state.org.trialEndsAt = trial.endsAt;
+    org.maxUsers = TRIAL_MAX_USERS;
+    org.trialEndsAt = trial.endsAt;
   }
 }
 
@@ -239,7 +247,8 @@ function getUserLimit(db, email) {
     const trial = getTrialInfo(user);
     if (trial.active) return TRIAL_MAX_USERS;
   }
-  if (db.state && db.state.org && db.state.org.maxUsers) return db.state.org.maxUsers;
+  const org = orgForUser(db, em);
+  if (org && org.maxUsers) return org.maxUsers;
   return null;
 }
 
@@ -259,16 +268,17 @@ function applySubscription(db, email, patch) {
     email: key,
     updatedAt: new Date().toISOString(),
   });
-  if (db.state && db.state.org) {
+  const org = orgForUser(db, key);
+  if (org) {
     const owner = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase();
     if (key === owner || !db.subscriptions[key].orgSynced) {
       if (patch.status === 'active' && patch.orgPlan) {
-        db.state.org.plan = patch.orgPlan;
-        if (patch.maxUsers) db.state.org.maxUsers = patch.maxUsers;
+        org.plan = patch.orgPlan;
+        if (patch.maxUsers) org.maxUsers = patch.maxUsers;
         db.subscriptions[key].orgSynced = true;
       } else if (patch.status === 'canceled') {
-        db.state.org.plan = 'Demo / trial';
-        delete db.state.org.maxUsers;
+        org.plan = 'Demo / trial';
+        delete org.maxUsers;
       }
     }
   }
@@ -405,6 +415,21 @@ async function handleWebhook(rawBody, sigHeader, db, writeDb) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
+    if (session.metadata && session.metadata.type === 'academy_course') {
+      try {
+        const academyBilling = require('./academy/billing');
+        const academyStore = require('./academy/store');
+        const handled = await academyBilling.handleCheckoutCompleted(
+          session,
+          db,
+          writeDb,
+          academyStore.addEnrollment
+        );
+        if (handled) return { ok: true, type: event.type, academy: true };
+      } catch (e) {
+        console.error('[billing] academy checkout:', e.message);
+      }
+    }
     const email = ((session.metadata && session.metadata.email) || session.customer_email || session.client_reference_id || '').toLowerCase();
     const plan = resolvePlanId((session.metadata && session.metadata.plan) || 'users_5');
     if (email && session.subscription && plan === recipeAiAccess().ADDON_ID) {

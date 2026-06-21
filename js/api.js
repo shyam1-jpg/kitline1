@@ -105,6 +105,7 @@
     async recipeAiCheckout() { return req('POST', '/recipe-ai/checkout', {}); },
     async recipeAiGrant(email, enable) { return req('POST', '/recipe-ai/grant', { email, enable }); },
     async downloadBackup() { return req('GET', '/backup'); },
+    async exportWorkspace() { return req('GET', '/workspace/export'); },
   };
 
   window.Api = Api;

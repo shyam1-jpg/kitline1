@@ -512,6 +512,7 @@
   // Ensure a loaded/synced db has every collection the current app expects.
   function ensureShape(db) {
     if (!db || typeof db !== 'object') return seed();
+    const isPrivate = !!(db._tenantPrivate || db._isPrivate);
     const s = seed();
     ['sites','team','sensors','checklists','records','alerts','menus','labels','waste','recipes','activity','workflows','suppliers','training','incidents','maintenance','deliveries','assets','batches','cooling','phlogs','holding'].forEach(k => { if (!Array.isArray(db[k])) db[k] = s[k]; });
     if (!db.org) db.org = s.org;
@@ -521,13 +522,15 @@
     }
     if (!db.allergens) db.allergens = s.allergens;
     if (!db.currentSite) db.currentSite = s.currentSite;
-    // Upgrade thin seed data to full demo datasets
-    if ((db.sites || []).length < 10) db.sites = s.sites;
-    if ((db.sensors || []).length < 20) db.sensors = s.sensors;
-    if ((db.checklists || []).length < 12) db.checklists = s.checklists;
-    if ((db.team || []).length < 10) db.team = s.team;
-    if (!db.workflows || db.workflows.length < 90) db.workflows = s.workflows;
-    if ((db.recipes || []).length < 100) db.recipes = s.recipes;
+    // Only upgrade to full demo datasets for the owner demo tenant — never for private workspaces
+    if (!isPrivate) {
+      if ((db.sites || []).length < 10) db.sites = s.sites;
+      if ((db.sensors || []).length < 20) db.sensors = s.sensors;
+      if ((db.checklists || []).length < 12) db.checklists = s.checklists;
+      if ((db.team || []).length < 10) db.team = s.team;
+      if (!db.workflows || db.workflows.length < 90) db.workflows = s.workflows;
+      if ((db.recipes || []).length < 100) db.recipes = s.recipes;
+    }
     return db;
   }
 
@@ -561,10 +564,11 @@
       try {
         const serverState = await window.Api.getState();
         if (serverState) {
-          const missing = ['suppliers','training','incidents','maintenance','deliveries','recipes','assets','batches','cooling','phlogs','holding','workflows'].some(k => !Array.isArray(serverState[k]))
+          const isPrivate = !!(serverState._tenantPrivate || serverState._isPrivate);
+          const missing = !isPrivate && (['suppliers','training','incidents','maintenance','deliveries','recipes','assets','batches','cooling','phlogs','holding','workflows'].some(k => !Array.isArray(serverState[k]))
             || (serverState.sites || []).length < 10 || (serverState.sensors || []).length < 20
-            || (serverState.workflows || []).length < 90;
-          this.db = ensureShape(serverState); // server is source of truth (migrated to current shape)
+            || (serverState.workflows || []).length < 90);
+          this.db = ensureShape(serverState);
           save(this.db);
           if (missing) await window.Api.putState(this.db).catch(() => {}); // persist newly-added collections
         } else {

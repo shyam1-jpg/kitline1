@@ -3380,6 +3380,11 @@
             </div>
           </div>
         </div>
+        <div class="card card-pad lg:col-span-2" id="workspaceExportCard">
+          <h3 class="font-bold mb-1">Your data (GDPR export)</h3>
+          <p class="text-sm text-ink-500 mb-3">Download a JSON copy of your organisation’s workspace — recipes, sites, team, logs, and settings.</p>
+          <button class="btn btn-ghost btn-sm" id="workspaceExportBtn">${icon('download','ico')} Download my workspace</button>
+        </div>
         <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-2">Legal</h3>
           <p class="text-sm text-ink-500 mb-3">© 2026 Vedanta Way Ltd. Kiteline is a trading name. All rights reserved.</p>
@@ -3688,6 +3693,8 @@
           </tr>`).join('');
         }).catch(() => { /* not owner or server offline */ });
       }
+      const dangerCard = document.getElementById('reset') && document.getElementById('reset').closest('.card');
+      if (dangerCard && (S.db._tenantPrivate || S.db._isPrivate)) dangerCard.classList.add('hidden');
       document.getElementById('reset').onclick = () => {
         window.Security.confirmDangerous('Reset demo data?', 'This wipes all kitchen data and restores the demo. PIN or biometric required.', () => {
           S.reset(); toast('Data reset'); window.App.render();
@@ -3725,6 +3732,24 @@
       };
       if (grantOn) grantOn.onclick = () => runGrant(true);
       if (grantOff) grantOff.onclick = () => runGrant(false);
+      const exportBtn = document.getElementById('workspaceExportBtn');
+      if (exportBtn) exportBtn.onclick = async () => {
+        if (!window.Api || !S.remote) return toast('Server required — sign in on kiteline.uk', 'warn');
+        exportBtn.disabled = true;
+        exportBtn.textContent = 'Preparing…';
+        try {
+          const data = await window.Api.exportWorkspace();
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'kiteline-workspace-' + new Date().toISOString().slice(0, 10) + '.json';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          toast('Workspace export downloaded');
+        } catch (e) { toast(e.message || 'Export failed', 'error'); }
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = `${icon('download','ico')} Download my workspace`;
+      };
       const backupBtn = document.getElementById('ownerBackupBtn');
       if (backupBtn) backupBtn.onclick = async () => {
         backupBtn.disabled = true;
