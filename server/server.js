@@ -278,6 +278,36 @@ function applyRegistrationProfile(db, email, profile) {
   tenants.createTenantForRegistration(db, user, email, profile);
 }
 
+function publicAcademyUser(u) {
+  if (!u) return null;
+  return {
+    email: u.email,
+    name: u.name,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    phone: u.phone || '',
+    country: u.country || '',
+    city: u.city || '',
+    postcode: u.postcode || '',
+    lang: u.lang || 'en',
+    timezone: u.timezone || '',
+  };
+}
+
+function issueAcademyToken(db, email) {
+  db.academyTokens = db.academyTokens || {};
+  const token = 'acad_' + crypto.randomBytes(24).toString('hex');
+  db.academyTokens[token] = { email, issued: Date.now() };
+  return token;
+}
+
+function academyUserFromToken(db, token) {
+  if (!token || !db.academyTokens) return null;
+  const entry = db.academyTokens[token];
+  if (!entry) return null;
+  return db.academyUsers && db.academyUsers[entry.email];
+}
+
 /* ---------------- http helpers ---------------- */
 function send(res, code, obj, headers, req) {
   const body = typeof obj === 'string' ? obj : JSON.stringify(obj);
@@ -455,6 +485,84 @@ async function handleApi(req, res, url) {
   // GET /api/waitlist/summary — public counts only (no personal data)
   if (route === '/waitlist/summary' && req.method === 'GET') {
     return apiSend( 200, waitlist.summary(waitlist.read()));
+  }
+
+  // POST /api/academy/register — Kitline Academy student accounts (worldwide)
+  if (route === '/academy/register' && req.method === 'POST') {
+    db.academyUsers = db.academyUsers || {};
+    const rlReg = security.checkRateLimit(req, 'register');
+    if (!rlReg.ok) return apiSend(429, { error: 'Too many registration attempts. Try again later.', code: 'rate_limited', retryAfter: rlReg.retryAfter });
+    const email = (body.email || '').toLowerCase().trim();
+    const password = body.password || '';
+    const firstName = (body.firstName || '').trim();
+    const lastName = (body.lastName || '').trim();
+    const country = (body.country || '').trim();
+    const lang = (body.lang || 'en').trim().slice(0, 8);
+    if (!email || !password || !firstName || !lastName || !country) {
+      return apiSend(400, { error: 'First name, last name, email, password and country are required' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return apiSend(400, { error: 'Enter a valid email address' });
+    const pwCheck = security.validatePassword(password, email);
+    if (!pwCheck.ok) return apiSend(400, { error: pwCheck.error });
+    if (body.passwordConfirm && body.passwordConfirm !== password) {
+      return apiSend(400, { error: 'Passwords do not match' });
+    }
+    if (!body.termsAccepted) return apiSend(400, { error: 'Please accept the terms to register' });
+    if (db.academyUsers[email]) return apiSend(409, { error: 'Account already exists — sign in instead', code: 'exists' });
+    const user = {
+      email,
+      firstName,
+      lastName,
+      name: `${firstName} ${lastName}`.trim(),
+      pass: hashPassword(password),
+      phone: (body.phone || '').trim(),
+      country,
+      city: (body.city || '').trim(),
+      postcode: (body.postcode || '').trim(),
+      lang,
+      timezone: (body.timezone || '').trim(),
+      createdAt: new Date().toISOString(),
+    };
+    db.academyUsers[email] = user;
+    db.academyRegistrations = db.academyRegistrations || [];
+    db.academyRegistrations.unshift({ at: user.createdAt, email, firstName, lastName, country, lang, city: user.city });
+    security.audit(db, 'academy_register', { ip, email, country, lang });
+    const token = issueAcademyToken(db, email);
+    writeDb(db);
+    return apiSend(200, {
+      ok: true,
+      token,
+      user: publicAcademyUser(user),
+      message: 'Account created — welcome to Kitline Academy',
+    });
+  }
+
+  // POST /api/academy/login
+  if (route === '/academy/login' && req.method === 'POST') {
+    db.academyUsers = db.academyUsers || {};
+    const rlLogin = security.checkRateLimit(req, 'login');
+    if (!rlLogin.ok) return apiSend(429, { error: 'Too many login attempts. Try again later.', code: 'rate_limited', retryAfter: rlLogin.retryAfter });
+    const email = (body.email || '').toLowerCase().trim();
+    const password = body.password || '';
+    if (!email || !password) return apiSend(400, { error: 'Email and password required' });
+    const user = db.academyUsers[email];
+    if (!user || !verifyPassword(password, user.pass)) {
+      security.audit(db, 'academy_login_failed', { ip, email });
+      writeDb(db);
+      return apiSend(401, { error: 'Invalid email or password', code: 'invalid_credentials' });
+    }
+    const token = issueAcademyToken(db, email);
+    security.audit(db, 'academy_login_success', { ip, email });
+    writeDb(db);
+    return apiSend(200, { ok: true, token, user: publicAcademyUser(user) });
+  }
+
+  // GET /api/academy/me — current academy student (Bearer acad_… token)
+  if (route === '/academy/me' && req.method === 'GET') {
+    const auth = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const user = academyUserFromToken(db, auth);
+    if (!user) return apiSend(401, { error: 'Not signed in' });
+    return apiSend(200, { user: publicAcademyUser(user) });
   }
 
   // POST /api/register
