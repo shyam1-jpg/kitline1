@@ -102,7 +102,20 @@ select option{background:#111b3d}
 .notice{border:1px solid rgba(255,202,107,.22);background:rgba(255,202,107,.10);color:#ffe4b2;border-radius:18px;padding:14px;line-height:1.5;margin-top:14px}
 footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.24)}
 .foot{max-width:1280px;margin:auto;padding:38px 22px;display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px;color:var(--muted)}
-@media(max-width:980px){.navlinks{display:none}.hero,.playground{grid-template-columns:1fr}.grid,.feature-grid,.paths{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.foot{grid-template-columns:1fr}}
+.nav-auth{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.nav-user{color:var(--muted);font-size:13px;font-weight:800;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.course-count{color:var(--cyan);font-weight:900;font-size:14px;margin-bottom:12px;min-height:20px}
+.empty-state{border:1px dashed var(--line);border-radius:var(--radius);padding:28px;text-align:center;color:var(--muted)}
+.empty-state b{display:block;color:#fff;font-size:18px;margin-bottom:8px}
+.toast{position:fixed;bottom:24px;right:24px;z-index:200;background:#0d1531;border:1px solid rgba(54,230,255,.35);color:#c8fbff;padding:14px 18px;border-radius:16px;font-weight:800;box-shadow:var(--shadow);opacity:0;transform:translateY(12px);transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.course{cursor:pointer;transition:transform .15s,border-color .15s}.course:hover{transform:translateY(-2px);border-color:rgba(54,230,255,.35)}
+.contact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.contact-card{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:var(--radius);padding:20px}
+.contact-card b{display:block;color:#fff;font-size:18px;margin-bottom:8px}
+.contact-card a{color:var(--cyan);font-weight:900}
+.lesson-list{margin:14px 0 0;padding-left:20px;color:var(--muted);line-height:1.9}
+@media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.hero,.playground{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.foot{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -110,7 +123,11 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
   <nav class="nav">
     <a class="brand" href="#home"><img class="brand-wordmark" src="kitline-academy-wordmark.png?v=1" alt="Kitline Academy — Code, AI, Data, Future Skills" width="280" height="52"></a>
     <div class="navlinks">
-      <a href="#courses">Courses</a><a href="#paths">Learning Paths</a><a href="#playground">Code Lab</a><a href="#dashboard">Student</a><a href="#admin">Admin</a>
+      <a href="#courses">Courses</a><a href="#paths">Learning Paths</a><a href="#playground">Code Lab</a><a href="#dashboard">Student</a><a href="#contact">Contact</a><a href="#admin">Admin</a>
+    </div>
+    <div class="nav-auth" id="navAuth">
+      <span class="nav-user" id="navUser"></span>
+      <button class="btn secondary" id="authBtn" type="button" onclick="toggleAuth()">Sign in</button>
     </div>
     <button class="btn" onclick="openBuy('Full Access Membership',499)">Join Pro</button>
   </nav>
@@ -169,6 +186,7 @@ courses.map(course =&gt; {
     <select id="sort" onchange="renderCourses()"><option value="popular">Popular</option><option value="low">Price low</option><option value="high">Price high</option></select>
   </div>
   <div class="filters" id="filters"></div>
+  <p class="course-count" id="courseCount"></p>
   <div class="grid" id="courseGrid"></div>
 </section>
 
@@ -198,9 +216,18 @@ courses.map(course =&gt; {
     <div>
       <div class="panel active" id="my"><h3>My Courses</h3><div id="myCourses"></div></div>
       <div class="panel" id="lessons"><h3>Lesson Progress</h3><div id="lessonRows"></div></div>
-      <div class="panel" id="downloads"><h3>Downloads</h3><div class="row"><span>Python Cheat Sheet<br><small>PDF resource</small></span><button class="btn secondary">Download</button></div><div class="row"><span>HTML/CSS Starter Pack<br><small>PDF + project files</small></span><button class="btn secondary">Download</button></div></div>
+      <div class="panel" id="downloads"><h3>Downloads</h3><div class="row"><span>Python Cheat Sheet<br><small>PDF resource</small></span><button class="btn secondary" type="button" onclick="downloadDemo('Python Cheat Sheet')">Download</button></div><div class="row"><span>HTML/CSS Starter Pack<br><small>PDF + project files</small></span><button class="btn secondary" type="button" onclick="downloadDemo('HTML/CSS Starter Pack')">Download</button></div></div>
       <div class="panel" id="certificate"><h3>Certificate</h3><p style="color:var(--muted)">Complete all mock lessons to generate a certificate.</p><button class="btn gold" onclick="makeCert()">Generate Certificate</button><div id="certBox" class="notice" style="display:none"></div></div>
     </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="head"><div><h2>Contact & payments</h2><p>Real Kiteline contact details. Demo checkout on this page — email us for live enrolment or billing help.</p></div></div>
+  <div class="contact-grid">
+    <div class="contact-card"><b>Academy support</b><p>Questions about courses, enrolment, or your account.</p><a href="mailto:contact@kiteline.uk?subject=Kitline%20Academy%20support">contact@kiteline.uk</a></div>
+    <div class="contact-card"><b>Payments & invoices</b><p>Demo pay is mock only. For real payment, bank transfer, or Stripe setup:</p><a href="mailto:contact@kiteline.uk?subject=Kitline%20Academy%20payment">Email payment team</a></div>
+    <div class="contact-card"><b>Main Kiteline site</b><p>Kitchen software, login, and business accounts live on the main domain.</p><a href="https://kiteline.uk/">kiteline.uk</a> · <a href="https://kiteline.uk/app">Sign in to app</a></div>
   </div>
 </section>
 
@@ -216,67 +243,163 @@ courses.map(course =&gt; {
 
 <footer>
   <div class="foot">
-    <div><b style="color:#fff">Kitline Academy</b><p>Professional AI, coding and digital skills learning platform concept.</p></div>
+    <div><b style="color:#fff">Kitline Academy</b><p>Professional AI, coding and digital skills learning platform.</p><p style="margin-top:10px"><a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p></div>
     <div><b style="color:#fff">Courses</b><p>HTML • CSS • JS • Python • SQL • React • Node.js • AI • Excel</p></div>
-    <div><b style="color:#fff">Business</b><p>Payments • Student Login • Admin Panel • Certificates • Subscriptions</p></div>
+    <div><b style="color:#fff">Account</b><p><button type="button" class="btn secondary" style="margin-top:8px" onclick="toggleAuth()">Sign in / Sign out</button></p><p style="margin-top:10px;font-size:13px">Vedanta Way Ltd · Kiteline</p></div>
   </div>
 </footer>
 
 <div class="modal" id="buy">
   <div class="box">
-    <button class="close" onclick="closeBuy()">×</button>
+    <button class="close" type="button" onclick="closeBuy()">×</button>
     <h2 id="buyTitle">Buy Course</h2>
-    <p style="color:var(--muted)">This is a demo checkout. Real version connects to Stripe/PayPal and unlocks the course only after payment confirmation.</p>
+    <p style="color:var(--muted)">Demo checkout — no real charge. Click <b>Mock Pay & Unlock</b> to test the student dashboard. For real payment email <a href="mailto:contact@kiteline.uk?subject=Kitline%20Academy%20payment" style="color:var(--cyan)">contact@kiteline.uk</a>.</p>
     <input id="name" placeholder="Your name" style="width:100%;margin-bottom:10px">
     <input id="email" placeholder="Email address" style="width:100%;margin-bottom:14px">
-    <button class="btn" style="width:100%" onclick="completeBuy()">Mock Pay & Unlock</button>
-    <div class="notice">Real build: payment webhook → enrollment record → protected course access.</div>
+    <button class="btn" style="width:100%" type="button" onclick="completeBuy()">Mock Pay & Unlock</button>
+    <div class="notice">Stripe/PayPal can be connected later. Today: demo unlock only · saved in your browser.</div>
   </div>
 </div>
+
+<div class="modal" id="auth">
+  <div class="box">
+    <button class="close" type="button" onclick="closeAuth()">×</button>
+    <h2 id="authTitle">Sign in</h2>
+    <p style="color:var(--muted)">Demo login — any password works. Saves your name & email in this browser only.</p>
+    <input id="authName" placeholder="Your name" style="width:100%;margin-bottom:10px">
+    <input id="authEmail" placeholder="Email address" type="email" style="width:100%;margin-bottom:10px">
+    <input id="authPass" placeholder="Password (demo — any text)" type="password" style="width:100%;margin-bottom:14px">
+    <button class="btn" style="width:100%" type="button" onclick="signIn()">Sign in</button>
+  </div>
+</div>
+
+<div class="modal" id="courseModal">
+  <div class="box" style="width:min(720px,100%)">
+    <button class="close" type="button" onclick="closeCourse()">×</button>
+    <h2 id="courseModalTitle">Course</h2>
+    <p id="courseModalMeta" style="color:var(--muted);margin-top:6px"></p>
+    <p id="courseModalDesc" style="line-height:1.6;margin:14px 0"></p>
+    <b style="color:#fff">Sample lessons in this course</b>
+    <ul class="lesson-list" id="courseModalLessons"></ul>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+      <button class="btn" type="button" id="courseModalBuy">Buy this course</button>
+      <button class="btn secondary" type="button" onclick="closeCourse()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const baseCourses = [["HTML Fundamentals", "Web Development", "Beginner", 49, "Build the structure of modern web pages using semantic HTML, forms, tables and media."], ["CSS Professional Styling", "Web Development", "Beginner", 59, "Master layouts, responsive design, typography, animations, flexbox and grid."], ["JavaScript from Zero to Pro", "Programming", "Beginner", 89, "Learn variables, functions, DOM, events, APIs, async JavaScript and real projects."], ["Python Programming Masterclass", "Programming", "Beginner", 99, "Start Python from basics through files, APIs, data, automation and mini apps."], ["SQL & Database Design", "Databases", "Beginner", 79, "Learn SQL queries, joins, indexes, relational design and reporting."], ["MySQL Developer Course", "Databases", "Intermediate", 89, "Design MySQL databases, write powerful queries, build stored procedures and connect apps."], ["React Frontend Developer", "Web Development", "Intermediate", 129, "Build modern interfaces with components, hooks, state, routing and API integration."], ["Node.js Backend Developer", "Backend", "Intermediate", 129, "Create APIs, authentication, services, dashboards and production-ready backend logic."], ["PHP Web Development", "Backend", "Beginner", 89, "Build dynamic server-side websites using PHP, forms, sessions and database connections."], ["Java Programming", "Programming", "Beginner", 99, "Learn object-oriented programming, classes, collections and Java application structure."], ["C Programming", "Programming", "Beginner", 89, "Understand memory, pointers, functions, arrays and foundational system programming."], ["C++ Programming", "Programming", "Intermediate", 119, "Master object-oriented C++, STL, memory control and performance-based development."], ["C# Developer Course", "Programming", "Intermediate", 119, "Build applications using C#, .NET concepts, OOP, data structures and clean code."], ["Bootstrap UI Design", "Web Design", "Beginner", 59, "Create fast responsive websites using Bootstrap components, grids and utilities."], ["jQuery Practical Course", "Web Development", "Beginner", 49, "Use jQuery for DOM changes, effects, AJAX and legacy project support."], ["W3.CSS Website Design", "Web Design", "Beginner", 39, "Build simple responsive websites with lightweight W3.CSS design patterns."], ["XML & Data Exchange", "Data", "Beginner", 39, "Understand XML structure, schemas, parsing and data exchange concepts."], ["Excel for Business", "Business Tech", "Beginner", 69, "Learn formulas, charts, tables, dashboards, pivot tables and business reporting."], ["Advanced Excel Automation", "Business Tech", "Intermediate", 99, "Use advanced formulas, Power Query style thinking, dashboards and automation workflows."], ["Dojo JavaScript Toolkit", "Web Development", "Intermediate", 59, "Learn the Dojo toolkit for legacy and enterprise web interfaces."], ["AI Tools for Beginners", "AI", "Beginner", 79, "Use today\u2019s AI tools for writing, research, planning, images, coding and productivity."], ["Prompt Engineering Masterclass", "AI", "Beginner", 99, "Write strong prompts for business, code, research, content, automation and learning."], ["Generative AI for Business", "AI", "Intermediate", 149, "Create AI workflows for business operations, content, sales, support and productivity."], ["AI Website Builder Course", "AI", "Beginner", 129, "Use AI to plan, design and build websites faster with clean structure and prompts."], ["AI Coding Assistant Mastery", "AI Coding", "Intermediate", 149, "Use AI tools to debug, build apps, explain code and create production-ready plans."], ["Machine Learning Basics", "AI", "Intermediate", 149, "Understand supervised learning, datasets, models, evaluation and practical ML workflow."], ["Data Analysis with Python", "Data", "Intermediate", 129, "Analyse data using Python, CSV, charts, reports and automation scripts."], ["Cybersecurity Foundations", "Security", "Beginner", 99, "Learn passwords, web security, threats, phishing, secure login and data protection basics."], ["Cloud Basics", "Cloud", "Beginner", 89, "Understand hosting, domains, servers, databases, storage, deployment and cloud security."], ["Full Stack Developer Path", "Career Path", "Advanced", 399, "A complete path from HTML and CSS to React, Node.js, SQL and deployment."]];
 let courses = baseCourses.map((c,i)=>({id:i+1,title:c[0],cat:c[1],level:c[2],price:c[3],desc:c[4],pop:baseCourses.length-i}));
-let selectedCat='All', buying=null;
+let selectedCat='All', buying=null, activeCourse=null;
 const cats=['All',...new Set(courses.map(c=>c.cat))];
+const sampleLessons=['Welcome & overview','Install tools & setup','Core concepts','Hands-on practice','Mini project','Quiz & certificate'];
 function $(id){return document.getElementById(id)}
-function renderFilters(){$('filters').innerHTML=cats.map(c=>`<button class="filter ${c===selectedCat?'active':''}" onclick="selectedCat='${c}';renderFilters();renderCourses()">${c}</button>`).join('')}
-function allCourses(){return [...courses,...JSON.parse(localStorage.getItem('kit_courses')||'[]')]}
-function renderCourses(){
-  const q=$('q').value.toLowerCase(), level=$('level').value, sort=$('sort').value;
-  let list=allCourses().filter(c=>(selectedCat==='All'||c.cat===selectedCat)&&(level==='All'||c.level===level)&&(c.title.toLowerCase().includes(q)||c.cat.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q)));
-  if(sort==='low')list.sort((a,b)=>a.price-b.price); if(sort==='high')list.sort((a,b)=>b.price-a.price); if(sort==='popular')list.sort((a,b)=>(b.pop||0)-(a.pop||0));
-  $('courseGrid').innerHTML=list.map((c,i)=>`<article class="card course"><div class="thumb" style="background:linear-gradient(135deg,${i%3?'#676bff':'#36e6ff'},${i%2?'#a855f7':'#0f766e'})"></div><div class="tags"><span class="tag">${c.cat}</span><span class="tag level">${c.level}</span></div><h3>${c.title}</h3><p>${c.desc}</p><div class="price-row"><span class="price">£${c.price}</span><button class="btn" onclick='openBuy(${JSON.stringify(c.title)},${c.price})'>Buy</button></div></article>`).join('');
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600)}
+function getUser(){try{return JSON.parse(localStorage.getItem('kit_user')||'null')}catch{return null}}
+function setUser(u){if(u)localStorage.setItem('kit_user',JSON.stringify(u));else localStorage.removeItem('kit_user');renderAuth()}
+function renderAuth(){
+  const u=getUser(), btn=$('authBtn'), label=$('navUser');
+  if(u){btn.textContent='Sign out';label.textContent='Hi, '+(u.name||u.email||'Student');}
+  else{btn.textContent='Sign in';label.textContent=''}
 }
-function openBuy(title,price){buying={title,price};$('buyTitle').textContent=title+' — £'+price;$('buy').classList.add('open')}
+function toggleAuth(){if(getUser()){setUser(null);toast('Signed out');renderStudent()}else openAuth()}
+function openAuth(){$('auth').classList.add('open');const u=getUser();if(u){$('authName').value=u.name||'';$('authEmail').value=u.email||''}}
+function closeAuth(){$('auth').classList.remove('open')}
+function signIn(){
+  const name=$('authName').value.trim(), email=$('authEmail').value.trim();
+  if(!email){toast('Please enter your email');return}
+  setUser({name:name||email.split('@')[0],email});
+  localStorage.setItem('kit_name',name||email.split('@')[0]);
+  closeAuth();toast('Signed in as '+(name||email));renderStudent();
+}
+function pickCat(cat){selectedCat=cat;renderFilters();renderCourses(true)}
+function renderFilters(){
+  $('filters').innerHTML=cats.map(c=>`<button type="button" class="filter ${c===selectedCat?'active':''}" data-cat="${c.replace(/"/g,'&quot;')}">${c}</button>`).join('');
+  $('filters').querySelectorAll('.filter').forEach(btn=>btn.onclick=()=>pickCat(btn.dataset.cat));
+}
+function allCourses(){return [...courses,...JSON.parse(localStorage.getItem('kit_courses')||'[]')]}
+function filteredList(){
+  const q=$('q').value.toLowerCase(), level=$('level').value, sort=$('sort').value;
+  let list=allCourses().filter(c=>(selectedCat==='All'||c.cat===selectedCat)&&(level==='All'||c.level===level)&&(c.title.toLowerCase().includes(q)||c.cat.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q)||c.level.toLowerCase().includes(q)));
+  if(sort==='low')list.sort((a,b)=>a.price-b.price);
+  if(sort==='high')list.sort((a,b)=>b.price-a.price);
+  if(sort==='popular')list.sort((a,b)=>(b.pop||0)-(a.pop||0));
+  return list;
+}
+function renderCourses(scroll){
+  const list=filteredList(), parts=[];
+  if(selectedCat!=='All')parts.push(selectedCat);
+  if($('level').value!=='All')parts.push($('level').value);
+  if($('q').value.trim())parts.push('search “'+$('q').value.trim()+'”');
+  $('courseCount').textContent=list.length?('Showing '+list.length+' course'+(list.length===1?'':'s')+(parts.length?' · '+parts.join(' · '):'')):('');
+  if(!list.length){
+    $('courseGrid').innerHTML='<div class="empty-state"><b>No courses match</b>Try All category, All levels, or clear the search box.</div>';
+    if(scroll)document.getElementById('courses').scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+  $('courseGrid').innerHTML=list.map((c,i)=>`<article class="card course" data-id="${c.id}" tabindex="0"><div class="thumb" style="background:linear-gradient(135deg,${i%3?'#676bff':'#36e6ff'},${i%2?'#a855f7':'#0f766e'})"></div><div class="tags"><span class="tag">${c.cat}</span><span class="tag level">${c.level}</span></div><h3>${c.title}</h3><p>${c.desc}</p><div class="price-row"><span class="price">£${c.price}</span><button type="button" class="btn" data-buy="${c.id}">Buy</button></div></article>`).join('');
+  $('courseGrid').querySelectorAll('.course').forEach(card=>{
+    card.onclick=e=>{if(e.target.closest('[data-buy]'))return;openCourse(Number(card.dataset.id))};
+    card.onkeydown=e=>{if(e.key==='Enter')openCourse(Number(card.dataset.id))};
+  });
+  $('courseGrid').querySelectorAll('[data-buy]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();const c=allCourses().find(x=>x.id===Number(btn.dataset.buy));if(c)openBuy(c.title,c.price)});
+  if(scroll){document.getElementById('courses').scrollIntoView({behavior:'smooth',block:'start'});toast('Filtered: '+list.length+' course'+(list.length===1?'':'s'))}
+}
+function openCourse(id){
+  const c=allCourses().find(x=>x.id===id); if(!c)return;
+  activeCourse=c;
+  $('courseModalTitle').textContent=c.title;
+  $('courseModalMeta').textContent=c.cat+' · '+c.level+' · £'+c.price;
+  $('courseModalDesc').textContent=c.desc;
+  $('courseModalLessons').innerHTML=sampleLessons.map(l=>'<li>'+l+'</li>').join('');
+  $('courseModalBuy').onclick=()=>{closeCourse();openBuy(c.title,c.price)};
+  $('courseModal').classList.add('open');
+}
+function closeCourse(){$('courseModal').classList.remove('open');activeCourse=null}
+function openBuy(title,price){buying={title,price};$('buyTitle').textContent=title+' — £'+price;const u=getUser();if(u){$('name').value=u.name||'';$('email').value=u.email||''}$('buy').classList.add('open')}
 function closeBuy(){$('buy').classList.remove('open')}
 function completeBuy(){
-  const name=$('name').value||'Student'; localStorage.setItem('kit_name',name);
-  let en=JSON.parse(localStorage.getItem('kit_enrolled')||'[]'); if(!en.includes(buying.title)) en.push(buying.title);
-  localStorage.setItem('kit_enrolled',JSON.stringify(en)); closeBuy(); renderStudent(); location.hash='#dashboard';
+  if(!buying){toast('No course selected');return}
+  const name=$('name').value.trim()||'Student', email=$('email').value.trim();
+  localStorage.setItem('kit_name',name);
+  if(email)setUser({name,email});
+  let en=JSON.parse(localStorage.getItem('kit_enrolled')||'[]');
+  if(!en.includes(buying.title))en.push(buying.title);
+  localStorage.setItem('kit_enrolled',JSON.stringify(en));
+  closeBuy();renderStudent();renderAuth();location.hash='#dashboard';
+  toast('Unlocked: '+buying.title);
 }
 function renderStudent(){
-  const en=JSON.parse(localStorage.getItem('kit_enrolled')||'[]');
-  $('myCourses').innerHTML=en.length?en.map(x=>`<div class="row"><span>${x}<br><small>Access unlocked</small></span><span>✅</span></div>`).join(''):'<p style="color:var(--muted)">No courses yet. Buy any demo course to unlock it here.</p>';
+  const en=JSON.parse(localStorage.getItem('kit_enrolled')||'[]'), u=getUser();
+  let html=en.length?en.map(x=>`<div class="row"><span>${x}<br><small>Access unlocked</small></span><span>✅</span></div>`).join(''):'<p style="color:var(--muted)">No courses yet. Click any course card or Buy to enrol (demo).</p>';
+  if(u)html='<p style="color:var(--muted);margin:0 0 12px">Signed in as <b style="color:#fff">'+u.name+'</b> · <button type="button" class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="toggleAuth()">Sign out</button></p>'+html;
+  $('myCourses').innerHTML=html;
   const p=JSON.parse(localStorage.getItem('kit_progress')||'{}');
-  const lessons=['Welcome','Setup tools','Core lesson','Practice project','Final quiz'];
-  $('lessonRows').innerHTML=lessons.map((l,i)=>`<div class="row"><span>${i+1}. ${l}<br><small>${p[i]?'Completed':'Not completed'}</small></span>${p[i]?'✅':`<button class="btn secondary" onclick="done(${i})">Complete</button>`}</div>`).join('');
+  $('lessonRows').innerHTML=sampleLessons.map((l,i)=>`<div class="row"><span>${i+1}. ${l}<br><small>${p[i]?'Completed':'Not completed'}</small></span>${p[i]?'✅':`<button type="button" class="btn secondary" onclick="done(${i})">Complete</button>`}</div>`).join('');
 }
-function done(i){let p=JSON.parse(localStorage.getItem('kit_progress')||'{}');p[i]=true;localStorage.setItem('kit_progress',JSON.stringify(p));renderStudent()}
+function done(i){let p=JSON.parse(localStorage.getItem('kit_progress')||'{}');p[i]=true;localStorage.setItem('kit_progress',JSON.stringify(p));renderStudent();toast('Lesson marked complete')}
 function tab(id,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
 function makeCert(){
-  const p=JSON.parse(localStorage.getItem('kit_progress')||'{}'), total=Object.keys(p).length, name=localStorage.getItem('kit_name')||'Student';
-  $('certBox').style.display='block'; $('certBox').innerHTML=total>=5?`<b>Certificate Ready</b><br>${name} has completed the Kitline Academy demo course.`:`Complete all 5 lessons first. Completed: ${total}/5.`;
+  const p=JSON.parse(localStorage.getItem('kit_progress')||'{}'), total=Object.values(p).filter(Boolean).length, name=localStorage.getItem('kit_name')||'Student';
+  $('certBox').style.display='block';
+  $('certBox').innerHTML=total>=sampleLessons.length?`<b>Certificate Ready</b><br>${name} has completed the Kitline Academy demo course.`:`Complete all ${sampleLessons.length} lessons first. Completed: ${total}/${sampleLessons.length}.`;
 }
 function addCourse(){
   let saved=JSON.parse(localStorage.getItem('kit_courses')||'[]');
-  saved.push({id:Date.now(),title:$('newTitle').value,cat:$('newCat').value,level:'Intermediate',price:Number($('newPrice').value||0),desc:$('newDesc').value,pop:0});
-  localStorage.setItem('kit_courses',JSON.stringify(saved));renderCourses();location.hash='#courses';
+  const item={id:Date.now(),title:$('newTitle').value,cat:$('newCat').value,level:'Intermediate',price:Number($('newPrice').value||0),desc:$('newDesc').value,pop:0};
+  saved.push(item);localStorage.setItem('kit_courses',JSON.stringify(saved));
+  if(!cats.includes(item.cat)){cats.push(item.cat);cats.sort((a,b)=>a==='All'?-1:b==='All'?1:a.localeCompare(b))}
+  renderFilters();renderCourses(true);toast('Course added: '+item.title);
 }
-function runCode(){
-  const doc=$('preview').contentDocument; doc.open(); doc.write($('codeInput').value); doc.close();
-}
-renderFilters();renderCourses();renderStudent();runCode();
+function downloadDemo(name){toast('Demo download: '+name+' — real PDFs coming soon. Email contact@kiteline.uk for resources.')}
+function runCode(){const doc=$('preview').contentDocument;doc.open();doc.write($('codeInput').value);doc.close()}
+$('q').oninput=()=>renderCourses(false);
+$('level').onchange=()=>renderCourses(true);
+$('sort').onchange=()=>renderCourses(false);
+renderFilters();renderCourses(false);renderStudent();renderAuth();runCode();
 </script>
 </body>
 </html>
