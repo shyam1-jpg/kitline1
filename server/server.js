@@ -316,7 +316,7 @@ function serveFile(res, filePath) {
     const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
     if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
       headers['Cache-Control'] = 'public, max-age=86400';
-    } else if (filePath.includes('vedanta-rota') && (ext === '.html' || ext === '.js')) {
+    } else if ((filePath.includes('vedanta-rota') || filePath.includes('academy')) && (ext === '.html' || ext === '.js')) {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     }
     const buf = fs.readFileSync(filePath);
@@ -1111,6 +1111,11 @@ const server = http.createServer(async (req, res) => {
     // Vedanta Staff Rota (static site under site/vedanta-rota/)
     if (url.pathname === '/vedanta-rota' || url.pathname === '/vedanta-rota/') {
       return serveFile(res, path.join(ROOT, 'site', 'vedanta-rota', 'index.html'));
+    }
+
+    // Kitline Academy (static site under site/academy/)
+    if (url.pathname === '/academy' || url.pathname === '/academy/') {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'index.html'));
     }
 
     // Static files (css, js, marketing pages). Try root first.
