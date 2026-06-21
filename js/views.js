@@ -3387,7 +3387,7 @@
         </div>
         <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-2">Legal</h3>
-          <p class="text-sm text-ink-500 mb-3">© 2026 Vedanta Way Ltd. Kiteline is a trading name. All rights reserved.</p>
+          <p class="text-sm text-ink-500 mb-3">© 2026 Kiteline � All rights reserved.</p>
           <div class="flex flex-wrap gap-3 text-sm">
             <a href="/contact.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Contact</a>
             <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a>

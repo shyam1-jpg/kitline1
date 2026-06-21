@@ -5,11 +5,11 @@ const crypto = require('crypto');
 const EXTRA_SITES = [
   {
     id: 'site_vedanta',
-    name: 'Vedanta Kitchen',
-    legalName: 'Vedanta Way Ltd',
+    name: 'Riverside Kitchen',
+    legalName: 'Riverside Foods Ltd',
     city: 'London',
     timezone: 'Europe/London',
-    address: 'Vedanta Way',
+    address: '12 Riverside Walk',
     postcode: '—',
     country: 'UK',
     type: 'Kitchen',
@@ -114,10 +114,10 @@ function mkSensor(id, name, type, target, min, max, siteId, temp, extra) {
 }
 
 const EXTRA_SENSORS = [
-  mkSensor('s23', 'Walk-in Fridge — Vedanta', 'fridge', 4, 1, 5, 'site_vedanta', 3.4, { location: 'Vedanta Kitchen', zone: 'Main cold store', notes: 'Vedanta Way Ltd — primary fridge' }),
-  mkSensor('s24', 'Prep Fridge — Vedanta', 'fridge', 4, 1, 5, 'site_vedanta', 4.0, { location: 'Prep line', zone: 'Daily prep' }),
-  mkSensor('s25', 'Freezer — Vedanta', 'freezer', -18, -22, -16, 'site_vedanta', -18.2, { location: 'Cold store', zone: 'Frozen' }),
-  mkSensor('s26', 'Hot Hold — Vedanta', 'hot', 70, 63, 90, 'site_vedanta', 72.5, { location: 'Service', zone: 'Hot hold' }),
+  mkSensor('s23', 'Walk-in Fridge — Riverside', 'fridge', 4, 1, 5, 'site_vedanta', 3.4, { location: 'Riverside Kitchen', zone: 'Main cold store', notes: 'Primary fridge' }),
+  mkSensor('s24', 'Prep Fridge — Riverside', 'fridge', 4, 1, 5, 'site_vedanta', 4.0, { location: 'Prep line', zone: 'Daily prep' }),
+  mkSensor('s25', 'Freezer — Riverside', 'freezer', -18, -22, -16, 'site_vedanta', -18.2, { location: 'Cold store', zone: 'Frozen' }),
+  mkSensor('s26', 'Hot Hold — Riverside', 'hot', 70, 63, 90, 'site_vedanta', 72.5, { location: 'Service', zone: 'Hot hold' }),
   mkSensor('s27', 'Regent Main Fridge', 'fridge', 4, 1, 5, 'site_regent', 3.6, { location: 'Hotel kitchen', zone: 'Main fridge' }),
   mkSensor('s28', 'Manor Park Freezer', 'freezer', -18, -22, -16, 'site_manor', -17.8, { location: 'Basement', zone: 'Frozen' }),
   mkSensor('s29', 'Coastal Bay Fridge', 'fridge', 4, 1, 5, 'site_coastal', 3.9, { location: 'Seafront kitchen', zone: 'Prep' }),
@@ -125,7 +125,7 @@ const EXTRA_SENSORS = [
 ];
 
 const EXTRA_TEAM = [
-  { id: 'u_vedanta_mgr', name: 'Shyam Prasad', role: 'Owner — Vedanta Way Ltd', email: 'shyam_1@hotmail.co.uk', phone: '', siteId: 'site_vedanta', initials: 'SP', access: 'Admin' },
+  { id: 'u_vedanta_mgr', name: 'Shyam Prasad', role: 'Owner', email: 'shyam_1@hotmail.co.uk', phone: '', siteId: 'site_vedanta', initials: 'SP', access: 'Admin' },
   { id: 'u_helen', name: 'Helen Croft', role: 'Head Chef', email: 'helen@kiteline.uk', siteId: 'site_regent', initials: 'HC', access: 'Manager' },
   { id: 'u_gordon', name: 'Gordon Reid', role: 'Executive Chef', email: 'gordon@kiteline.uk', siteId: 'site_manor', initials: 'GR', access: 'Manager' },
   { id: 'u_kate', name: 'Kate Morrison', role: 'Kitchen Manager', email: 'kate@kiteline.uk', siteId: 'site_coastal', initials: 'KM', access: 'Manager' },
@@ -172,11 +172,11 @@ function mergeExtraSites(state) {
     }
   });
 
-  // Link owner Shyam to Vedanta Kitchen if still only on Grove
+  // Link owner Shyam to Riverside Kitchen if still only on Grove
   const shyam = state.team.find((m) => (m.email || '').toLowerCase() === 'shyam_1@hotmail.co.uk');
   if (shyam && shyam.siteId === 'site_grove' && state.sites.some((s) => s.id === 'site_vedanta')) {
     shyam.siteId = 'site_vedanta';
-    shyam.role = 'Owner — Vedanta Way Ltd';
+    shyam.role = 'Owner';
     changed = true;
   }
 
@@ -189,15 +189,22 @@ function mergeExtraSites(state) {
 
   const vedanta = state.sites.find((s) => s.id === 'site_vedanta');
   if (vedanta) {
-    if (vedanta.legalName === 'Vedant Way Ltd' || !vedanta.legalName) {
-      vedanta.legalName = 'Vedanta Way Ltd';
+    if (vedanta.name === 'Vedanta Kitchen' || vedanta.name === 'Vedant Kitchen') {
+      vedanta.name = 'Riverside Kitchen';
       changed = true;
     }
-    if (vedanta.address === 'Vedant Way') vedanta.address = 'Vedanta Way';
+    if (!vedanta.legalName || vedanta.legalName.includes('Vedanta') || vedanta.legalName === 'Vedant Way Ltd') {
+      vedanta.legalName = 'Riverside Foods Ltd';
+      changed = true;
+    }
+    if (vedanta.address === 'Vedant Way' || vedanta.address === 'Vedanta Way') {
+      vedanta.address = '12 Riverside Walk';
+      changed = true;
+    }
   }
   state.team.forEach((m) => {
-    if ((m.role || '').includes('Vedant Way Ltd')) {
-      m.role = m.role.replace('Vedant Way Ltd', 'Vedanta Way Ltd');
+    if ((m.role || '').includes('Vedanta Way Ltd') || (m.role || '').includes('Vedant Way Ltd')) {
+      m.role = 'Owner';
       changed = true;
     }
   });

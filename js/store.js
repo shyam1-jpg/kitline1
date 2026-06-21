@@ -131,7 +131,7 @@
       { id:'site_academy', name:'Culinary Academy Kitchen', city:'Edinburgh', timezone:'Europe/London', address:'12 Lauriston Place', postcode:'EH3 9DF', country:'UK', type:'Education', covers:40, rating:5, manager:'Ewan Fraser', phone:'+44 131 555 0155', email:'academy@kiteline.uk', opened:'2017', lastInspection:daysAgo(75).slice(0,10), status:'Active' },
       { id:'site_marina', name:'Marina Fish & Grill', city:'Brighton', timezone:'Europe/London', address:'27 Madeira Drive', postcode:'BN2 1EN', country:'UK', type:'Seafood', covers:70, rating:4, manager:'Nina Kostova', phone:'+44 1273 555 0122', email:'marina@kiteline.uk', opened:'2019', lastInspection:daysAgo(33).slice(0,10), status:'Seasonal' },
       { id:'site_heathrow', name:'Terminal 3 Food Court', city:'Hounslow', timezone:'Europe/London', address:'Heathrow T3, Inner Ring E', postcode:'TW6 1QG', country:'UK', type:'Food Court', covers:220, rating:5, manager:'Raj Patel', phone:'+44 20 555 0199', email:'t3@kiteline.uk', opened:'2014', lastInspection:daysAgo(18).slice(0,10), status:'Active' },
-      { id:'site_vedanta', name:'Vedanta Kitchen', legalName:'Vedanta Way Ltd', city:'London', timezone:'Europe/London', address:'Vedanta Way', postcode:'—', country:'UK', type:'Kitchen', covers:80, rating:5, manager:'Shyam Prasad', phone:'', email:'shyam_1@hotmail.co.uk', opened:'2024', lastInspection:daysAgo(10).slice(0,10), status:'Active' },
+      { id:'site_vedanta', name:'Riverside Kitchen', legalName:'Riverside Foods Ltd', city:'London', timezone:'Europe/London', address:'12 Riverside Walk', postcode:'—', country:'UK', type:'Kitchen', covers:80, rating:5, manager:'Shyam Prasad', phone:'', email:'shyam_1@hotmail.co.uk', opened:'2024', lastInspection:daysAgo(10).slice(0,10), status:'Active' },
       { id:'site_regent', name:'The Regent Hotel', city:'London', timezone:'Europe/London', address:'88 Regent Street', postcode:'W1B 5RS', country:'UK', type:'Hotel', covers:200, rating:5, manager:'Helen Croft', phone:'+44 20 7123 4600', email:'regent@kiteline.uk', opened:'2012', lastInspection:daysAgo(35).slice(0,10), status:'Active' },
       { id:'site_manor', name:'Manor Park Hotel', city:'Edinburgh', timezone:'Europe/London', address:'12 Manor Park Gardens', postcode:'EH12 5BF', country:'UK', type:'Hotel', covers:140, rating:4, manager:'Gordon Reid', phone:'+44 131 555 0201', email:'manor@kiteline.uk', opened:'2015', lastInspection:daysAgo(50).slice(0,10), status:'Active' },
       { id:'site_coastal', name:'Coastal Bay Hotel', city:'Brighton', timezone:'Europe/London', address:'5 Seafront Parade', postcode:'BN1 2FJ', country:'UK', type:'Hotel', covers:110, rating:5, manager:'Kate Morrison', phone:'+44 1273 555 0210', email:'coastal@kiteline.uk', opened:'2018', lastInspection:daysAgo(22).slice(0,10), status:'Active' },
@@ -139,7 +139,7 @@
     ];
 
     const team = [
-      { id:'u_shyam', name:'Shyam Prasad', role:'Owner — Vedanta Way Ltd', email:'shyam_1@hotmail.co.uk', phone:'', siteId:'site_vedanta', initials:'SP', access:'Admin' },
+      { id:'u_shyam', name:'Shyam Prasad', role:'Owner', email:'shyam_1@hotmail.co.uk', phone:'', siteId:'site_vedanta', initials:'SP', access:'Admin' },
       { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin' },
       { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff' },
       { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager' },
@@ -202,10 +202,10 @@
       mk('s20','Fish Display','fridge', 2, 0, 4, 'site_marina', 2.8, { location:'Front counter', zone:'Fresh fish', standard:'0–4°C fresh fish display' }),
       mk('s21','T3 Unit 4 — Hot Hold','hot', 70, 63, 90, 'site_heathrow', 68.4, { location:'Unit 4', zone:'Hot hold', notes:'Below 63°C — corrective action logged' }),
       mk('s22','T3 Unit 7 — Fridge','fridge', 4, 1, 5, 'site_heathrow', 4.0, { location:'Unit 7', zone:'Prep' }),
-      mk('s23','Walk-in Fridge — Vedanta','fridge', 4, 1, 5, 'site_vedanta', 3.4, { location:'Vedanta Kitchen', zone:'Main cold store', notes:'Vedanta Way Ltd' }),
-      mk('s24','Prep Fridge — Vedanta','fridge', 4, 1, 5, 'site_vedanta', 4.0, { location:'Prep line', zone:'Daily prep' }),
-      mk('s25','Freezer — Vedanta','freezer', -18, -22, -16, 'site_vedanta', -18.2, { location:'Cold store', zone:'Frozen' }),
-      mk('s26','Hot Hold — Vedanta','hot', 70, 63, 90, 'site_vedanta', 72.5, { location:'Service', zone:'Hot hold' }),
+      mk('s23','Walk-in Fridge — Riverside','fridge', 4, 1, 5, 'site_vedanta', 3.4, { location:'Riverside Kitchen', zone:'Main cold store', notes:'Primary fridge' }),
+      mk('s24','Prep Fridge — Riverside','fridge', 4, 1, 5, 'site_vedanta', 4.0, { location:'Prep line', zone:'Daily prep' }),
+      mk('s25','Freezer — Riverside','freezer', -18, -22, -16, 'site_vedanta', -18.2, { location:'Cold store', zone:'Frozen' }),
+      mk('s26','Hot Hold — Riverside','hot', 70, 63, 90, 'site_vedanta', 72.5, { location:'Service', zone:'Hot hold' }),
       mk('s27','Regent Main Fridge','fridge', 4, 1, 5, 'site_regent', 3.6, { location:'Hotel kitchen', zone:'Main fridge' }),
       mk('s28','Manor Park Freezer','freezer', -18, -22, -16, 'site_manor', -17.8, { location:'Basement', zone:'Frozen' }),
       mk('s29','Coastal Bay Fridge','fridge', 4, 1, 5, 'site_coastal', 3.9, { location:'Seafront kitchen', zone:'Prep' }),

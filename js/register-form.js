@@ -52,7 +52,7 @@
 
   function regLegalFooter() {
     return `<p class="text-xs text-ink-400 text-center mt-6 leading-relaxed">
-      © 2026 Vedanta Way Ltd · Kiteline<br>
+      © 2026 Kiteline<br>
       <a href="/contact.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Contact</a> ·
       <a href="/terms.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Terms</a> ·
       <a href="/privacy.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Privacy</a>
@@ -115,9 +115,9 @@
       <h3 class="font-bold text-lg mb-1">${t('reg.step2.title', 'Business information')}</h3>
       <p class="text-sm text-ink-500 mb-4">${t('reg.step2.hint', 'Tell us about your organisation — like other food-safety platforms, this helps us configure your workspace.')}</p>
       <label class="label">${t('reg.businessName', 'Business / kitchen name')} *</label>
-      <input id="regBiz" class="input mb-3" value="${esc(d.businessName)}" placeholder="e.g. Vedanta Kitchen">
+      <input id="regBiz" class="input mb-3" value="${esc(d.businessName)}" placeholder="e.g. Riverside Kitchen">
       <label class="label">${t('reg.legalName', 'Legal company name')}</label>
-      <input id="regLegal" class="input mb-3" value="${esc(d.legalName)}" placeholder="e.g. Vedanta Way Ltd">
+      <input id="regLegal" class="input mb-3" value="${esc(d.legalName)}" placeholder="e.g. Your Company Ltd">
       <label class="label">${t('reg.businessType', 'Business type')} *</label>
       <select id="regBizType" class="select mb-3">${optList(BUSINESS_TYPES, 'businessType', d.businessType || 'Restaurant')}</select>
       <label class="label">${t('reg.country', 'Country')} *</label>

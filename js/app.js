@@ -83,7 +83,7 @@
 
   function authLegalFooter() {
     return `<p class="text-xs text-ink-400 text-center mt-6 leading-relaxed">
-      © 2026 Vedanta Way Ltd · Kiteline<br>
+      © 2026 Kiteline<br>
       <a href="/contact.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Contact</a> ·
       <a href="/terms.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Terms</a> ·
       <a href="/privacy.html" class="text-brand-600 font-semibold" target="_blank" rel="noopener">Privacy</a>
