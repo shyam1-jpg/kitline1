@@ -125,6 +125,11 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 .auth-panel{display:none}.auth-panel.active{display:block}
 .check-row{display:flex;gap:10px;align-items:flex-start;margin:12px 0;color:var(--muted);font-size:13px;line-height:1.5}
 .check-row input{width:auto;margin-top:3px}
+.pw-meter{height:6px;border-radius:999px;background:rgba(255,255,255,.08);margin:8px 0 12px;overflow:hidden}
+.pw-meter span{display:block;height:100%;width:0;border-radius:999px;transition:.2s}
+.pw-hint{font-size:12px;color:var(--muted);margin:-6px 0 10px}
+.auth-link{background:none;border:0;color:var(--cyan);font-weight:800;cursor:pointer;padding:0;margin-top:10px}
+.secure-note{font-size:12px;color:#ffe4b2;margin-top:10px;line-height:1.5}
 .account-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(54,230,255,.1);border:1px solid rgba(54,230,255,.2);font-size:12px;color:#bdf8ff;margin-bottom:12px}
 @media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.form-grid{grid-template-columns:1fr}.hero,.playground{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.foot{grid-template-columns:1fr}}
 </style>
@@ -282,26 +287,35 @@ courses.map(course =&gt; {
       <button type="button" id="tabRegister" onclick="authTab('register')" data-i18n="authRegister">Create account</button>
     </div>
     <div class="auth-panel active" id="panelSignIn">
-      <p style="color:var(--muted);margin:0 0 14px" data-i18n="authSignInDesc">Use your Kitline Academy account.</p>
-      <input id="loginEmail" type="email" data-i18n="email" placeholder="Email address" style="width:100%;margin-bottom:10px">
-      <input id="loginPass" type="password" data-i18n="password" placeholder="Password" style="width:100%;margin-bottom:14px">
+      <p style="color:var(--muted);margin:0 0 14px" data-i18n="authSignInDesc">Use your Kitline Academy account — email and password required.</p>
+      <input id="loginEmail" type="email" autocomplete="username" data-i18n="email" placeholder="Email address" style="width:100%;margin-bottom:10px">
+      <input id="loginPass" type="password" autocomplete="current-password" data-i18n="password" placeholder="Password" style="width:100%;margin-bottom:10px">
       <button class="btn" style="width:100%" type="button" onclick="loginAccount()" data-i18n="loginBtn">Sign in to my account</button>
+      <button type="button" class="auth-link" onclick="forgotPassword()">Forgot password?</button>
+      <p class="secure-note">🔒 Secure login: wrong password 5 times locks account for 15 minutes. Email verification required when enabled.</p>
     </div>
     <div class="auth-panel" id="panelRegister">
-      <p style="color:var(--muted);margin:0 0 14px" data-i18n="authRegisterDesc">Full registration for students worldwide.</p>
+      <p style="color:var(--muted);margin:0 0 14px" data-i18n="authRegisterDesc">Full registration — all fields required for student records and certificates.</p>
       <div class="form-grid">
-        <input id="regFirst" data-i18n="firstName" placeholder="First name">
-        <input id="regLast" data-i18n="lastName" placeholder="Last name">
-        <input id="regEmail" class="full" type="email" data-i18n="email" placeholder="Email address">
-        <input id="regPhone" class="full" data-i18n="phone" placeholder="Phone (+44…)">
+        <input id="regFirst" autocomplete="given-name" data-i18n="firstName" placeholder="First name">
+        <input id="regLast" autocomplete="family-name" data-i18n="lastName" placeholder="Last name">
+        <input id="regEmail" class="full" type="email" autocomplete="email" data-i18n="email" placeholder="Email address">
+        <input id="regPhone" class="full" type="tel" autocomplete="tel" data-i18n="phone" placeholder="Phone (+44…)">
+        <input id="regDob" class="full" type="date" placeholder="Date of birth" title="Date of birth">
+        <select id="regGender" class="full"><option value="">Gender</option><option value="male">Male</option><option value="female">Female</option><option value="non_binary">Non-binary</option><option value="prefer_not_say">Prefer not to say</option></select>
+        <input id="regAddress1" class="full" autocomplete="address-line1" placeholder="Address line 1">
+        <input id="regAddress2" class="full" autocomplete="address-line2" placeholder="Address line 2 (optional)">
         <select id="regCountry"><option value="">Country</option></select>
-        <input id="regCity" data-i18n="city" placeholder="City / town">
-        <input id="regPostcode" data-i18n="postcode" placeholder="Postcode (optional)">
+        <input id="regCity" autocomplete="address-level2" data-i18n="city" placeholder="City / town">
+        <input id="regPostcode" autocomplete="postal-code" placeholder="Postcode / ZIP">
         <select id="regTimezone"><option value="">Timezone</option></select>
         <select id="regLang"><option value="">Language</option></select>
-        <input id="regPass" type="password" data-i18n="password" placeholder="Password">
-        <input id="regPass2" type="password" data-i18n="passwordConfirm" placeholder="Confirm password">
+        <input id="regCerts" class="full" placeholder="Existing certifications (optional)">
+        <input id="regPass" type="password" autocomplete="new-password" data-i18n="password" placeholder="Password (10+ chars)" oninput="updatePwMeter()">
+        <input id="regPass2" type="password" autocomplete="new-password" data-i18n="passwordConfirm" placeholder="Confirm password">
       </div>
+      <div class="pw-meter"><span id="pwBar"></span></div>
+      <p class="pw-hint" id="pwHint">Use 10+ characters with upper, lower, number and symbol.</p>
       <label class="check-row"><input id="regTerms" type="checkbox"><span data-i18n="terms">I agree to terms</span></label>
       <button class="btn" style="width:100%" type="button" onclick="registerAccount()" data-i18n="createAccount">Create my account</button>
     </div>
@@ -336,17 +350,45 @@ function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600)}
 function getUser(){try{return JSON.parse(localStorage.getItem('kit_user')||'null')}catch{return null}}
 function getToken(){return localStorage.getItem('kit_token')||''}
+function clearSession(){localStorage.removeItem('kit_user');localStorage.removeItem('kit_token');renderAuth()}
 function setUser(u,token){
   if(u){localStorage.setItem('kit_user',JSON.stringify(u));localStorage.setItem('kit_name',u.name||'');if(u.lang)applyKaLang(u.lang)}
-  else{localStorage.removeItem('kit_user');localStorage.removeItem('kit_token')}
+  else clearSession();
   if(token)localStorage.setItem('kit_token',token);
   renderAuth();
 }
-async function api(path,body){
-  const r=await fetch(API_BASE+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+async function api(path,body,method){
+  const opts={method:method||'POST',headers:{'Content-Type':'application/json'}};
+  const tok=getToken();
+  if(tok)opts.headers.Authorization='Bearer '+tok;
+  if((method||'POST')!=='GET')opts.body=JSON.stringify(body||{});
+  const r=await fetch(API_BASE+path,opts);
   const data=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(data.error||('Request failed '+r.status));
   return data;
+}
+function scorePassword(pw){
+  let s=0;if(pw.length>=10)s++;if(pw.length>=14)s++;if(/[a-z]/.test(pw)&&/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^a-zA-Z0-9]/.test(pw))s++;return s;
+}
+function updatePwMeter(){
+  const el=$('pwBar');if(!el)return;
+  const pw=$('regPass').value,s=scorePassword(pw);
+  const pct=[0,20,40,60,80,100][s],colors=['#ff6b8a','#ff9f43','#ffca6b','#50f0a0','#36e6ff'];
+  el.style.width=pct+'%';el.style.background=colors[Math.max(0,s-1)]||'#ff6b8a';
+  $('pwHint').textContent=s>=3?'Strong enough ✓':'Weak — add upper, lower, number, symbol (10+ chars)';
+}
+async function restoreSession(){
+  const tok=getToken();if(!tok){renderAuth();return}
+  try{
+    const r=await fetch(API_BASE+'/me',{headers:{Authorization:'Bearer '+tok}});
+    const data=await r.json();
+    if(r.ok&&data.user){setUser(data.user,tok);return}
+  }catch(e){}
+  clearSession();
+}
+async function logoutServer(){
+  try{await api('/logout',{token:getToken()})}catch(e){}
+  clearSession();toast(kaT('signOut'));renderStudent();
 }
 function initLangUi(){
   const pick=$('langPick');
@@ -373,11 +415,11 @@ window.onKaLangChange=function(){
   if($('regLang')) $('regLang').value=kaLang;
 };
 function renderAuth(){
-  const u=getUser(), btn=$('authBtn'), label=$('navUser');
-  if(u){btn.textContent=kaT('signOut');label.textContent=(kaT('signedIn')+' '+(u.firstName||u.name||u.email));}
+  const u=getUser(), tok=getToken(), btn=$('authBtn'), label=$('navUser');
+  if(u&&tok){btn.textContent=kaT('signOut');label.textContent=(kaT('signedIn')+' '+(u.firstName||u.name||u.email));}
   else{btn.textContent=kaT('signIn');label.textContent=''}
 }
-function toggleAuth(){if(getUser()){setUser(null);localStorage.removeItem('kit_token');toast(kaT('signOut'));renderStudent()}else openAuth('signin')}
+function toggleAuth(){if(getUser()&&getToken())logoutServer();else openAuth('signin')}
 function authTab(mode){
   $('tabSignIn').classList.toggle('active',mode==='signin');
   $('tabRegister').classList.toggle('active',mode==='register');
@@ -389,14 +431,22 @@ function closeAuth(){$('auth').classList.remove('open')}
 async function registerAccount(){
   const payload={
     firstName:$('regFirst').value.trim(),lastName:$('regLast').value.trim(),email:$('regEmail').value.trim(),
-    phone:$('regPhone').value.trim(),country:$('regCountry').value,city:$('regCity').value.trim(),
-    postcode:$('regPostcode').value.trim(),timezone:$('regTimezone').value,lang:$('regLang').value||kaLang,
+    phone:$('regPhone').value.trim(),dateOfBirth:$('regDob').value,gender:$('regGender').value,
+    addressLine1:$('regAddress1').value.trim(),addressLine2:$('regAddress2').value.trim(),
+    country:$('regCountry').value,city:$('regCity').value.trim(),postcode:$('regPostcode').value.trim(),
+    timezone:$('regTimezone').value,lang:$('regLang').value||kaLang,
+    certifications:$('regCerts').value.trim(),
     password:$('regPass').value,passwordConfirm:$('regPass2').value,termsAccepted:$('regTerms').checked
   };
-  if(!payload.firstName||!payload.lastName||!payload.email||!payload.country||!payload.password){toast('Fill all required fields');return}
-  if(!payload.termsAccepted){toast(kaT('terms'));return}
+  if(scorePassword(payload.password)<3){toast('Password too weak');return}
   try{
     const data=await api('/register',payload);
+    if(data.needsVerification){
+      closeAuth();
+      toast(data.message);
+      if(data.verifyUrl){alert('Verify your email:\n\n'+data.verifyUrl)}
+      return;
+    }
     setUser(data.user,data.token);
     closeAuth();toast(kaT('accountCreated')+' — '+data.user.name);renderStudent();
   }catch(e){toast(e.message)}
@@ -409,6 +459,26 @@ async function loginAccount(){
     setUser(data.user,data.token);
     closeAuth();toast(kaT('welcome')+' — '+data.user.name);renderStudent();
   }catch(e){toast(e.message)}
+}
+async function forgotPassword(){
+  const email=prompt('Enter your registered email:');if(!email)return;
+  try{
+    const data=await api('/forgot-password',{email:email.trim()});
+    toast(data.message||'Check your email');
+    if(data.resetUrl)alert('Reset link:\n\n'+data.resetUrl);
+  }catch(e){toast(e.message)}
+}
+async function handleAuthQuery(){
+  const q=new URLSearchParams(location.search);
+  const verify=q.get('verify'), reset=q.get('reset');
+  if(verify){
+    try{const data=await api('/verify-email',{token:verify});setUser(data.user,data.token);toast(data.message);history.replaceState({},'','/academy/');renderStudent()}catch(e){toast(e.message)}
+  }
+  if(reset){
+    const pw=prompt('Enter new password (10+ chars, upper, lower, number, symbol):');
+    if(!pw)return;
+    try{const data=await api('/reset-password',{token:reset,password:pw});setUser(data.user,data.token);toast(data.message);history.replaceState({},'','/academy/')}catch(e){toast(e.message)}
+  }
 }
 function pickCat(cat){selectedCat=cat;renderFilters();renderCourses(true)}
 function renderFilters(){
@@ -458,21 +528,22 @@ function openBuy(title,price){buying={title,price};$('buyTitle').textContent=tit
 function closeBuy(){$('buy').classList.remove('open')}
 function completeBuy(){
   if(!buying){toast('No course selected');return}
-  const name=$('name').value.trim()||'Student', email=$('email').value.trim();
-  localStorage.setItem('kit_name',name);
-  if(email)setUser({name,email});
+  if(!getToken()||!getUser()){closeBuy();toast('Please sign in with password first');openAuth('signin');return}
+  const u=getUser();
+  localStorage.setItem('kit_name',u.name||'Student');
   let en=JSON.parse(localStorage.getItem('kit_enrolled')||'[]');
   if(!en.includes(buying.title))en.push(buying.title);
   localStorage.setItem('kit_enrolled',JSON.stringify(en));
-  closeBuy();renderStudent();renderAuth();location.hash='#dashboard';
+  closeBuy();renderStudent();location.hash='#dashboard';
   toast('Unlocked: '+buying.title);
 }
 function renderStudent(){
   const en=JSON.parse(localStorage.getItem('kit_enrolled')||'[]'), u=getUser();
   let html='';
-  if(u)html+='<div class="account-badge">🌍 '+u.country+' · '+u.email+(u.phone?' · '+u.phone:'')+'</div>';
-  html+=en.length?en.map(x=>`<div class="row"><span>${x}<br><small>Access unlocked</small></span><span>✅</span></div>`).join(''):'<p style="color:var(--muted)">No courses yet. Click any course card or Buy to enrol (demo).</p>';
-  if(u)html='<p style="color:var(--muted);margin:0 0 12px">'+kaT('signedIn')+' <b style="color:#fff">'+u.name+'</b> · <button type="button" class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="toggleAuth()">'+kaT('signOut')+'</button></p>'+html;
+  if(u&&getToken())html+='<div class="account-badge">🌍 '+u.country+' · '+u.ageGroup+' · '+u.email+(u.phone?' · '+u.phone:'')+'</div>';
+  html+=en.length?en.map(x=>`<div class="row"><span>${x}<br><small>Access unlocked</small></span><span>✅</span></div>`).join(''):'<p style="color:var(--muted)">No courses yet. Sign in, then buy a course (demo unlock).</p>';
+  if(u&&getToken())html='<p style="color:var(--muted);margin:0 0 12px">'+kaT('signedIn')+' <b style="color:#fff">'+u.name+'</b> · <button type="button" class="btn secondary" style="padding:6px 12px;font-size:12px" onclick="toggleAuth()">'+kaT('signOut')+'</button></p>'+html;
+  else html='<p style="color:var(--muted);margin:0 0 12px"><button type="button" class="btn secondary" onclick="openAuth(\'signin\')">'+kaT('signIn')+'</button> required to enrol securely.</p>'+html;
   $('myCourses').innerHTML=html;
   const p=JSON.parse(localStorage.getItem('kit_progress')||'{}');
   $('lessonRows').innerHTML=sampleLessons.map((l,i)=>`<div class="row"><span>${i+1}. ${l}<br><small>${p[i]?'Completed':'Not completed'}</small></span>${p[i]?'✅':`<button type="button" class="btn secondary" onclick="done(${i})">Complete</button>`}</div>`).join('');
@@ -496,7 +567,7 @@ function runCode(){const doc=$('preview').contentDocument;doc.open();doc.write($
 $('q').oninput=()=>renderCourses(false);
 $('level').onchange=()=>renderCourses(true);
 $('sort').onchange=()=>renderCourses(false);
-renderFilters();renderCourses(false);renderStudent();renderAuth();runCode();initLangUi();
+renderFilters();renderCourses(false);runCode();initLangUi();handleAuthQuery();restoreSession().then(()=>renderStudent());
 </script>
 </body>
 </html>

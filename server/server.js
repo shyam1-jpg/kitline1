@@ -289,23 +289,143 @@ function publicAcademyUser(u) {
     country: u.country || '',
     city: u.city || '',
     postcode: u.postcode || '',
+    addressLine1: u.addressLine1 || '',
+    addressLine2: u.addressLine2 || '',
+    dateOfBirth: u.dateOfBirth || '',
+    ageGroup: u.ageGroup || '',
+    gender: u.gender || '',
+    certifications: u.certifications || '',
     lang: u.lang || 'en',
     timezone: u.timezone || '',
+    emailVerified: u.emailVerified !== false,
+  };
+}
+
+function academyEmailVerificationRequired() {
+  return notify.smtpConfigured() && process.env.ACADEMY_REQUIRE_EMAIL_VERIFY !== 'false';
+}
+
+function computeAgeFromDob(dob) {
+  const birth = new Date(dob + 'T00:00:00');
+  if (Number.isNaN(birth.getTime())) return null;
+  return Math.floor((Date.now() - birth.getTime()) / (365.25 * 86400000));
+}
+
+function computeAgeGroup(age) {
+  if (age == null || age < 0) return '';
+  if (age < 18) return 'under-18';
+  if (age < 25) return '18-24';
+  if (age < 35) return '25-34';
+  if (age < 45) return '35-44';
+  if (age < 55) return '45-54';
+  return '55+';
+}
+
+function validateAcademyProfile(body) {
+  const firstName = (body.firstName || '').trim();
+  const lastName = (body.lastName || '').trim();
+  const email = (body.email || '').toLowerCase().trim();
+  const phone = (body.phone || '').trim();
+  const country = (body.country || '').trim();
+  const city = (body.city || '').trim();
+  const postcode = (body.postcode || '').trim();
+  const addressLine1 = (body.addressLine1 || '').trim();
+  const dateOfBirth = (body.dateOfBirth || '').trim();
+  const gender = (body.gender || '').trim().toLowerCase();
+  const allowedGender = new Set(['male', 'female', 'non_binary', 'prefer_not_say']);
+  if (!firstName || !lastName) return { ok: false, error: 'First and last name are required' };
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: 'Enter a valid email address' };
+  if (!phone || phone.length < 8) return { ok: false, error: 'Phone number with country code is required' };
+  if (!country) return { ok: false, error: 'Country is required' };
+  if (!city) return { ok: false, error: 'City is required' };
+  if (!postcode) return { ok: false, error: 'Postcode / ZIP is required' };
+  if (!addressLine1 || addressLine1.length < 5) return { ok: false, error: 'Full address line 1 is required' };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) return { ok: false, error: 'Date of birth is required (YYYY-MM-DD)' };
+  const age = computeAgeFromDob(dateOfBirth);
+  if (age == null || age < 13) return { ok: false, error: 'You must be at least 13 years old to register' };
+  if (age > 120) return { ok: false, error: 'Enter a valid date of birth' };
+  if (!allowedGender.has(gender)) return { ok: false, error: 'Please select gender' };
+  if (!body.termsAccepted) return { ok: false, error: 'Please accept the terms to register' };
+  return {
+    ok: true,
+    profile: {
+      firstName, lastName, email, phone, country, city, postcode, addressLine1,
+      addressLine2: (body.addressLine2 || '').trim(),
+      dateOfBirth, gender, ageGroup: computeAgeGroup(age),
+      certifications: (body.certifications || '').trim().slice(0, 500),
+      lang: (body.lang || 'en').trim().slice(0, 8),
+      timezone: (body.timezone || '').trim(),
+    },
   };
 }
 
 function issueAcademyToken(db, email) {
   db.academyTokens = db.academyTokens || {};
-  const token = 'acad_' + crypto.randomBytes(24).toString('hex');
-  db.academyTokens[token] = { email, issued: Date.now() };
+  const days = Number(process.env.ACADEMY_SESSION_DAYS || 7);
+  const token = 'acad_' + crypto.randomBytes(32).toString('hex');
+  db.academyTokens[token] = {
+    email: email.toLowerCase(),
+    issued: Date.now(),
+    expiresAt: Date.now() + days * 86400000,
+    lastUsed: Date.now(),
+  };
   return token;
 }
 
 function academyUserFromToken(db, token) {
-  if (!token || !db.academyTokens) return null;
+  if (!token || !token.startsWith('acad_') || !db.academyTokens) return null;
   const entry = db.academyTokens[token];
   if (!entry) return null;
-  return db.academyUsers && db.academyUsers[entry.email];
+  if (entry.expiresAt && Date.now() > entry.expiresAt) {
+    delete db.academyTokens[token];
+    return null;
+  }
+  entry.lastUsed = Date.now();
+  const user = db.academyUsers && db.academyUsers[entry.email];
+  if (!user) return null;
+  if (academyEmailVerificationRequired() && user.emailVerified === false) return null;
+  return user;
+}
+
+function revokeAcademyToken(db, token) {
+  if (token && db.academyTokens && db.academyTokens[token]) delete db.academyTokens[token];
+}
+
+function revokeAllAcademyTokens(db, email) {
+  const em = (email || '').toLowerCase();
+  Object.keys(db.academyTokens || {}).forEach((tok) => {
+    if (db.academyTokens[tok].email === em) delete db.academyTokens[tok];
+  });
+}
+
+async function sendAcademyVerificationEmail(db, email, baseUrl) {
+  const verifyToken = crypto.randomBytes(24).toString('hex');
+  db.academyEmailVerifications = db.academyEmailVerifications || {};
+  db.academyEmailVerifications[verifyToken] = { email: email.toLowerCase(), expires: Date.now() + 48 * 3600000 };
+  writeDb(db);
+  const verifyUrl = `${baseUrl}/academy/?verify=${verifyToken}`;
+  const msg = {
+    subject: 'Verify your Kitline Academy email',
+    text: `Welcome to Kitline Academy!\n\nVerify your email to activate your student account:\n\n${verifyUrl}\n\nExpires in 48 hours.`,
+    html: `<div style="font-family:Inter,sans-serif;max-width:520px"><h2 style="color:#36e6ff">Verify Kitline Academy</h2><p>Confirm your email to sign in and access courses.</p><p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#36e6ff;color:#061020;font-weight:bold;border-radius:8px;text-decoration:none">Verify email</a></p><p style="color:#64748b;font-size:13px">${verifyUrl}</p></div>`,
+  };
+  await notify.sendRawEmail(email, msg);
+  const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
+  return { verifyUrl: showLink ? verifyUrl : undefined };
+}
+
+function completeAcademyEmailVerification(db, verifyToken, ip) {
+  db.academyEmailVerifications = db.academyEmailVerifications || {};
+  const entry = db.academyEmailVerifications[verifyToken];
+  if (!entry || entry.expires < Date.now()) return { ok: false, error: 'Verification link expired or invalid' };
+  const user = db.academyUsers && db.academyUsers[entry.email];
+  if (!user) return { ok: false, error: 'Account not found' };
+  user.emailVerified = true;
+  delete db.academyEmailVerifications[verifyToken];
+  const token = issueAcademyToken(db, entry.email);
+  security.audit(db, 'academy_email_verified', { ip, email: entry.email });
+  writeDb(db);
+  return { ok: true, token, user: publicAcademyUser(user), message: 'Email verified — you are signed in.' };
 }
 
 /* ---------------- http helpers ---------------- */
@@ -487,47 +607,62 @@ async function handleApi(req, res, url) {
     return apiSend( 200, waitlist.summary(waitlist.read()));
   }
 
+  // GET /api/academy/config — public flags for Academy UI
+  if (route === '/academy/config' && req.method === 'GET') {
+    return apiSend(200, {
+      emailVerification: academyEmailVerificationRequired(),
+      emailConfigured: notify.smtpConfigured(),
+      minPasswordScore: 3,
+      minPasswordLength: 10,
+    });
+  }
+
   // POST /api/academy/register — Kitline Academy student accounts (worldwide)
   if (route === '/academy/register' && req.method === 'POST') {
     db.academyUsers = db.academyUsers || {};
     const rlReg = security.checkRateLimit(req, 'register');
     if (!rlReg.ok) return apiSend(429, { error: 'Too many registration attempts. Try again later.', code: 'rate_limited', retryAfter: rlReg.retryAfter });
-    const email = (body.email || '').toLowerCase().trim();
     const password = body.password || '';
-    const firstName = (body.firstName || '').trim();
-    const lastName = (body.lastName || '').trim();
-    const country = (body.country || '').trim();
-    const lang = (body.lang || 'en').trim().slice(0, 8);
-    if (!email || !password || !firstName || !lastName || !country) {
-      return apiSend(400, { error: 'First name, last name, email, password and country are required' });
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return apiSend(400, { error: 'Enter a valid email address' });
-    const pwCheck = security.validatePassword(password, email);
+    const passwordConfirm = body.passwordConfirm || '';
+    if (!password || !passwordConfirm) return apiSend(400, { error: 'Password and confirmation are required' });
+    if (password !== passwordConfirm) return apiSend(400, { error: 'Passwords do not match' });
+    const profileCheck = validateAcademyProfile(body);
+    if (!profileCheck.ok) return apiSend(400, { error: profileCheck.error });
+    const profile = profileCheck.profile;
+    const pwCheck = security.validatePassword(password, profile.email);
     if (!pwCheck.ok) return apiSend(400, { error: pwCheck.error });
-    if (body.passwordConfirm && body.passwordConfirm !== password) {
-      return apiSend(400, { error: 'Passwords do not match' });
+    if (security.passwordScore(password) < 3) {
+      return apiSend(400, { error: 'Password too weak — use 12+ characters with upper, lower, number and symbol' });
     }
-    if (!body.termsAccepted) return apiSend(400, { error: 'Please accept the terms to register' });
-    if (db.academyUsers[email]) return apiSend(409, { error: 'Account already exists — sign in instead', code: 'exists' });
+    if (db.academyUsers[profile.email]) return apiSend(409, { error: 'Account already exists — sign in instead', code: 'exists' });
+    const needVerify = academyEmailVerificationRequired();
     const user = {
-      email,
-      firstName,
-      lastName,
-      name: `${firstName} ${lastName}`.trim(),
+      ...profile,
+      name: `${profile.firstName} ${profile.lastName}`.trim(),
       pass: hashPassword(password),
-      phone: (body.phone || '').trim(),
-      country,
-      city: (body.city || '').trim(),
-      postcode: (body.postcode || '').trim(),
-      lang,
-      timezone: (body.timezone || '').trim(),
+      emailVerified: !needVerify,
+      failedAttempts: 0,
       createdAt: new Date().toISOString(),
     };
-    db.academyUsers[email] = user;
+    db.academyUsers[profile.email] = user;
     db.academyRegistrations = db.academyRegistrations || [];
-    db.academyRegistrations.unshift({ at: user.createdAt, email, firstName, lastName, country, lang, city: user.city });
-    security.audit(db, 'academy_register', { ip, email, country, lang });
-    const token = issueAcademyToken(db, email);
+    db.academyRegistrations.unshift({
+      at: user.createdAt, email: profile.email, firstName: profile.firstName, lastName: profile.lastName,
+      country: profile.country, lang: profile.lang, ageGroup: profile.ageGroup, gender: profile.gender,
+    });
+    security.audit(db, 'academy_register', { ip, email: profile.email, country: profile.country, lang: profile.lang });
+    const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
+    if (needVerify) {
+      writeDb(db);
+      const mail = await sendAcademyVerificationEmail(db, profile.email, base);
+      return apiSend(200, {
+        ok: true,
+        needsVerification: true,
+        message: 'Account created — check your email and click Verify before signing in.',
+        verifyUrl: mail.verifyUrl,
+      });
+    }
+    const token = issueAcademyToken(db, profile.email);
     writeDb(db);
     return apiSend(200, {
       ok: true,
@@ -546,22 +681,101 @@ async function handleApi(req, res, url) {
     const password = body.password || '';
     if (!email || !password) return apiSend(400, { error: 'Email and password required' });
     const user = db.academyUsers[email];
-    if (!user || !verifyPassword(password, user.pass)) {
-      security.audit(db, 'academy_login_failed', { ip, email });
+    if (!user) {
+      security.audit(db, 'academy_login_failed', { ip, email, detail: 'unknown_email' });
       writeDb(db);
       return apiSend(401, { error: 'Invalid email or password', code: 'invalid_credentials' });
     }
+    if (security.isLocked(user)) {
+      const mins = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      return apiSend(423, { error: 'Account temporarily locked after failed attempts. Try again in ' + mins + ' minute(s).', code: 'account_locked' });
+    }
+    if (academyEmailVerificationRequired() && user.emailVerified === false) {
+      return apiSend(403, { error: 'Verify your email before signing in — check your inbox.', code: 'email_not_verified' });
+    }
+    if (!verifyPassword(password, user.pass)) {
+      security.recordFailedLogin(user);
+      security.audit(db, 'academy_login_failed', { ip, email, detail: 'bad_password' });
+      writeDb(db);
+      return apiSend(401, { error: 'Invalid email or password', code: 'invalid_credentials' });
+    }
+    security.clearLoginFailures(user);
+    revokeAllAcademyTokens(db, email);
     const token = issueAcademyToken(db, email);
     security.audit(db, 'academy_login_success', { ip, email });
     writeDb(db);
     return apiSend(200, { ok: true, token, user: publicAcademyUser(user) });
   }
 
+  // POST /api/academy/logout
+  if (route === '/academy/logout' && req.method === 'POST') {
+    const auth = (body.token || (req.headers.authorization || '').replace(/^Bearer\s+/i, ''));
+    revokeAcademyToken(db, auth);
+    writeDb(db);
+    return apiSend(200, { ok: true });
+  }
+
+  // POST /api/academy/verify-email
+  if (route === '/academy/verify-email' && req.method === 'POST') {
+    const result = completeAcademyEmailVerification(db, body.token || '', ip);
+    if (!result.ok) return apiSend(400, { error: result.error });
+    return apiSend(200, result);
+  }
+
+  // POST /api/academy/forgot-password
+  if (route === '/academy/forgot-password' && req.method === 'POST') {
+    const rl = security.checkRateLimit(req, 'forgot');
+    if (!rl.ok) return apiSend(429, { error: 'Too many requests. Try again later.', retryAfter: rl.retryAfter });
+    const email = (body.email || '').toLowerCase().trim();
+    if (!email) return apiSend(400, { error: 'Email required' });
+    const user = db.academyUsers && db.academyUsers[email];
+    if (user) {
+      const resetToken = crypto.randomBytes(24).toString('hex');
+      db.academyPasswordResets = db.academyPasswordResets || {};
+      db.academyPasswordResets[resetToken] = { email, expires: Date.now() + 3600000 };
+      writeDb(db);
+      const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
+      const resetUrl = `${base}/academy/?reset=${resetToken}`;
+      await notify.sendRawEmail(email, {
+        subject: 'Reset your Kitline Academy password',
+        text: `Reset link (1 hour):\n${resetUrl}`,
+        html: `<p><a href="${resetUrl}">Reset Kitline Academy password</a></p>`,
+      }).catch(() => {});
+      if (process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured()) {
+        return apiSend(200, { ok: true, message: 'If registered, reset link sent.', resetUrl });
+      }
+    }
+    return apiSend(200, { ok: true, message: 'If that email is registered, we sent a reset link.' });
+  }
+
+  // POST /api/academy/reset-password
+  if (route === '/academy/reset-password' && req.method === 'POST') {
+    const resetToken = body.token || '';
+    const password = body.password || '';
+    db.academyPasswordResets = db.academyPasswordResets || {};
+    const entry = db.academyPasswordResets[resetToken];
+    if (!entry || entry.expires < Date.now()) return apiSend(400, { error: 'Reset link expired or invalid' });
+    const user = db.academyUsers && db.academyUsers[entry.email];
+    if (!user) return apiSend(404, { error: 'Account not found' });
+    const pwCheck = security.validatePassword(password, entry.email);
+    if (!pwCheck.ok) return apiSend(400, { error: pwCheck.error });
+    if (security.passwordScore(password) < 3) return apiSend(400, { error: 'Password too weak' });
+    user.pass = hashPassword(password);
+    security.clearLoginFailures(user);
+    delete db.academyPasswordResets[resetToken];
+    revokeAllAcademyTokens(db, entry.email);
+    const token = issueAcademyToken(db, entry.email);
+    security.audit(db, 'academy_password_reset', { ip, email: entry.email });
+    writeDb(db);
+    return apiSend(200, { ok: true, token, user: publicAcademyUser(user), message: 'Password updated — signed in.' });
+  }
+
   // GET /api/academy/me — current academy student (Bearer acad_… token)
   if (route === '/academy/me' && req.method === 'GET') {
     const auth = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     const user = academyUserFromToken(db, auth);
-    if (!user) return apiSend(401, { error: 'Not signed in' });
+    if (!user) return apiSend(401, { error: 'Not signed in or session expired' });
+    writeDb(db);
     return apiSend(200, { user: publicAcademyUser(user) });
   }
 
