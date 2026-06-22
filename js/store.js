@@ -515,6 +515,10 @@
     const isPrivate = !!(db._tenantPrivate || db._isPrivate);
     const s = seed();
     ['sites','team','sensors','checklists','records','alerts','menus','labels','waste','recipes','activity','workflows','suppliers','training','incidents','maintenance','deliveries','assets','batches','cooling','phlogs','holding'].forEach(k => { if (!Array.isArray(db[k])) db[k] = s[k]; });
+    if (!db.compliance || typeof db.compliance !== 'object') {
+      db.compliance = { hsChecks:[], riskAssessments:[], coshh:[], accidents:[], inductions:[], manualHandling:[], safetyChecks:[], foodComplaints:[], probeCalibration:[], thirdPartyEvents:[], haccpPlans:[], fsmsDocuments:[], equipmentMaintenance:[] };
+    }
+    if (window.Compliance && window.Compliance.ensure) window.Compliance.ensure(db);
     if (!db.org) db.org = s.org;
     if (db.org && (db.org.name === 'Brigade' || db.org.plan === 'Complete Brigade')) {
       db.org.name = 'Kiteline';

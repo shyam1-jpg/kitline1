@@ -49,94 +49,11 @@ function emptyCollections() {
   };
 }
 
-function sampleRecipes(siteId) {
-  const now = new Date().toISOString();
-  return [
-    {
-      id: uid('r'), name: 'Sample — Tomato Soup', category: 'Starter', site: siteId,
-      servings: 4, prepMins: 15, cookMins: 25, cost: 4.5, allergens: [],
-      ingredients: [{ name: 'Tomatoes', qty: '400', unit: 'g' }, { name: 'Onion', qty: '1', unit: 'each' }],
-      method: ['Sweat onion', 'Add tomatoes and simmer 20 min', 'Blend and season'],
-      stepByStep: false, image: null, updatedAt: now, _sample: true,
-    },
-    {
-      id: uid('r'), name: 'Sample — House Salad', category: 'Side', site: siteId,
-      servings: 1, prepMins: 10, cookMins: 0, cost: 1.2, allergens: ['Mustard'],
-      ingredients: [{ name: 'Mixed leaves', qty: '80', unit: 'g' }],
-      method: ['Wash leaves', 'Toss with dressing before service'],
-      stepByStep: false, image: null, updatedAt: now, _sample: true,
-    },
-  ];
-}
+const starterPack = require('./starter-pack');
+const { STARTER_PACK_VERSION, buildStarterPack, applyStarterPack, ensureStarterPack } = starterPack;
 
 function buildPrivateTenant(user, email, profile) {
-  profile = profile || user.profile || {};
-  const biz = String(profile.businessName || user.name || email.split('@')[0]).trim();
-  const siteId = uid('site');
-  const userId = uid('u');
-  const initials = ((profile.firstName || user.name || '')[0] || '') + ((profile.lastName || '')[0] || '');
-  const site = {
-    id: siteId,
-    name: biz,
-    legalName: (profile.legalName || '').trim() || biz,
-    city: (profile.city || '').trim() || '—',
-    postcode: (profile.postcode || '').trim() || '',
-    address: (profile.address || '').trim() || '',
-    country: profile.country || 'United Kingdom',
-    type: profile.businessType || 'Restaurant',
-    timezone: 'Europe/London',
-    manager: user.name || biz,
-    phone: (profile.phone || '').trim(),
-    email: email.toLowerCase(),
-    status: 'Active',
-  };
-  const products = { fss: true, allerq: true, labels: true, waste: true };
-  (profile.modules || []).forEach((m) => {
-    if (m !== 'sensors' && products[m] !== undefined) products[m] = true;
-  });
-  const base = emptyCollections();
-  return {
-    ...base,
-    org: {
-      name: biz,
-      legalName: (profile.legalName || '').trim() || biz,
-      plan: 'Free trial',
-      currency: 'GBP',
-      products,
-      channels: { sms: false, email: false, push: false },
-      maxUsers: 5,
-    },
-    sites: [site],
-    team: [{
-      id: userId,
-      name: user.name || biz,
-      email: email.toLowerCase(),
-      phone: (profile.phone || '').trim(),
-      role: profile.jobRole || 'Owner / Director',
-      access: 'Admin',
-      siteId,
-      initials: (initials.toUpperCase() || 'OW').slice(0, 2),
-    }],
-    recipes: sampleRecipes(siteId),
-    checklists: [{
-      id: uid('cl'),
-      title: 'Opening checks',
-      site: siteId,
-      recurrence: 'Daily',
-      due: new Date().toISOString().slice(0, 10),
-      assignee: userId,
-      items: [
-        { id: uid('i'), text: 'Hand wash stations stocked', done: false },
-        { id: uid('i'), text: 'Fridge temps logged', done: false },
-      ],
-    }],
-    currentSite: siteId,
-    _tenantId: null,
-    _tenantPrivate: true,
-    _isPrivate: true,
-    _isDemo: false,
-    _createdAt: new Date().toISOString(),
-  };
+  return buildStarterPack(user, email, profile);
 }
 
 function tagDemoState(state) {
@@ -344,4 +261,7 @@ module.exports = {
   tenantInfo,
   bootstrapDemoKitchen,
   buildPrivateTenant,
+  ensureStarterPack,
+  applyStarterPack,
+  STARTER_PACK_VERSION,
 };

@@ -1,5 +1,5 @@
 /* ============================================================
-   Kitchen OS — Views (one render fn per route)
+   Kitchen OS ? Views (one render fn per route)
    Each view returns { title, html, mount? }
    ============================================================ */
 (function () {
@@ -26,14 +26,14 @@
   function showEmployeeQrModal(siteId, siteName) {
     const url = employeeAppUrl(siteId, 'register');
     const name = siteName || S.site(siteId || S.db.currentSite).name;
-    modal('Staff QR — add Kiteline to phone', `
+    modal('Staff QR ? add Kiteline to phone', `
       <div class="text-center space-y-4">
         <p class="text-sm text-ink-500">Scan with a phone camera. Staff can create an account or sign in, then add Kiteline to their home screen.</p>
         <div class="inline-block p-4 bg-white rounded-2xl border border-ink-200 shadow-sm" id="staffQrBox"></div>
         <div class="text-sm font-semibold">${escapeHtml(name)}</div>
         <div class="rounded-xl bg-ink-50 p-3 text-xs text-ink-600 text-left space-y-2">
-          <p><b>iPhone:</b> open link → Share → <b>Add to Home Screen</b></p>
-          <p><b>Android:</b> open link → menu → <b>Install app</b> or <b>Add to Home screen</b></p>
+          <p><b>iPhone:</b> open link ? Share ? <b>Add to Home Screen</b></p>
+          <p><b>Android:</b> open link ? menu ? <b>Install app</b> or <b>Add to Home screen</b></p>
         </div>
         <div class="flex flex-wrap gap-2 justify-center">
           <button class="btn btn-ghost btn-sm" id="staffQrCopy">Copy invite link</button>
@@ -54,7 +54,7 @@
       <style>body{font-family:system-ui;text-align:center;padding:24px}h1{font-size:22px;margin:0}.sub{color:#666;margin:8px 0 20px}
       .box{display:inline-block;padding:16px;border:2px solid #0f766e;border-radius:16px}
       ol{text-align:left;font-size:13px;color:#444;line-height:1.6;max-width:280px;margin:16px auto}</style></head><body>
-      <h1>Kiteline — staff app</h1>
+      <h1>Kiteline ? staff app</h1>
       <p class="sub">${escapeHtml(siteName)}</p>
       <div class="box" id="q"></div>
       <ol><li>Scan QR with your phone</li><li>Create account or sign in</li><li>Add Kiteline to your home screen</li></ol>
@@ -66,9 +66,9 @@
   }
 
   const SENSOR_TYPES = [
-    { v: 'fridge', label: 'Fridge / chilled', target: 4, min: 1, max: 5, standard: '0–5°C chilled (EC 852/2004)' },
-    { v: 'freezer', label: 'Freezer', target: -18, min: -22, max: -16, standard: '≤-18°C frozen storage' },
-    { v: 'hot', label: 'Hot hold', target: 70, min: 63, max: 90, standard: '≥63°C hot hold (UK)' },
+    { v: 'fridge', label: 'Fridge / chilled', target: 4, min: 1, max: 5, standard: '0?5�C chilled (EC 852/2004)' },
+    { v: 'freezer', label: 'Freezer', target: -18, min: -22, max: -16, standard: '?-18�C frozen storage' },
+    { v: 'hot', label: 'Hot hold', target: 70, min: 63, max: 90, standard: '?63�C hot hold (UK)' },
   ];
   function sensorTypeDefaults(type) { return SENSOR_TYPES.find(t => t.v === type) || SENSOR_TYPES[0]; }
 
@@ -91,9 +91,9 @@
           <div><label class="label">Probe serial / label</label><input id="sserial" class="input" placeholder="e.g. KL-SN011-2025" value="${escapeHtml(s.serial || '')}"></div>
         </div>
         <div class="grid grid-cols-3 gap-3">
-          <div><label class="label">Target °C</label><input id="sg" type="number" step="0.1" class="input" value="${s.target != null ? s.target : 4}"></div>
-          <div><label class="label">Min °C</label><input id="smin" type="number" step="0.1" class="input" value="${s.min != null ? s.min : 1}"></div>
-          <div><label class="label">Max °C</label><input id="smax" type="number" step="0.1" class="input" value="${s.max != null ? s.max : 5}"></div>
+          <div><label class="label">Target �C</label><input id="sg" type="number" step="0.1" class="input" value="${s.target != null ? s.target : 4}"></div>
+          <div><label class="label">Min �C</label><input id="smin" type="number" step="0.1" class="input" value="${s.min != null ? s.min : 1}"></div>
+          <div><label class="label">Max �C</label><input id="smax" type="number" step="0.1" class="input" value="${s.max != null ? s.max : 5}"></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="label">Gateway ID</label><input id="sgw" class="input" placeholder="e.g. GW-GROVE" value="${escapeHtml(s.gateway || '')}"></div>
@@ -106,7 +106,7 @@
           <div><label class="label">Last calibrated</label><input id="scal" type="date" class="input" value="${escapeHtml(s.calibrated || new Date().toISOString().slice(0, 10))}"></div>
         </div>
         <div><label class="label">Compliance note</label><input id="sstd" class="input" value="${escapeHtml(s.standard || sensorTypeDefaults(s.type || 'fridge').standard)}"></div>
-        <div><label class="label">Notes</label><textarea id="snotes" class="input" rows="2" placeholder="Optional — door seal checks, linked equipment…">${escapeHtml(s.notes || '')}</textarea></div>
+        <div><label class="label">Notes</label><textarea id="snotes" class="input" rows="2" placeholder="Optional ? door seal checks, linked equipment?">${escapeHtml(s.notes || '')}</textarea></div>
         <div class="flex gap-2 pt-1">
           ${isEdit ? `<button type="button" class="btn btn-danger btn-sm" id="sdel">Remove</button>` : ''}
           <button type="button" class="btn btn-primary flex-1" id="ssave">${isEdit ? 'Save changes' : 'Add sensor'}</button>
@@ -164,7 +164,7 @@
         S.db.sensors.push(payload);
       }
       S.persist(); closeModal();
-      toast(isEdit ? 'Sensor updated' : ('Sensor added — device ID: ' + id));
+      toast(isEdit ? 'Sensor updated' : ('Sensor added ? device ID: ' + id));
       if (onSaved) onSaved();
     };
   }
@@ -201,11 +201,11 @@
       const out = [];
       sensors.forEach(s => {
         const st = sensorStatus(s);
-        if (st === 'breach') out.push({ icon:'alert', tone:'red', text:`<b>${escapeHtml(s.name)}</b> is out of safe range at ${s.temp.toFixed(1)}°C — act now to prevent stock loss.` });
+        if (st === 'breach') out.push({ icon:'alert', tone:'red', text:`<b>${escapeHtml(s.name)}</b> is out of safe range at ${s.temp.toFixed(1)}�C ? act now to prevent stock loss.` });
         else if (st === 'warn') out.push({ icon:'temp', tone:'amber', text:`<b>${escapeHtml(s.name)}</b> is drifting toward its limit. Check the door seal and load.` });
         const trend = s.history.slice(-6);
-        if (trend.length >= 6 && trend[5] - trend[0] > 1.2 && st !== 'breach') out.push({ icon:'temp', tone:'amber', text:`Predicted risk: <b>${escapeHtml(s.name)}</b> is warming ${(trend[5]-trend[0]).toFixed(1)}°C/30min — likely to breach within the hour.` });
-        if (s.battery < 25) out.push({ icon:'battery', tone:'amber', text:`<b>${escapeHtml(s.name)}</b> sensor battery low (${s.battery}%) — schedule a replacement.` });
+        if (trend.length >= 6 && trend[5] - trend[0] > 1.2 && st !== 'breach') out.push({ icon:'temp', tone:'amber', text:`Predicted risk: <b>${escapeHtml(s.name)}</b> is warming ${(trend[5]-trend[0]).toFixed(1)}�C/30min ? likely to breach within the hour.` });
+        if (s.battery < 25) out.push({ icon:'battery', tone:'amber', text:`<b>${escapeHtml(s.name)}</b> sensor battery low (${s.battery}%) ? schedule a replacement.` });
       });
       const wk = S.db.waste.filter(w=>w.site===site);
       if (wk.length) {
@@ -214,28 +214,28 @@
         if (top) out.push({ icon:'waste', tone:'blue', text:`Biggest waste driver is <b>${escapeHtml(top[0])}</b> (${top[1].toFixed(1)}kg). Reducing it 50% could save ~${fmt.money(top[1]*1.5,S.db.org.currency)}/wk.` });
       }
       const overdue = checklists.filter(c=>c.items.some(i=>!i.done));
-      if (overdue.length) out.push({ icon:'check', tone:'amber', text:`${overdue.length} checklist(s) still open today — assign now to stay audit-ready.` });
+      if (overdue.length) out.push({ icon:'check', tone:'amber', text:`${overdue.length} checklist(s) still open today ? assign now to stay audit-ready.` });
       const exp = S.db.labels.filter(l=>l.site===site).filter(l=>{ const e=new Date(new Date(l.prepped).getTime()+l.shelfDays*864e5); return e - Date.now() < 864e5; });
-      if (exp.length) out.push({ icon:'labels', tone:'amber', text:`${exp.length} labelled item(s) expire within 24h — use or rotate first (FIFO).` });
+      if (exp.length) out.push({ icon:'labels', tone:'amber', text:`${exp.length} labelled item(s) expire within 24h ? use or rotate first (FIFO).` });
       const trExp = (S.db.training||[]).filter(tt=>(new Date(tt.expires)-Date.now())/864e5 < 0);
-      if (trExp.length) out.push({ icon:'cap', tone:'red', text:`${trExp.length} staff training certificate(s) have <b>expired</b> — book refresher courses to stay compliant.` });
+      if (trExp.length) out.push({ icon:'cap', tone:'red', text:`${trExp.length} staff training certificate(s) have <b>expired</b> ? book refresher courses to stay compliant.` });
       const supExp = (S.db.suppliers||[]).filter(s=>(new Date(s.certExpiry)-Date.now())/864e5 < 30);
-      if (supExp.length) out.push({ icon:'truck', tone:'amber', text:`${supExp.length} supplier certificate(s) due to expire — request renewals from your approved suppliers.` });
+      if (supExp.length) out.push({ icon:'truck', tone:'amber', text:`${supExp.length} supplier certificate(s) due to expire ? request renewals from your approved suppliers.` });
       const openInc = (S.db.incidents||[]).filter(i=>i.status!=='Closed');
       if (openInc.length) out.push({ icon:'shield', tone:'amber', text:`${openInc.length} open incident(s) need a corrective action recorded and closed off.` });
       const coolFail = (S.db.cooling||[]).filter(c=>c.site===site && c.result==='Fail');
-      if (coolFail.length) out.push({ icon:'snow', tone:'red', text:`${coolFail.length} cooling check(s) <b>failed</b> the 2h/4h rule — review the cooling process.` });
+      if (coolFail.length) out.push({ icon:'snow', tone:'red', text:`${coolFail.length} cooling check(s) <b>failed</b> the 2h/4h rule ? review the cooling process.` });
       const holdFail = (S.db.holding||[]).filter(h=>h.site===site && h.result==='Fail');
       if (holdFail.length) out.push({ icon:'temp', tone:'amber', text:`${holdFail.length} hot/cold holding check(s) were out of range at service.` });
       const delRej = (S.db.deliveries||[]).filter(d=>d.site===site && !d.accepted);
-      if (delRej.length) out.push({ icon:'truck', tone:'amber', text:`${delRej.length} delivery(ies) were <b>rejected</b> on goods-in — follow up with the supplier.` });
+      if (delRej.length) out.push({ icon:'truck', tone:'amber', text:`${delRej.length} delivery(ies) were <b>rejected</b> on goods-in ? follow up with the supplier.` });
       const phFail = (S.db.phlogs||[]).filter(p=>p.site===site && p.result==='Fail');
-      if (phFail.length) out.push({ icon:'droplet', tone:'amber', text:`${phFail.length} pH reading(s) out of spec — recheck acidified products.` });
+      if (phFail.length) out.push({ icon:'droplet', tone:'amber', text:`${phFail.length} pH reading(s) out of spec ? recheck acidified products.` });
       const svcDue = (S.db.assets||[]).filter(a=>a.site===site && (new Date(a.nextService)-Date.now())/864e5 < 0);
-      if (svcDue.length) out.push({ icon:'box', tone:'amber', text:`${svcDue.length} asset(s) overdue a service — book maintenance.` });
+      if (svcDue.length) out.push({ icon:'box', tone:'amber', text:`${svcDue.length} asset(s) overdue a service ? book maintenance.` });
       const mtOpen = (S.db.maintenance||[]).filter(t=>t.status!=='Resolved');
       if (mtOpen.length) out.push({ icon:'wrench', tone:'amber', text:`${mtOpen.length} maintenance ticket(s) still awaiting repair.` });
-      if (!out.length) out.push({ icon:'check', tone:'green', text:`All systems healthy. No risks detected — you're inspection-ready.` });
+      if (!out.length) out.push({ icon:'check', tone:'green', text:`All systems healthy. No risks detected ? you're inspection-ready.` });
       return out.slice(0, 6);
     })();
     const toneCol = { red:'#dc2626', amber:'#d97706', blue:'#2563eb', green:'#10b981' };
@@ -286,7 +286,7 @@
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-9 rounded-lg bg-ink-100 flex items-center justify-center text-ink-500">${icon('temp','w-4 h-4')}</div>
                   <div><div class="font-semibold text-sm">${s.name}</div>
-                  <div class="text-xs text-ink-400 capitalize">${s.type} · target ${s.target}°C</div></div>
+                  <div class="text-xs text-ink-400 capitalize">${s.type} � target ${s.target}�C</div></div>
                 </div>
                 <div class="flex items-center gap-4">
                   ${spark(s.history)}
@@ -305,7 +305,7 @@
                 <div class="flex gap-2.5 items-start">
                   <span class="pulse-dot mt-1.5" style="background:${a.severity==='critical'?'#dc2626':a.severity==='warning'?'#d97706':'#3b82f6'}"></span>
                   <div><div class="text-sm font-semibold">${a.title}</div>
-                  <div class="text-xs text-ink-400">${fmt.ago(a.at)} · ${a.status}</div></div>
+                  <div class="text-xs text-ink-400">${fmt.ago(a.at)} � ${a.status}</div></div>
                 </div>`).join('') || '<p class="text-sm text-ink-400">No alerts.</p>'}
             </div>
           </div>
@@ -348,7 +348,7 @@
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <div class="font-bold truncate">${escapeHtml(s.name)}</div>
-            <div class="text-xs text-ink-400 capitalize">${s.type} · target ${s.target}°C (${s.min}–${s.max})</div>
+            <div class="text-xs text-ink-400 capitalize">${s.type} � target ${s.target}�C (${s.min}?${s.max})</div>
             ${meta ? `<div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-ink-500">${meta}</div>` : ''}
           </div>
           ${statusBadge(st)}
@@ -357,15 +357,15 @@
           <div class="text-4xl font-extrabold ${st==='breach'?'text-red-600':st==='warn'?'text-amber-600':'text-ink-900'}">${fmt.temp(s.temp)}</div>
           <div class="mb-1 flex-1">${spark(s.history)}</div>
         </div>
-        <div class="text-xs text-ink-500 bg-ink-50 rounded-lg px-3 py-2 mb-3">${escapeHtml(s.standard || '')}${s.notes ? ` · <span class="text-ink-400">${escapeHtml(s.notes)}</span>` : ''}</div>
+        <div class="text-xs text-ink-500 bg-ink-50 rounded-lg px-3 py-2 mb-3">${escapeHtml(s.standard || '')}${s.notes ? ` � <span class="text-ink-400">${escapeHtml(s.notes)}</span>` : ''}</div>
         <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-ink-500 mb-3">
           <span>Device ID: <b class="text-ink-700 font-mono">${escapeHtml(s.id)}</b></span>
-          <span>Serial: <b class="text-ink-700">${escapeHtml(s.serial || '—')}</b></span>
-          <span>Gateway: <b class="text-ink-700">${escapeHtml(s.gateway || '—')}</b></span>
-          <span>Probe: ${escapeHtml(s.probe || '—')}</span>
+          <span>Serial: <b class="text-ink-700">${escapeHtml(s.serial || '?')}</b></span>
+          <span>Gateway: <b class="text-ink-700">${escapeHtml(s.gateway || '?')}</b></span>
+          <span>Probe: ${escapeHtml(s.probe || '?')}</span>
           <span>Interval: ${escapeHtml(s.interval || '5 min')}</span>
-          <span>Calibrated: ${s.calibrated || '—'}</span>
-          <span class="col-span-2 flex items-center gap-2">${icon('battery','w-3.5 h-3.5')} ${s.battery}% · ${icon('signal','w-3.5 h-3.5')} ${s.signal}% · ${fmt.ago(s.updated)}</span>
+          <span>Calibrated: ${s.calibrated || '?'}</span>
+          <span class="col-span-2 flex items-center gap-2">${icon('battery','w-3.5 h-3.5')} ${s.battery}% � ${icon('signal','w-3.5 h-3.5')} ${s.signal}% � ${fmt.ago(s.updated)}</span>
         </div>
         <div class="flex gap-2 mb-2"><button type="button" class="btn btn-ghost btn-sm" data-edit-sensor="${s.id}">${icon('settings','ico')} Edit / device ID</button></div>
         <div><canvas id="chart_${s.id}" height="90"></canvas></div>
@@ -377,14 +377,14 @@
         <td><div class="font-semibold">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${escapeHtml(s.location || '')}</div></td>
         <td class="capitalize text-ink-500">${s.type}</td>
         <td class="font-bold ${st==='breach'?'text-red-600':st==='warn'?'text-amber-600':''}">${fmt.temp(s.temp)}</td>
-        <td class="text-xs text-ink-400">${s.min}–${s.max}°C</td>
+        <td class="text-xs text-ink-400">${s.min}?${s.max}�C</td>
         <td>${statusBadge(st)}</td>
-        <td class="text-xs text-ink-400">${escapeHtml(s.serial || '—')}</td>
+        <td class="text-xs text-ink-400">${escapeHtml(s.serial || '?')}</td>
         <td class="text-xs text-ink-400">${fmt.ago(s.updated)}</td>
       </tr>`;
     }).join('');
     const html = `
-      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site · 24/7 auto-logging · EC 852/2004 compliant audit trail', `
+      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site � 24/7 auto-logging � EC 852/2004 compliant audit trail', `
         <button class="btn btn-ghost btn-sm" data-act="manual">${icon('plus','ico')} Manual reading</button>
         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add sensor</button>`)}
       <div class="grid sm:grid-cols-4 gap-4 mb-5">
@@ -456,7 +456,7 @@
         modal('Manual Temperature Reading', `
           <div class="space-y-3">
             <div><label class="label">Sensor / equipment</label><select id="ms" class="select">${opts}</select></div>
-            <div><label class="label">Temperature °C</label><input id="mt" type="number" step="0.1" class="input" placeholder="4.0"></div>
+            <div><label class="label">Temperature �C</label><input id="mt" type="number" step="0.1" class="input" placeholder="4.0"></div>
             <button class="btn btn-primary w-full" id="msave">Log reading</button>
           </div>`);
         document.getElementById('msave').onclick = () => {
@@ -482,7 +482,7 @@
         <td><span class="badge ${a.status==='open'?'badge-red':a.status==='acknowledged'?'badge-amber':'badge-green'}">${a.status}</span></td>
         <td class="text-right">
           ${a.status!=='resolved'?`<button class="btn btn-ghost btn-sm" data-ack="${a.id}">Acknowledge</button>
-          <button class="btn btn-primary btn-sm" data-res="${a.id}">Resolve</button>`:'<span class="text-ink-300 text-xs">—</span>'}
+          <button class="btn btn-primary btn-sm" data-res="${a.id}">Resolve</button>`:'<span class="text-ink-300 text-xs">?</span>'}
         </td>
       </tr>`).join('');
     const ch = S.db.org.channels;
@@ -532,9 +532,9 @@
               ${c.priority==='High'?'<span class="badge badge-amber">High priority</span>':''}
             </div>
             <div class="font-bold">${escapeHtml(c.title)}</div>
-            <div class="text-xs text-ink-400">${c.recurrence} · due <b>${escapeHtml(c.due)}</b> · ${escapeHtml(S.member(c.assignee).name)}</div>
+            <div class="text-xs text-ink-400">${c.recurrence} � due <b>${escapeHtml(c.due)}</b> � ${escapeHtml(S.member(c.assignee).name)}</div>
             ${c.lastCompleted?`<div class="text-xs text-ink-400 mt-0.5">Last completed ${fmt.ago(c.lastCompleted)}</div>`:''}
-            ${c.ccpRef?`<div class="text-xs text-ink-500 mt-1">Ref: <b>${escapeHtml(c.ccpRef)}</b>${ccpN?` · ${ccpN} CCP task(s)`:''}</div>`:''}
+            ${c.ccpRef?`<div class="text-xs text-ink-500 mt-1">Ref: <b>${escapeHtml(c.ccpRef)}</b>${ccpN?` � ${ccpN} CCP task(s)`:''}</div>`:''}
           </div>
           <span class="badge ${pct===100?'badge-green':'badge-amber'} flex-none">${pct}%</span>
         </div>
@@ -550,13 +550,13 @@
     };
     const cats = [...new Set(lists.map(c=>c.category||'Other'))];
     const html = `
-      ${sectionHeader('SafeServe — HACCP & Checklists','Digital HACCP plans · CCP monitoring · opening/closing checks · full EHO audit trail', `
+      ${sectionHeader('SafeServe ? HACCP & Checklists','Digital HACCP plans � CCP monitoring � opening/closing checks � full EHO audit trail', `
         <button class="btn btn-primary btn-sm" data-act="newlist">${icon('plus','ico')} New checklist</button>`)}
       <div class="card card-pad mb-5 bg-gradient-to-r from-brand-50 to-white border-brand-100">
         <div class="flex flex-wrap items-start gap-6">
           <div class="flex-1 min-w-[200px]">
             <div class="font-bold text-brand-800 mb-1">What SafeServe covers</div>
-            <p class="text-sm text-ink-600">Automated temperature logs, Critical Control Point (CCP) checklists, corrective actions, and timestamped sign-offs — replacing paper diaries and spreadsheet trackers. Every tick is audit-ready for your Environmental Health Officer.</p>
+            <p class="text-sm text-ink-600">Automated temperature logs, Critical Control Point (CCP) checklists, corrective actions, and timestamped sign-offs ? replacing paper diaries and spreadsheet trackers. Every tick is audit-ready for your Environmental Health Officer.</p>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center flex-none">
             <div class="bg-white rounded-xl px-4 py-3 border border-ink-100"><div class="text-xl font-extrabold">${lists.length}</div><div class="text-xs text-ink-400">Checklists</div></div>
@@ -613,7 +613,7 @@
   /* ---------------- DIGITAL RECORDS ---------------- */
   function records() {
     const list = S.db.records.filter(r=>r.site===S.db.currentSite).sort((a,b)=>new Date(b.at)-new Date(a.at));
-    const detailStr = (r)=> Object.entries(r.detail).map(([k,v])=>`${k}: <b>${escapeHtml(v)}</b>`).join(' · ');
+    const detailStr = (r)=> Object.entries(r.detail).map(([k,v])=>`${k}: <b>${escapeHtml(v)}</b>`).join(' � ');
     const types = ['Delivery','Cooking','Cooling','Reheating','Sanitization'];
     const rows = list.map(r=>`<tr>
       <td><span class="badge badge-blue">${r.type}</span></td>
@@ -632,10 +632,10 @@
 
     function form(type) {
       const fields = {
-        Delivery:`<input id="f1" class="input" placeholder="Supplier"><input id="f2" class="input" placeholder="Item"><input id="f3" type="number" step="0.1" class="input" placeholder="Temp °C">`,
-        Cooking:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp °C"><input id="f3" type="number" class="input" placeholder="Target °C" value="75">`,
-        Cooling:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Start °C"><input id="f3" type="number" step="0.1" class="input" placeholder="End °C">`,
-        Reheating:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp °C"><input id="f3" type="number" class="input" placeholder="Target °C" value="75">`,
+        Delivery:`<input id="f1" class="input" placeholder="Supplier"><input id="f2" class="input" placeholder="Item"><input id="f3" type="number" step="0.1" class="input" placeholder="Temp �C">`,
+        Cooking:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp �C"><input id="f3" type="number" class="input" placeholder="Target �C" value="75">`,
+        Cooling:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Start �C"><input id="f3" type="number" step="0.1" class="input" placeholder="End �C">`,
+        Reheating:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp �C"><input id="f3" type="number" class="input" placeholder="Target �C" value="75">`,
         Sanitization:`<input id="f1" class="input" placeholder="Area"><input id="f2" class="input" placeholder="Chemical"><input id="f3" type="number" class="input" placeholder="Contact mins" value="5">`,
       }[type];
       modal('New '+type+' Record', `<div class="space-y-3">${fields}<button class="btn btn-primary w-full" id="rsave">Save record</button></div>`);
@@ -668,13 +668,13 @@
     const orgSensors = S.db.sensors;
     const orgBreaches = orgSensors.filter(x=>sensorStatus(x)==='breach').length;
     const orgTeam = S.db.team.length;
-    const typeIcon = (t) => ({ Hotel:'🏨', Restaurant:'🍽️', Pub:'🍺', Café:'☕', Kitchen:'🍳', 'Ghost Kitchen':'👻', Education:'🎓', Seafood:'🐟', 'Food Court':'🛫', Steakhouse:'🥩' }[t] || '🏪');
+    const typeIcon = (t) => ({ Hotel:'??', Restaurant:'???', Pub:'??', Caf�:'?', Kitchen:'??', 'Ghost Kitchen':'??', Education:'??', Seafood:'??', 'Food Court':'??', Steakhouse:'??' }[t] || '??');
     const cards = allSites.map(s=>{
       const sens=S.db.sensors.filter(x=>x.siteId===s.id);
       const breaches=sens.filter(x=>sensorStatus(x)==='breach').length;
       const team=S.db.team.filter(m=>m.siteId===s.id).length;
       const cls=S.db.checklists.filter(c=>c.site===s.id).length;
-      const stars = s.rating ? '★'.repeat(s.rating) + '☆'.repeat(5-s.rating) : '';
+      const stars = s.rating ? '?'.repeat(s.rating) + '?'.repeat(5-s.rating) : '';
       return `<div class="card card-pad fade-in ${s.id===S.db.currentSite?'ring-2 ring-brand-500':''}" data-stype="${s.type||'Other'}">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
@@ -697,9 +697,9 @@
           <div class="bg-ink-50 rounded-lg py-2"><div class="text-lg font-extrabold">${cls}</div><div class="text-ink-400">Checklists</div></div>
         </div>
         <div class="text-xs text-ink-500 space-y-1 mb-4">
-          <div><b>Manager:</b> ${escapeHtml(s.manager||'—')} · ${escapeHtml(s.phone||'')}</div>
-          <div><b>Covers:</b> ${s.covers||'—'} · <b>Opened:</b> ${s.opened||'—'} · <b>Last EHO visit:</b> ${s.lastInspection||'—'}</div>
-          <div><b>Email:</b> ${escapeHtml(s.email||'—')}</div>
+          <div><b>Manager:</b> ${escapeHtml(s.manager||'?')} � ${escapeHtml(s.phone||'')}</div>
+          <div><b>Covers:</b> ${s.covers||'?'} � <b>Opened:</b> ${s.opened||'?'} � <b>Last EHO visit:</b> ${s.lastInspection||'?'}</div>
+          <div><b>Email:</b> ${escapeHtml(s.email||'?')}</div>
         </div>
         <button class="btn btn-ghost w-full btn-sm mb-2" data-staffqr="${s.id}">${icon('qr','ico')} Staff QR (scan to install)</button>
         <button class="btn ${s.id===S.db.currentSite?'btn-ghost':'btn-primary'} w-full btn-sm" data-switch="${s.id}">${s.id===S.db.currentSite?'Currently viewing':'Switch to site'}</button>
@@ -710,19 +710,19 @@
       const breaches = S.db.sensors.filter(x=>x.siteId===s.id && sensorStatus(x)==='breach').length;
       return `<tr data-stype="${s.type||'Other'}">
         <td><div class="font-semibold">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${escapeHtml(s.city)}</div></td>
-        <td><span class="badge badge-gray">${escapeHtml(s.type||'—')}</span></td>
-        <td>${s.covers||'—'}</td>
-        <td>${s.rating?('★'.repeat(s.rating)): '—'}</td>
+        <td><span class="badge badge-gray">${escapeHtml(s.type||'?')}</span></td>
+        <td>${s.covers||'?'}</td>
+        <td>${s.rating?('?'.repeat(s.rating)): '?'}</td>
         <td>${sens}</td>
         <td class="${breaches?'text-red-600 font-bold':''}">${breaches}</td>
-        <td>${escapeHtml(s.manager||'—')}</td>
-        <td class="text-xs text-ink-400">${s.lastInspection||'—'}</td>
+        <td>${escapeHtml(s.manager||'?')}</td>
+        <td class="text-xs text-ink-400">${s.lastInspection||'?'}</td>
         <td>${s.id===S.db.currentSite?'<span class="badge badge-green">Active</span>':`<button class="btn btn-ghost btn-sm" data-switch="${s.id}">Switch</button>`}</td>
       </tr>`;
     }).join('');
     const types = [...new Set(allSites.map(s=>s.type||'Other'))];
     const html = `
-      ${sectionHeader('Multi-Site Management','All kitchens · one command centre · switch site from the top bar or here', `
+      ${sectionHeader('Multi-Site Management','All kitchens � one command centre � switch site from the top bar or here', `
         <button class="btn btn-primary btn-sm" data-act="addsite">${icon('plus','ico')} Add site</button>`)}
       <div class="grid sm:grid-cols-4 gap-4 mb-5">
         <div class="kpi"><div class="text-xs text-ink-500">Total sites</div><div class="v">${allSites.length}</div></div>
@@ -767,7 +767,7 @@
       document.querySelector('[data-act="addsite"]').onclick=()=>{
         modal('Add Site',`<div class="space-y-3"><input id="n" class="input" placeholder="Site name"><input id="c" class="input" placeholder="City"><button class="btn btn-primary w-full" id="s">Add site</button></div>`);
         document.getElementById('s').onclick=()=>{ const n=document.getElementById('n').value.trim(); if(!n)return toast('Enter a name','warn');
-          S.db.sites.push({id:S.uid('site'),name:n,city:document.getElementById('c').value||'—',timezone:'Europe/London'}); S.persist(); closeModal(); window.App.render(); toast('Site added'); };
+          S.db.sites.push({id:S.uid('site'),name:n,city:document.getElementById('c').value||'?',timezone:'Europe/London'}); S.persist(); closeModal(); window.App.render(); toast('Site added'); };
       };
     }};
   }
@@ -786,7 +786,7 @@
       <div class="card card-pad fade-in" id="report">
         <div class="flex items-center justify-between border-b border-ink-100 pb-4 mb-4">
           <div><div class="font-extrabold text-xl">Food Safety Compliance Report</div>
-          <div class="text-sm text-ink-400">${sName} · Generated ${fmt.date(S.now())}</div></div>
+          <div class="text-sm text-ink-400">${sName} � Generated ${fmt.date(S.now())}</div></div>
           <span class="badge ${compliance===100?'badge-green':'badge-amber'} text-sm">${compliance}% compliant</span>
         </div>
         <div class="grid sm:grid-cols-4 gap-4 mb-5">
@@ -797,7 +797,7 @@
         </div>
         <h4 class="font-bold mb-2">Critical Control Points</h4>
         <table class="table mb-5"><thead><tr><th>Equipment</th><th>Target</th><th>Current</th><th>Status</th></tr></thead><tbody>
-          ${sens.map(s=>`<tr><td>${escapeHtml(s.name)}</td><td>${s.target}°C</td><td>${fmt.temp(s.temp)}</td><td>${statusBadge(sensorStatus(s))}</td></tr>`).join('')}
+          ${sens.map(s=>`<tr><td>${escapeHtml(s.name)}</td><td>${s.target}�C</td><td>${fmt.temp(s.temp)}</td><td>${statusBadge(sensorStatus(s))}</td></tr>`).join('')}
         </tbody></table>
         <h4 class="font-bold mb-2">Record Summary</h4>
         <table class="table"><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>
@@ -824,7 +824,7 @@
       <div><div class="font-semibold">${escapeHtml(m.name)}</div><div class="text-xs text-ink-400">${escapeHtml(m.email)}</div></div></div></td>
       <td>${escapeHtml(m.role)}</td>
       <td><select class="select !w-auto !py-1 text-xs" data-acc="${m.id}">${['Admin','Manager','Staff'].map(a=>`<option ${accessOf(m)===a?'selected':''}>${a}</option>`).join('')}</select></td>
-      <td class="text-xs text-ink-500">${escapeHtml(m.phone || '—')}</td>
+      <td class="text-xs text-ink-500">${escapeHtml(m.phone || '?')}</td>
       <td>${escapeHtml(S.site(m.siteId).name)}</td></tr>`).join('');
     const curSite = S.site(S.db.currentSite);
     const staffUrl = employeeAppUrl(S.db.currentSite, 'register');
@@ -834,7 +834,7 @@
       ? `<span class="badge ${teamCount >= maxUsers ? 'badge-amber' : 'badge-gray'}">${teamCount}/${maxUsers} users on plan</span>`
       : '';
     const html = `
-      ${sectionHeader('Team & Accountability','Track who did what and when — full audit trail', `
+      ${sectionHeader('Team & Accountability','Track who did what and when ? full audit trail', `
         ${limitNote}
         <button class="btn btn-ghost btn-sm" data-act="staffqr">${icon('qr','ico')} Staff QR</button>
         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add member</button>`)}
@@ -844,7 +844,7 @@
           <div class="flex-1 min-w-[200px]">
             <h3 class="font-bold mb-1">Add Kiteline on staff phones</h3>
             <p class="text-sm text-ink-500 mb-2">Staff scan this QR to open Kiteline, create an account, and add the app to their device. Post it in the kitchen or share at handover.</p>
-            <p class="text-xs text-ink-400 mb-3"><b>${escapeHtml(curSite.name)}</b> · <span class="break-all">${escapeHtml(staffUrl)}</span></p>
+            <p class="text-xs text-ink-400 mb-3"><b>${escapeHtml(curSite.name)}</b> � <span class="break-all">${escapeHtml(staffUrl)}</span></p>
             <div class="flex flex-wrap gap-2">
               <button class="btn btn-primary btn-sm" data-act="staffqr">${icon('qr','ico')} Full screen / print</button>
               <button class="btn btn-ghost btn-sm" data-act="copystaffurl">Copy link</button>
@@ -861,7 +861,7 @@
           <div class="space-y-3">
             ${S.db.activity.slice(0,12).map(a=>`<div class="flex gap-2.5">
               <div class="w-7 h-7 rounded-full bg-ink-100 text-ink-500 flex items-center justify-center text-xs font-bold flex-none">${S.member(a.user).initials}</div>
-              <div><div class="text-sm">${escapeHtml(a.action)}</div><div class="text-xs text-ink-400">${S.member(a.user).name} · ${fmt.ago(a.at)}</div></div>
+              <div><div class="text-sm">${escapeHtml(a.action)}</div><div class="text-xs text-ink-400">${S.member(a.user).name} � ${fmt.ago(a.at)}</div></div>
             </div>`).join('')}
           </div>
         </div>
@@ -894,7 +894,7 @@
           if (max && S.db.team.length >= max) { toast(`Plan limit: ${max} users`, 'warn'); return; }
           const initials=n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
           S.db.team.push({id:S.uid('u'),name:n,email:document.getElementById('e').value,phone:document.getElementById('ph').value.trim(),role:document.getElementById('r').value||'Staff',access:document.getElementById('a').value,siteId:S.db.currentSite,initials});
-          S.persist(); closeModal(); window.App.render(); toast('Member added — they can now sign in'); };
+          S.persist(); closeModal(); window.App.render(); toast('Member added ? they can now sign in'); };
       };
     }};
   }
@@ -916,13 +916,13 @@
     }
     const cards = menus.map(m=>`<div class="card card-pad fade-in">
       <div class="flex items-start justify-between mb-3">
-        <div><div class="font-bold">${escapeHtml(m.name)}</div><div class="text-xs text-ink-400">${escapeHtml(S.site(m.site).name)} · ${m.languages.length} languages</div></div>
+        <div><div class="font-bold">${escapeHtml(m.name)}</div><div class="text-xs text-ink-400">${escapeHtml(S.site(m.site).name)} � ${m.languages.length} languages</div></div>
         <button class="btn btn-ghost btn-sm" data-qr="${m.id}">${icon('qr','ico')} QR</button>
       </div>
       <div class="flex flex-wrap gap-1 mb-3">${m.languages.map(l=>`<span class="badge badge-gray">${l}</span>`).join('')}</div>
       <div class="space-y-2">
         ${m.dishes.map(d=>{ const al = dishAllergens(d); return `<div class="p-2.5 rounded-xl border border-ink-100">
-          <div class="font-semibold text-sm">${escapeHtml(d.name)}${d.recipeId ? ' <span class="text-[10px] text-brand-600 font-normal">· linked recipe</span>' : ''}</div>
+          <div class="font-semibold text-sm">${escapeHtml(d.name)}${d.recipeId ? ' <span class="text-[10px] text-brand-600 font-normal">� linked recipe</span>' : ''}</div>
           <div class="text-xs text-ink-400 mb-1">${escapeHtml(d.desc)}</div>
           <div class="flex flex-wrap gap-1">${al.map(a=>`<span class="badge badge-amber">${a}</span>`).join('')||'<span class="badge badge-green">No allergens</span>'}</div>
         </div>`; }).join('')}
@@ -930,13 +930,13 @@
       <button class="btn btn-ghost btn-sm w-full mt-3" data-adddish="${m.id}">${icon('plus','ico')} Add dish</button>
     </div>`).join('');
     const html = `
-      ${sectionHeader('MenuGuard — Allergen Menus','Digital allergen menus with QR codes, 14 statutory allergens, multi-language', `
+      ${sectionHeader('MenuGuard ? Allergen Menus','Digital allergen menus with QR codes, 14 statutory allergens, multi-language', `
         <button class="btn btn-primary btn-sm" data-act="newmenu">${icon('plus','ico')} New menu</button>`)}
       <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">${cards}</div>`;
     return { title:'MenuGuard', html, mount() {
       document.querySelectorAll('[data-qr]').forEach(b=>b.onclick=()=>{
         const m=S.db.menus.find(x=>x.id===b.dataset.qr);
-        modal('QR Code — '+m.name, `<div class="text-center"><div id="qrbox" class="inline-block p-3 bg-white rounded-xl border border-ink-200"></div>
+        modal('QR Code ? '+m.name, `<div class="text-center"><div id="qrbox" class="inline-block p-3 bg-white rounded-xl border border-ink-200"></div>
           <p class="text-sm text-ink-400 mt-3">Customers scan to view allergens in ${m.languages.length} languages.</p></div>`);
         new QRCode(document.getElementById('qrbox'), { text: S.siteUrl('/menu/' + m.id), width:200, height:200, colorDark:'#0f172a' });
       });
@@ -952,7 +952,7 @@
         const recipes = (S.db.recipes || [])
           .filter(r => !r.site || r.site === menu.site || r.site === S.db.currentSite)
           .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        const recipeOpts = ['<option value="">— Pick a recipe (allergens auto-fill) —</option>']
+        const recipeOpts = ['<option value="">? Pick a recipe (allergens auto-fill) ?</option>']
           .concat(recipes.map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.name)}</option>`)).join('');
         const allCb = S.ALLERGENS.map(a=>`<label class="flex items-center gap-2 text-xs manual-al-row"><input type="checkbox" value="${a}" class="al accent-brand-600">${a}</label>`).join('');
         modal('Add Dish',`<div class="space-y-3">
@@ -964,7 +964,7 @@
           <div id="autoAlSection" class="hidden">
             <label class="label">Allergens from recipe</label>
             <div id="autoAlBox" class="flex flex-wrap gap-1 p-2 border border-ink-100 rounded-lg min-h-[2.5rem]"></div>
-            <p class="text-xs text-ink-400 mt-1">Detected from linked recipe — updates if you change the recipe in Recipes.</p>
+            <p class="text-xs text-ink-400 mt-1">Detected from linked recipe ? updates if you change the recipe in Recipes.</p>
           </div>
           <div id="manualAlSection">
             <label class="label">Allergens (manual)</label>
@@ -1001,7 +1001,7 @@
             return;
           }
           document.getElementById('dn').value = r.name;
-          const desc = [r.category, r.servings ? r.servings + ' servings' : ''].filter(Boolean).join(' · ');
+          const desc = [r.category, r.servings ? r.servings + ' servings' : ''].filter(Boolean).join(' � ');
           document.getElementById('dd').value = desc;
           autoAllergens = mod ? mod.analyzeRecipe(r, r.servings || 1).allergens : (r.allergens || []);
           document.getElementById('autoAlBox').innerHTML = autoAllergens.length
@@ -1021,7 +1021,7 @@
             id:S.uid(), name:n, desc:document.getElementById('dd').value, allergens:al,
             recipeId: linkedRecipeId || null,
           });
-          S.persist(); closeModal(); window.App.render(); toast(linkedRecipeId ? 'Dish added — allergens from recipe' : 'Dish added'); };
+          S.persist(); closeModal(); window.App.render(); toast(linkedRecipeId ? 'Dish added ? allergens from recipe' : 'Dish added'); };
       }
     }};
   }
@@ -1034,10 +1034,10 @@
       <td class="font-semibold">${escapeHtml(l.product)}</td>
       <td>${fmt.date(l.prepped)}</td>
       <td>${fmt.date(expiry(l).toISOString())}</td>
-      <td>${l.allergens.length?l.allergens.map(a=>`<span class="badge badge-amber">${a}</span>`).join(' '):'<span class="text-ink-300">—</span>'}</td>
+      <td>${l.allergens.length?l.allergens.map(a=>`<span class="badge badge-amber">${a}</span>`).join(' '):'<span class="text-ink-300">?</span>'}</td>
       <td class="text-right"><button class="btn btn-ghost btn-sm" data-print="${l.id}">${icon('print','ico')} Print</button></td></tr>`).join('');
     const html = `
-      ${sectionHeader('LabelSmart — Food Labels','Prep labels for Brother QL 62 mm, 50×30 mm, or A4 — set size before printing', `
+      ${sectionHeader('LabelSmart ? Food Labels','Prep labels for Brother QL 62 mm, 50�30 mm, or A4 ? set size before printing', `
         <button class="btn btn-primary btn-sm" data-act="new">${icon('plus','ico')} Create label</button>`)}
       <div class="card overflow-hidden">
         <table class="table"><thead><tr><th>Product</th><th>Prepped</th><th>Use by</th><th>Allergens</th><th></th></tr></thead>
@@ -1069,8 +1069,8 @@
           <div class="w-full max-w-xs text-left">
             <label class="label">Label size (match your printer roll)</label>
             <select id="labelSize" class="select">
-              <option value="62" ${cur==='62'?'selected':''}>62 mm roll — Brother QL-800 / QL-810W</option>
-              <option value="5030" ${cur==='5030'?'selected':''}>50 × 30 mm die-cut</option>
+              <option value="62" ${cur==='62'?'selected':''}>62 mm roll ? Brother QL-800 / QL-810W</option>
+              <option value="5030" ${cur==='5030'?'selected':''}>50 � 30 mm die-cut</option>
               <option value="a4" ${cur==='a4'?'selected':''}>A4 sheet (office printer)</option>
             </select>
             <p class="text-xs text-ink-400 mt-2">Install Brother QL drivers, then choose your QL printer in the print dialog. Paper: 62 mm continuous.</p>
@@ -1118,7 +1118,7 @@
       <td><span class="badge badge-gray">${escapeHtml(w.reason)}</span></td><td>${escapeHtml(w.stage)}</td>
       <td>${fmt.money(w.cost,S.db.org.currency)}</td><td class="text-ink-500">${fmt.date(w.at)}</td></tr>`).join('');
     const html = `
-      ${sectionHeader('WasteWise — Waste Tracking','Log waste by item, reason and stage. Charts stay fixed until you add a new entry.', `
+      ${sectionHeader('WasteWise ? Waste Tracking','Log waste by item, reason and stage. Charts stay fixed until you add a new entry.', `
         <button class="btn btn-primary btn-sm" data-act="log">${icon('plus','ico')} Log waste</button>`)}
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <div class="kpi"><div class="text-xs text-ink-500">Total waste</div><div class="v">${totalKg.toFixed(1)}kg</div></div>
@@ -1173,7 +1173,7 @@
       }
       document.querySelector('[data-act="log"]').onclick=()=>{
         modal('Log Waste',`<div class="space-y-3"><input id="i" class="input" placeholder="Item">
-          <div class="grid grid-cols-2 gap-3"><input id="k" type="number" step="0.1" class="input" placeholder="Weight (kg)"><input id="c" type="number" step="0.1" class="input" placeholder="Cost (£)"></div>
+          <div class="grid grid-cols-2 gap-3"><input id="k" type="number" step="0.1" class="input" placeholder="Weight (kg)"><input id="c" type="number" step="0.1" class="input" placeholder="Cost (�)"></div>
           <div class="grid grid-cols-2 gap-3"><select id="r" class="select"><option>Overproduction</option><option>Spoilage</option><option>Trimming</option><option>Customer return</option><option>Expired</option></select>
           <select id="st" class="select"><option>Prep</option><option>Storage</option><option>Service</option></select></div>
           <button class="btn btn-primary w-full" id="s">Log waste</button></div>`);
@@ -1219,9 +1219,9 @@
     return `<div class="step-row" data-idx="${idx}">
       <div class="step-row__head">
         <strong>Step ${idx + 1}</strong>
-        <button type="button" class="btn btn-ghost btn-sm step-rm" title="Remove">×</button>
+        <button type="button" class="btn btn-ghost btn-sm step-rm" title="Remove">�</button>
       </div>
-      <textarea class="textarea step-text" rows="2" placeholder="Describe this step…">${escapeHtml(step.text || '')}</textarea>
+      <textarea class="textarea step-text" rows="2" placeholder="Describe this step?">${escapeHtml(step.text || '')}</textarea>
       <div class="step-row__media grid sm:grid-cols-2 gap-2">
         <div>
           <label class="text-xs text-ink-500">Step photo</label>
@@ -1302,7 +1302,7 @@
     if (!line) return null;
     if (line.includes('|')) {
       const p = line.split('|').map(s => s.trim());
-      if (p.length >= 3) return { name: p[0], baseQty: p[1] || '—', notes: p[2] || p[1] || '—' };
+      if (p.length >= 3) return { name: p[0], baseQty: p[1] || '?', notes: p[2] || p[1] || '?' };
       if (p.length === 2) return { name: p[0], baseQty: p[1], notes: p[1] };
     }
     const m = line.match(/^([\d./]+\s*(?:g|kg|ml|l|cl|tsp|tbsp|oz|lb|cup|cups|each|pinch|bunch|mm)?)\s+(.+)$/i)
@@ -1312,11 +1312,11 @@
       const name = (m[3] || m[2] || '').trim();
       return { name, baseQty, notes: baseQty };
     }
-    if (/^to taste$/i.test(line) || /^–$/.test(line)) return { name: line, baseQty: '—', notes: 'To taste' };
-    return { name: line, baseQty: '—', notes: '—' };
+    if (/^to taste$/i.test(line) || /^?$/.test(line)) return { name: line, baseQty: '?', notes: 'To taste' };
+    return { name: line, baseQty: '?', notes: '?' };
   }
   function scaleQtyString(qty, factor) {
-    if (!qty || qty === '—' || /^to taste$/i.test(qty)) return qty;
+    if (!qty || qty === '?' || /^to taste$/i.test(qty)) return qty;
     const m = String(qty).match(/^([\d./]+)\s*(.*)$/i);
     if (!m) return qty;
     const n = Math.round(parseFraction(m[1]) * factor * 1000) / 1000;
@@ -1345,8 +1345,8 @@
   }
   function analyzedIngRowHtml(it) {
     const mod = RN();
-    const al = mod ? mod.renderAllergenIcons(it.allergens, '—') : '—';
-    const nut = mod ? mod.formatNutShort(it.nutrition) : '—';
+    const al = mod ? mod.renderAllergenIcons(it.allergens, '?') : '?';
+    const nut = mod ? mod.formatNutShort(it.nutrition) : '?';
     const kitchen = it.notes && it.notes !== it.baseQty ? it.notes : (it.scaledQty || it.baseQty);
     return `<tr>
       <td>${escapeHtml(it.name)}</td>
@@ -1368,11 +1368,11 @@
       manualAllergens: it.manualAllergens || [],
     };
   }
-  const ING_UNITS = ['g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'each', 'pinch', 'bunch', '—'];
+  const ING_UNITS = ['g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'each', 'pinch', 'bunch', '?'];
   function ingBuilderRowHtml(row, idx) {
     const mod = RN();
     const preview = mod ? mod.normalizeItem(Object.assign({}, row, {
-      baseQty: row.qty ? `${row.qty}${row.unit && row.unit !== '—' ? ' ' + row.unit : ''}`.trim() : '—',
+      baseQty: row.qty ? `${row.qty}${row.unit && row.unit !== '?' ? ' ' + row.unit : ''}`.trim() : '?',
       grams: mod.parseQtyToGrams(row.qty, row.unit),
     })) : null;
     const al = preview ? mod.renderAllergenIcons(preview.allergens) : '';
@@ -1384,7 +1384,7 @@
         <input class="input ing-qty" placeholder="Qty" value="${escapeHtml(row.qty)}">
         <select class="select ing-unit">${unitOpts}</select>
         <input class="input ing-notes" placeholder="Kitchen notes" value="${escapeHtml(row.notes)}">
-        <button type="button" class="btn btn-ghost btn-sm ing-rm" title="Remove">×</button>
+        <button type="button" class="btn btn-ghost btn-sm ing-rm" title="Remove">�</button>
       </div>
       <div class="ing-row__live text-xs text-ink-500">${al ? `<span class="al-icon-row">${al}</span> ` : ''}${escapeHtml(nut)}${preview && !preview._estimated ? ' <span class="text-ink-400">(no guide data)</span>' : ''}</div>
     </div>`;
@@ -1474,7 +1474,7 @@
     const photoSrc = recipeHeroSrc(r);
     const photo = photoSrc ? `<img src="${photoSrc}" alt="" class="recipe-card__photo">` : '';
     const methodBlock = recipeMethodBlock(r);
-    const prepInfo = `Prep ${r.prepMins || 0} min · Cook ${r.cookMins || 0} min · Food cost ${fmt.money(r.cost || 0, S.db.org.currency)}`;
+    const prepInfo = `Prep ${r.prepMins || 0} min � Cook ${r.cookMins || 0} min � Food cost ${fmt.money(r.cost || 0, S.db.org.currency)}`;
     return `<div class="recipe-print" id="recipePrintCard" data-base-yield="${base}" data-yield-unit="${escapeHtml(unit)}">
       <div class="recipe-card__topbar">
         <div class="recipe-card__brand">
@@ -1522,7 +1522,7 @@
           <h2 class="recipe-card__section-title">${r.stepByStep ? 'Step-by-step method' : 'Method'}</h2>
           ${methodBlock}
           <div class="recipe-card__chef-notes"><strong>Chef notes</strong>${chefNotes}</div>
-          <div class="recipe-card__foot"><span>Kiteline recipe card</span><span>${site} · ${fmt.date(S.now())}</span></div>
+          <div class="recipe-card__foot"><span>Kiteline recipe card</span><span>${site} � ${fmt.date(S.now())}</span></div>
         </div>
       </div>
     </div>`;
@@ -1564,7 +1564,7 @@
       flags.glutenFree ? 'GF' : '',
       flags.dairy ? 'Dairy' : '',
       flags.lowSalt ? 'Low salt' : '',
-    ].filter(Boolean).join(' · ') : '';
+    ].filter(Boolean).join(' � ') : '';
     const kcalLine = analysis.perServing && analysis.perServing.kcal
       ? `<div style="font-size:11px"><b>Per portion:</b> ${analysis.perServing.kcal} kcal</div>` : '';
     const cls = recipeLabelSizeClass(sizeKey || '62');
@@ -1577,7 +1577,7 @@
       ${dietLine ? `<div style="font-size:11px"><b>Diet:</b> ${escapeHtml(dietLine)}</div>` : ''}
       <div style="font-size:11px"><b>Allergens:</b> ${escapeHtml(allergens)}</div>
       ${kcalLine}
-      <div style="font-size:10px;margin-top:5px;color:#64748b">Kiteline · ${fmt.date(S.now())}</div>
+      <div style="font-size:10px;margin-top:5px;color:#64748b">Kiteline � ${fmt.date(S.now())}</div>
     </div>`;
   }
   function printRecipeCard(r) {
@@ -1588,8 +1588,8 @@
         <div class="w-full max-w-sm text-left mx-auto mb-2">
           <label class="label">Label printer roll</label>
           <select id="recipeLabelSize" class="select">
-            <option value="62" ${curLabel==='62'?'selected':''}>62 mm — Brother QL-800 / QL-810W</option>
-            <option value="5030" ${curLabel==='5030'?'selected':''}>50 × 30 mm die-cut</option>
+            <option value="62" ${curLabel==='62'?'selected':''}>62 mm ? Brother QL-800 / QL-810W</option>
+            <option value="5030" ${curLabel==='5030'?'selected':''}>50 � 30 mm die-cut</option>
             <option value="a4" ${curLabel==='a4'?'selected':''}>A4 sheet</option>
           </select>
         </div>
@@ -1597,7 +1597,7 @@
           <button class="btn btn-primary" id="doRecipePrint">${icon('print','ico')} Print recipe (A4)</button>
           <button class="btn btn-ghost" id="doRecipeLabelPrint">${icon('labels','ico')} Print label</button>
         </div>
-        <p class="text-xs text-ink-500 text-center max-w-lg">Recipe card → office/A4 printer. Label → Brother QL or thermal roll. Scale quantity first if needed.</p>
+        <p class="text-xs text-ink-500 text-center max-w-lg">Recipe card ? office/A4 printer. Label ? Brother QL or thermal roll. Scale quantity first if needed.</p>
       </div>`;
     recipePreviewModal(r.name, body);
     const refreshLabel = () => {
@@ -1673,7 +1673,7 @@
           <div class="text-xs text-ink-400 mt-0.5"><span class="badge badge-blue">${escapeHtml(r.category)}</span></div></div>
           <div class="text-right text-xs text-ink-400">Serves ${r.servings}<br>${(r.prepMins||0)+(r.cookMins||0)} min</div>
         </div>
-        <div class="text-xs text-ink-500 mb-2 mt-2"><b>${ingCount}</b> ingredients · <b>${r.stepByStep && (r.steps||[]).length ? r.steps.length : (r.method||[]).length}</b> steps · food cost ${fmt.money(r.cost||0,S.db.org.currency)}</div>
+        <div class="text-xs text-ink-500 mb-2 mt-2"><b>${ingCount}</b> ingredients � <b>${r.stepByStep && (r.steps||[]).length ? r.steps.length : (r.method||[]).length}</b> steps � food cost ${fmt.money(r.cost||0,S.db.org.currency)}</div>
         <div class="mt-auto flex flex-wrap gap-2 pt-2">
           <button class="btn btn-ghost btn-sm flex-1" data-view="${r.id}">View</button>
           <button class="btn btn-ghost btn-sm" data-print="${r.id}">${icon('print','ico')}</button>
@@ -1686,7 +1686,7 @@
     const html = `
       ${sectionHeader('Recipes','Standardised recipe cards with photos, allergens, costing & one-click labels', `
         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add recipe</button>`)}
-      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">${list.map(card).join('') || '<p class="text-ink-400">No recipes yet — add one.</p>'}</div>`;
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">${list.map(card).join('') || '<p class="text-ink-400">No recipes yet ? add one.</p>'}</div>`;
 
     function form(existing) {
       const r = existing || { name:'', category:'Main', servings:4, prepMins:10, cookMins:20, allergens:[], ingredients:[], ingredientItems:[], method:[], proMethod:[], steps:[], stepByStep:false, image:null, proImage:null, cost:0 };
@@ -1713,7 +1713,7 @@
           <div><label class="label">Name</label><input id="rn" class="input" value="${escapeHtml(r.name)}" placeholder="Recipe name"></div>
           <div class="grid grid-cols-2 gap-2">
             <div><label class="label">Subtitle (optional)</label><input id="rsub" class="input" value="${escapeHtml(r.subtitle||'')}" placeholder="e.g. Vegan sandwiches"></div>
-            <div><label class="label">Yield unit</label><input id="ryu" class="input" value="${escapeHtml(r.yieldUnit||'portions')}" placeholder="portions, sandwiches, litres…"></div>
+            <div><label class="label">Yield unit</label><input id="ryu" class="input" value="${escapeHtml(r.yieldUnit||'portions')}" placeholder="portions, sandwiches, litres?"></div>
           </div>
           <div class="grid grid-cols-4 gap-2">
             <div><label class="label">Category</label><select id="rc" class="select">${cats.map(c=>`<option ${c===r.category?'selected':''}>${c}</option>`).join('')}</select></div>
@@ -1733,10 +1733,10 @@
               <button type="button" class="btn btn-ghost btn-sm" id="raiMethod">Write method</button>
             </div>
             <div id="raiParseWrap" class="hidden space-y-2">
-              <textarea id="raiParseText" class="textarea text-sm" rows="2" placeholder="200g flour, 2 eggs, 100ml milk, pinch salt…"></textarea>
+              <textarea id="raiParseText" class="textarea text-sm" rows="2" placeholder="200g flour, 2 eggs, 100ml milk, pinch salt?"></textarea>
               <button type="button" class="btn btn-primary btn-sm" id="raiParse">Parse into ingredient lines</button>
             </div>
-            <p class="text-xs text-ink-500">AI fills ingredients, method &amp; photos. Each company subscribes or uses their own OpenAI key — see <b>Settings → Recipe AI</b>.</p>
+            <p class="text-xs text-ink-500">AI fills ingredients, method &amp; photos. Each company subscribes or uses their own OpenAI key ? see <b>Settings ? Recipe AI</b>.</p>
           </div>
           <div><label class="label">Food cost (${S.db.org.currency})</label><input id="rcost" type="number" step="0.1" class="input" value="${r.cost||0}"></div>
           <div>
@@ -1746,7 +1746,7 @@
             </div>
             <div id="ringBuilder" class="ing-builder"></div>
             <div id="ringSummary" class="ing-summary"></div>
-            <p class="text-xs text-ink-400 mt-1">Enter name + quantity (g, kg, ml, tsp…). Allergens and nutrition are calculated automatically from each line.</p>
+            <p class="text-xs text-ink-400 mt-1">Enter name + quantity (g, kg, ml, tsp?). Allergens and nutrition are calculated automatically from each line.</p>
           </div>
           <div><label class="label">Method (one step per line)</label><textarea id="rmethod" class="textarea" rows="4">${escapeHtml((r.method||[]).join('\n'))}</textarea></div>
           <div class="border border-ink-100 rounded-xl p-3 space-y-2">
@@ -1763,10 +1763,10 @@
             </div>
           </div>
           <div id="plainProWrap" class="${r.stepByStep ? 'hidden' : ''}">
-          <div><label class="label">Pro method (one step per line)</label><textarea id="rpro" class="textarea" rows="4" placeholder="Professional kitchen steps — temps, CCP, holding, plating…">${escapeHtml((r.proMethod||[]).join('\n'))}</textarea>
+          <div><label class="label">Pro method (one step per line)</label><textarea id="rpro" class="textarea" rows="4" placeholder="Professional kitchen steps ? temps, CCP, holding, plating?">${escapeHtml((r.proMethod||[]).join('\n'))}</textarea>
           <p class="text-xs text-ink-400 mt-1">Chef-level instructions: probe temps, batch prep, hot hold, allergen checks.</p></div>
           </div>
-          <div><label class="label">Chef notes (optional)</label><textarea id="rchef" class="textarea" rows="2" placeholder="Scaling tips, seasoning, service notes…">${escapeHtml(r.chefNotes||'')}</textarea></div>
+          <div><label class="label">Chef notes (optional)</label><textarea id="rchef" class="textarea" rows="2" placeholder="Scaling tips, seasoning, service notes?">${escapeHtml(r.chefNotes||'')}</textarea></div>
           <div><label class="label">Extra allergens (manual)</label><p class="text-xs text-ink-400 mb-1">Tick any not already detected from ingredients.</p><div class="grid grid-cols-2 gap-1 max-h-40 overflow-auto p-2 border border-ink-100 rounded-lg">${allCb}</div></div>
           <button class="btn btn-primary w-full" id="rsave">${existing?'Save changes':'Add recipe'}</button>
         </div>`, { wide:true });
@@ -1824,11 +1824,11 @@
         if (!ai) return toast('AI module not loaded', 'warn');
         const st = await ai.getStatus();
         if (!st.enabled) {
-          return toast(st.message || 'Recipe AI not enabled — open Settings to subscribe or add your OpenAI key', 'warn');
+          return toast(st.message || 'Recipe AI not enabled ? open Settings to subscribe or add your OpenAI key', 'warn');
         }
         const label = btn.innerHTML;
         btn.disabled = true;
-        btn.textContent = 'Working…';
+        btn.textContent = 'Working?';
         try { await fn(); } catch (e) { toast(e.message || 'AI failed', 'error'); }
         finally { btn.disabled = false; btn.innerHTML = label; }
       };
@@ -1840,7 +1840,7 @@
           el.textContent = mode;
           el.className = 'text-xs text-brand-700 font-semibold';
         } else {
-          el.textContent = 'Not enabled — Settings';
+          el.textContent = 'Not enabled ? Settings';
           el.className = 'text-xs text-amber-700 font-semibold';
         }
       });
@@ -1850,28 +1850,28 @@
       document.getElementById('raiIngredients').onclick = () => withAi(document.getElementById('raiIngredients'), async () => {
         const payload = aiPayload();
         if (!payload.name) return toast('Enter a recipe name first', 'warn');
-        toast('AI suggesting ingredients…');
+        toast('AI suggesting ingredients?');
         const res = await window.RecipeAi.suggestIngredients(payload);
         if (!res.ingredients || !res.ingredients.length) return toast('No ingredients returned', 'warn');
         builder.setRows(res.ingredients);
-        toast('Ingredients added — review quantities');
+        toast('Ingredients added ? review quantities');
       });
       document.getElementById('raiParse').onclick = () => withAi(document.getElementById('raiParse'), async () => {
         const text = document.getElementById('raiParseText').value.trim();
         if (!text) return toast('Paste ingredient text first', 'warn');
-        toast('AI parsing ingredients…');
+        toast('AI parsing ingredients?');
         const res = await window.RecipeAi.parseIngredients(Object.assign({ text }, aiPayload()));
         if (!res.ingredients || !res.ingredients.length) return toast('Could not parse ingredients', 'warn');
         builder.setRows(res.ingredients);
         document.getElementById('raiParseWrap').classList.add('hidden');
-        toast('Ingredients parsed — check each line');
+        toast('Ingredients parsed ? check each line');
       });
       document.getElementById('raiMethod').onclick = () => withAi(document.getElementById('raiMethod'), async () => {
         const payload = aiPayload();
         if (!payload.name) return toast('Enter a recipe name first', 'warn');
         const rows = builder.getRows().filter((row) => row.name.trim());
         if (!rows.length) return toast('Add ingredients first (or use AI suggest)', 'warn');
-        toast('AI writing method…');
+        toast('AI writing method?');
         const res = await window.RecipeAi.generateMethod(Object.assign({ ingredients: rows }, payload));
         if (res.subtitle) document.getElementById('rsub').value = res.subtitle;
         if (res.prepMins) document.getElementById('rp').value = res.prepMins;
@@ -1882,12 +1882,12 @@
         }
         if (res.proMethod && res.proMethod.length) document.getElementById('rpro').value = res.proMethod.join('\n');
         if (res.chefNotes) document.getElementById('rchef').value = res.chefNotes;
-        toast('Method written — review before saving');
+        toast('Method written ? review before saving');
       });
       document.getElementById('raiImage').onclick = () => withAi(document.getElementById('raiImage'), async () => {
         const payload = aiPayload();
         if (!payload.name) return toast('Enter a recipe name first', 'warn');
-        toast('AI creating photo — may take 20 seconds…');
+        toast('AI creating photo ? may take 20 seconds?');
         const res = await window.RecipeAi.generateImage(payload);
         if (!res.image) return toast('No image returned', 'warn');
         resizeDataUrl(res.image, (data) => {
@@ -1969,15 +1969,15 @@
     const d = daysUntil(iso);
     if (d < 0) return `<span class="badge badge-red">Expired ${Math.abs(d)}d ago</span>`;
     if (d <= 30) return `<span class="badge badge-amber">Expires in ${d}d</span>`;
-    return `<span class="badge badge-green">Valid · ${fmt.date(iso)}</span>`;
+    return `<span class="badge badge-green">Valid � ${fmt.date(iso)}</span>`;
   }
-  function stars(n) { return '<span class="text-amber-500">'+'★'.repeat(n)+'<span class="text-ink-200">'+'★'.repeat(5-n)+'</span></span>'; }
+  function stars(n) { return '<span class="text-amber-500">'+'?'.repeat(n)+'<span class="text-ink-200">'+'?'.repeat(5-n)+'</span></span>'; }
 
   function suppliers() {
     const list = S.db.suppliers;
     const statusBadge = (s)=> s==='Approved'?'<span class="badge badge-green">Approved</span>':s==='Pending'?'<span class="badge badge-amber">Pending</span>':'<span class="badge badge-red">Suspended</span>';
     const rows = list.map(s=>`<tr>
-      <td><div class="font-semibold">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${escapeHtml(s.contact)} · ${escapeHtml(s.phone||'')}</div></td>
+      <td><div class="font-semibold">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${escapeHtml(s.contact)} � ${escapeHtml(s.phone||'')}</div></td>
       <td>${escapeHtml(s.category)}</td>
       <td>${statusBadge(s.status)}</td>
       <td>${stars(s.rating)}</td>
@@ -1988,11 +1988,11 @@
     const approved = list.filter(s=>s.status==='Approved').length;
     const expiring = list.filter(s=>daysUntil(s.certExpiry)<=30).length;
     const html = `
-      ${sectionHeader('Approved Suppliers','Due-diligence register — approval status, audits and certificate tracking', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add supplier</button>`)}
+      ${sectionHeader('Approved Suppliers','Due-diligence register ? approval status, audits and certificate tracking', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add supplier</button>`)}
       <div class="grid sm:grid-cols-3 gap-4 mb-5">
         ${kpiCard('Total suppliers', list.length, 'truck')}
         ${kpiCard('Approved', approved, 'check')}
-        ${kpiCard('Certs expiring ≤30d', expiring, 'alert')}
+        ${kpiCard('Certs expiring ?30d', expiring, 'alert')}
       </div>
       <div class="card overflow-hidden">
         <table class="table"><thead><tr><th>Supplier</th><th>Category</th><th>Status</th><th>Rating</th><th>Last audit</th><th>Certificate</th><th></th></tr></thead><tbody>${rows}</tbody></table>
@@ -2046,7 +2046,7 @@
       ${sectionHeader('Training & Certificates','Staff qualifications with automatic renewal tracking', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add record</button>`)}
       <div class="grid sm:grid-cols-3 gap-4 mb-5">
         ${kpiCard('Valid', valid, 'check')}
-        ${kpiCard('Expiring ≤30d', expiring, 'alert')}
+        ${kpiCard('Expiring ?30d', expiring, 'alert')}
         ${kpiCard('Expired', expired, 'alert')}
       </div>
       <div class="card overflow-hidden">
@@ -2082,7 +2082,7 @@
       return `<div class="card card-pad fade-in">
         <div class="flex items-start justify-between gap-3 mb-2">
           <div><div class="font-bold">${escapeHtml(i.title)}</div>
-          <div class="text-xs text-ink-400">${escapeHtml(i.type)} · ${escapeHtml(S.site(i.site).name)} · ${fmt.ago(i.at)} · by ${escapeHtml(m.name)}</div></div>
+          <div class="text-xs text-ink-400">${escapeHtml(i.type)} � ${escapeHtml(S.site(i.site).name)} � ${fmt.ago(i.at)} � by ${escapeHtml(m.name)}</div></div>
           <div class="flex flex-col items-end gap-1">${sevBadge(i.severity)}${stBadge(i.status)}</div>
         </div>
         <div class="text-sm text-ink-600 mt-2"><span class="font-semibold text-ink-700">Corrective action:</span> ${i.action?escapeHtml(i.action):'<span class="text-ink-400">None recorded yet</span>'}</div>
@@ -2094,7 +2094,7 @@
     }).join('');
     const open = list.filter(i=>i.status!=='Closed').length;
     const html = `
-      ${sectionHeader('Incidents & Corrective Actions','Accidents, complaints, pests and equipment faults — logged with actions taken', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Report incident</button>`)}
+      ${sectionHeader('Incidents & Corrective Actions','Accidents, complaints, pests and equipment faults ? logged with actions taken', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Report incident</button>`)}
       <div class="grid sm:grid-cols-3 gap-4 mb-5">
         ${kpiCard('Total logged', list.length, 'shield')}
         ${kpiCard('Open / in progress', open, 'alert')}
@@ -2124,7 +2124,7 @@
       document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{
         const inc=S.db.incidents.find(x=>x.id===b.dataset.action);
         modal('Corrective Action', `<div class="space-y-3">
-          <textarea id="ca" class="input" rows="4" placeholder="Describe the action taken…">${escapeHtml(inc.action||'')}</textarea>
+          <textarea id="ca" class="input" rows="4" placeholder="Describe the action taken?">${escapeHtml(inc.action||'')}</textarea>
           <select id="cs" class="select">${['Open','In progress','Closed'].map(x=>`<option ${x===inc.status?'selected':''}>${x}</option>`).join('')}</select>
           <button class="btn btn-primary w-full" id="cv">Save</button></div>`);
         document.getElementById('cv').onclick=()=>{ inc.action=document.getElementById('ca').value.trim(); inc.status=document.getElementById('cs').value; S.persist(); closeModal(); window.App.render(); toast('Action saved'); };
@@ -2135,10 +2135,10 @@
 
   /* ---------------- HOME / LIVE WORKFLOW DASHBOARD ---------------- */
   const WF_META = {
-    completed: { dot:'🟢', badge:'badge-green', row:'', label:'Completed' },
-    in_progress: { dot:'🟡', badge:'badge-amber', row:'wf-live-row', label:'In Progress' },
-    overdue: { dot:'🔴', badge:'badge-red', row:'wf-overdue-row', label:'Overdue' },
-    scheduled: { dot:'🔵', badge:'badge-blue', row:'', label:'Scheduled' },
+    completed: { dot:'??', badge:'badge-green', row:'', label:'Completed' },
+    in_progress: { dot:'??', badge:'badge-amber', row:'wf-live-row', label:'In Progress' },
+    overdue: { dot:'??', badge:'badge-red', row:'wf-overdue-row', label:'Overdue' },
+    scheduled: { dot:'??', badge:'badge-blue', row:'', label:'Scheduled' },
   };
   const isToday = (iso) => iso && new Date(iso).toDateString() === new Date().toDateString();
   function wfItemHtml(w) {
@@ -2149,7 +2149,7 @@
       <span class="wf-dot">${m.dot}</span>
       <div class="flex-1 min-w-0">
         <div class="text-sm font-semibold">${escapeHtml(w.label)}</div>
-        <div class="text-xs text-ink-400">${escapeHtml(w.category)} · ${escapeHtml(who.name)} · ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
+        <div class="text-xs text-ink-400">${escapeHtml(w.category)} � ${escapeHtml(who.name)} � ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
       </div>
       <span class="badge ${m.badge} flex-none text-[10px]">${m.label}</span>
     </div>`;
@@ -2177,18 +2177,18 @@
       <td>${escapeHtml(who.name)}</td>
       <td><span class="badge ${m.badge}">${m.label}</span></td>
       <td class="text-xs text-ink-400">${fmt.ago(w.updatedAt || w.completedAt || w.dueAt)}</td>
-      <td>${w.route ? `<a href="#${w.route}" class="text-brand-600 text-xs font-semibold">Open</a>` : '—'}</td>
+      <td>${w.route ? `<a href="#${w.route}" class="text-brand-600 text-xs font-semibold">Open</a>` : '?'}</td>
     </tr>`;
   }
   function workflowListPage(routeId, title, subtitle, iconName, items, extraHtml) {
     const pag = wfPaginate(routeId, items);
     const html = `
-      ${sectionHeader(title, subtitle + ` · ${items.length} total · 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
+      ${sectionHeader(title, subtitle + ` � ${items.length} total � 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
       <div class="flex flex-wrap gap-2 mb-4 text-xs">
-        <span class="badge badge-green">🟢 Completed</span>
-        <span class="badge badge-amber">🟡 In Progress</span>
-        <span class="badge badge-red">🔴 Overdue</span>
-        <span class="badge badge-blue">🔵 Scheduled</span>
+        <span class="badge badge-green">?? Completed</span>
+        <span class="badge badge-amber">?? In Progress</span>
+        <span class="badge badge-red">?? Overdue</span>
+        <span class="badge badge-blue">?? Scheduled</span>
       </div>
       ${extraHtml || ''}
       <div class="card overflow-hidden mb-4">
@@ -2198,7 +2198,7 @@
         </table>
       </div>
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}–${pag.end} of ${items.length} · Page ${pag.pg + 1} of ${pag.total}</div>
+        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}?${pag.end} of ${items.length} � Page ${pag.pg + 1} of ${pag.total}</div>
         <div class="flex flex-wrap gap-1">${pag.pages}</div>
       </div>`;
     return { title, html, mount() {
@@ -2269,11 +2269,11 @@
       <td>${r.isFirst ? `<div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xs">${escapeHtml(r.staffInitials)}</div><div><div class="font-semibold text-sm">${escapeHtml(r.staffName)}</div><div class="text-xs text-ink-400">${escapeHtml(r.staffRole)}</div></div></div>` : ''}</td>
       <td class="font-semibold text-sm">${escapeHtml(r.label)}</td>
       <td class="text-xs text-ink-500">${escapeHtml(r.category)}</td>
-      <td><span class="badge badge-amber">🟡 In Progress</span></td>
+      <td><span class="badge badge-amber">?? In Progress</span></td>
       <td class="text-xs text-ink-400">${fmt.ago(r.updatedAt)}</td>
     </tr>`).join('');
     const html = `
-      ${sectionHeader('Staff Currently Working', `${staff.length} staff on active tasks · 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">Back to Home</a>`)}
+      ${sectionHeader('Staff Currently Working', `${staff.length} staff on active tasks � 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">Back to Home</a>`)}
       <div class="card overflow-hidden mb-4">
         <table class="table"><thead><tr><th>Staff</th><th>Active task</th><th>Category</th><th>Status</th><th>Updated</th></tr></thead>
         <tbody>${tbody || '<tr><td colspan="5" class="text-center py-8 text-ink-400">No staff on active tasks.</td></tr>'}</tbody></table>
@@ -2411,8 +2411,9 @@
       </div>
     </button>`).join('');
 
-    // launchpad — every tool as an app-drawer tile
+    // launchpad ? every tool as an app-drawer tile
     const apps = [
+      {l:'Compliance',route:'compliance',i:'shield',c:'#115e59'},
       {l:'Dashboard',route:'dashboard',i:'dashboard',c:'#0f766e'},
       {l:'Tasks',route:'taskoverview',i:'check',c:'#0d9488'},
       {l:'Temperatures',route:'temps',i:'temp',c:'#0ea5e9'},
@@ -2448,7 +2449,7 @@
     const siteTeam = (db.team || []).filter(t => t.siteId === site).length;
     const milestones = [
       { label: 'Sign in to Kiteline', done: true, route: '' },
-      { label: 'Select kitchen — ' + (siteObj.legalName ? siteObj.legalName + ' · ' + siteObj.name : siteObj.name), done: !!site, route: 'sites' },
+      { label: 'Select kitchen ? ' + (siteObj.legalName ? siteObj.legalName + ' � ' + siteObj.name : siteObj.name), done: !!site, route: 'sites' },
       { label: 'Open recipes library', done: recipeCount >= 10, route: 'recipes' },
       { label: 'Complete opening / HACCP checks', done: hasChecklistDone, route: 'haccp' },
       { label: 'Set PIN in Settings (security)', done: window.Security && window.Security.hasPin(), route: 'settings' },
@@ -2464,9 +2465,9 @@
         <div class="h-2 rounded-full bg-ink-100 overflow-hidden mb-4"><div class="h-full bg-brand-500 transition-all" style="width:${Math.round(msDone / milestones.length * 100)}%"></div></div>
         <div class="space-y-2">
           ${milestones.map(m => `<div class="flex items-center gap-3 text-sm py-1">
-            <span class="w-5 text-center ${m.done ? 'text-brand-600 font-bold' : 'text-ink-300'}">${m.done ? '✓' : '○'}</span>
+            <span class="w-5 text-center ${m.done ? 'text-brand-600 font-bold' : 'text-ink-300'}">${m.done ? '?' : '?'}</span>
             <span class="flex-1 ${m.done ? 'text-ink-500' : 'font-medium text-ink-800'}">${escapeHtml(m.label)}</span>
-            ${!m.done && m.route ? `<button class="btn btn-ghost btn-sm" data-go="${m.route}">Go →</button>` : ''}
+            ${!m.done && m.route ? `<button class="btn btn-ghost btn-sm" data-go="${m.route}">Go ?</button>` : ''}
           </div>`).join('')}
         </div>
       </div>`;
@@ -2482,7 +2483,7 @@
       const urgent = daysLeft <= 3;
       trialBannerHtml = `<div class="card card-pad mb-5 flex flex-wrap items-center gap-3 border ${urgent ? 'border-amber-300 bg-amber-50' : 'border-brand-200 bg-brand-50'}">
         ${icon('shield','w-5 h-5 text-brand-700')}
-        <div class="text-sm flex-1 min-w-[200px]"><b>Free trial</b> — ${daysLeft} day${daysLeft === 1 ? '' : 's'} left · up to ${db.org.maxUsers || 5} users.</div>
+        <div class="text-sm flex-1 min-w-[200px]"><b>Free trial</b> ? ${daysLeft} day${daysLeft === 1 ? '' : 's'} left � up to ${db.org.maxUsers || 5} users.</div>
         <a href="#settings" class="btn btn-primary btn-sm">Choose a plan</a>
       </div>`;
     }
@@ -2495,13 +2496,13 @@
             <span class="text-xs font-bold uppercase tracking-wider text-brand-600">Live kitchen operations</span>
           </div>
           <h1 class="text-2xl font-extrabold">${greet}, ${escapeHtml(firstName)}</h1>
-          <p class="text-ink-500 text-sm">${escapeHtml(siteName)} · Retreat centre kitchen · ${fmt.date(S.now())}</p>
+          <p class="text-ink-500 text-sm">${escapeHtml(siteName)} � Retreat centre kitchen � ${fmt.date(S.now())}</p>
         </div>
         <div class="flex flex-wrap gap-2 text-xs">
-          <span class="badge badge-green">🟢 Completed</span>
-          <span class="badge badge-amber">🟡 In Progress</span>
-          <span class="badge badge-red">🔴 Overdue</span>
-          <span class="badge badge-blue">🔵 Scheduled</span>
+          <span class="badge badge-green">?? Completed</span>
+          <span class="badge badge-amber">?? In Progress</span>
+          <span class="badge badge-red">?? Overdue</span>
+          <span class="badge badge-blue">?? Scheduled</span>
         </div>
       </div>
       ${openAlerts?`<div class="card card-pad mb-5 flex items-center gap-3 border-l-4 border-red-500 bg-red-50">
@@ -2511,58 +2512,58 @@
       ${milestonesHtml}
 
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
-        <a href="#wflive" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Happening now</div><div class="v text-amber-600">${live.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">View all pages →</div></a>
-        <a href="#wfdone" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Completed today</div><div class="v text-brand-600">${completedToday.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">10 per page →</div></a>
-        <a href="#wfout" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Outstanding</div><div class="v">${outstanding.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">10 per page →</div></a>
-        <a href="#wfod" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Overdue</div><div class="v ${overdue.length?'text-red-600':''}">${overdue.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">10 per page →</div></a>
-        <a href="#wfperf" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Kitchen score</div><div class="v">${kitchenScore}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">Full report →</div></a>
+        <a href="#wflive" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Happening now</div><div class="v text-amber-600">${live.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">View all pages ?</div></a>
+        <a href="#wfdone" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Completed today</div><div class="v text-brand-600">${completedToday.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">10 per page ?</div></a>
+        <a href="#wfout" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Outstanding</div><div class="v">${outstanding.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">10 per page ?</div></a>
+        <a href="#wfod" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Overdue</div><div class="v ${overdue.length?'text-red-600':''}">${overdue.length}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">10 per page ?</div></a>
+        <a href="#wfperf" class="kpi hover:ring-2 hover:ring-brand-300 transition-shadow cursor-pointer"><div class="text-xs text-ink-500">Kitchen score</div><div class="v">${kitchenScore}</div><div class="text-[10px] text-brand-600 mt-1 font-semibold">Full report ?</div></a>
       </div>
 
       <div class="grid xl:grid-cols-3 gap-5 mb-5">
         <div class="xl:col-span-2 card card-pad">
           <div class="flex items-center justify-between mb-3">
             <h2 class="font-bold flex items-center gap-2">${icon('temp','w-5 h-5 text-amber-500')} Happening Now</h2>
-            <a href="#wflive" class="text-xs text-brand-600 font-semibold">All pages (10 each) →</a>
+            <a href="#wflive" class="text-xs text-brand-600 font-semibold">All pages (10 each) ?</a>
           </div>
-          <div class="wf-feed space-y-2" id="wf-live">${live.length ? live.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm py-4 text-center">No active tasks — kitchen is between service periods.</p>'}</div>
+          <div class="wf-feed space-y-2" id="wf-live">${live.length ? live.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm py-4 text-center">No active tasks ? kitchen is between service periods.</p>'}</div>
         </div>
         <div class="space-y-5">
           <div class="card card-pad">
-            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('team','w-5 h-5 text-brand-600')} Staff Currently Working</h2><a href="#wfstaff" class="text-xs text-brand-600 font-semibold">View all →</a></div>
+            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('team','w-5 h-5 text-brand-600')} Staff Currently Working</h2><a href="#wfstaff" class="text-xs text-brand-600 font-semibold">View all ?</a></div>
             ${staffActive.length ? staffActive.map(s=>`<div class="flex items-center gap-3 py-2 border-b border-ink-50 last:border-0">
               <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">${s.initials}</div>
               <div class="flex-1 min-w-0"><div class="font-semibold text-sm">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${s.tasks.length} active task${s.tasks.length>1?'s':''}</div></div>
-              <span class="badge badge-amber">🟡 Active</span>
+              <span class="badge badge-amber">?? Active</span>
             </div>`).join('') : '<p class="text-ink-400 text-sm">No staff logged on active tasks.</p>'}
           </div>
           <div class="card card-pad">
-            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('alert','w-5 h-5 text-red-500')} Overdue <span class="badge badge-red">${overdue.length}</span></h2><a href="#wfod" class="text-xs text-brand-600 font-semibold">10/page →</a></div>
-            <div class="space-y-2 max-h-48 overflow-y-auto">${overdue.length ? overdue.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm">No overdue tasks — great work.</p>'}</div>
+            <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('alert','w-5 h-5 text-red-500')} Overdue <span class="badge badge-red">${overdue.length}</span></h2><a href="#wfod" class="text-xs text-brand-600 font-semibold">10/page ?</a></div>
+            <div class="space-y-2 max-h-48 overflow-y-auto">${overdue.length ? overdue.map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm">No overdue tasks ? great work.</p>'}</div>
           </div>
         </div>
       </div>
 
       <div class="grid lg:grid-cols-2 gap-5 mb-5">
         <div class="card card-pad">
-          <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('check','w-5 h-5 text-brand-600')} Completed Today <span class="badge badge-green">${completedToday.length}</span></h2><a href="#wfdone" class="text-xs text-brand-600 font-semibold">10/page →</a></div>
+          <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('check','w-5 h-5 text-brand-600')} Completed Today <span class="badge badge-green">${completedToday.length}</span></h2><a href="#wfdone" class="text-xs text-brand-600 font-semibold">10/page ?</a></div>
           <div class="wf-feed space-y-2">${completedToday.length ? completedToday.slice(0,12).map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm">Nothing completed yet today.</p>'}</div>
         </div>
         <div class="card card-pad">
-          <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('layers','w-5 h-5 text-blue-500')} Outstanding <span class="badge badge-blue">${outstanding.length}</span></h2><a href="#wfout" class="text-xs text-brand-600 font-semibold">10/page →</a></div>
+          <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('layers','w-5 h-5 text-blue-500')} Outstanding <span class="badge badge-blue">${outstanding.length}</span></h2><a href="#wfout" class="text-xs text-brand-600 font-semibold">10/page ?</a></div>
           <div class="wf-feed space-y-2">${outstanding.length ? outstanding.slice(0,12).map(wfItemHtml).join('') : '<p class="text-ink-400 text-sm">All clear.</p>'}</div>
         </div>
       </div>
 
-      <h2 class="font-bold text-sm uppercase tracking-wide text-ink-400 mb-3">Operations status — 10 pages each</h2>
+      <h2 class="font-bold text-sm uppercase tracking-wide text-ink-400 mb-3">Operations status ? 10 pages each</h2>
       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
-        <a href="#wfdel" class="block hover:opacity-90">${statusPanel('Deliveries today', deliveriesToday.length ? 100 : 60, `${deliveriesToday.length} received · ${deliveriesExpected.length} in pipeline`, deliveriesToday.length ? 'ok' : 'warn')}</a>
-        <a href="#wfprod" class="block hover:opacity-90">${statusPanel('Food production', prepPct, `${prepLive.filter(w=>w.status==='in_progress').length} in progress · ${serviceReady ? (serviceReady.status==='scheduled'?'service pending':'ready') : 'on track'}`, prepPct>=70?'ok':prepPct>=40?'warn':'bad')}</a>
+        <a href="#wfdel" class="block hover:opacity-90">${statusPanel('Deliveries today', deliveriesToday.length ? 100 : 60, `${deliveriesToday.length} received � ${deliveriesExpected.length} in pipeline`, deliveriesToday.length ? 'ok' : 'warn')}</a>
+        <a href="#wfprod" class="block hover:opacity-90">${statusPanel('Food production', prepPct, `${prepLive.filter(w=>w.status==='in_progress').length} in progress � ${serviceReady ? (serviceReady.status==='scheduled'?'service pending':'ready') : 'on track'}`, prepPct>=70?'ok':prepPct>=40?'warn':'bad')}</a>
         <a href="#wfclean" class="block hover:opacity-90">${statusPanel('Cleaning status', cleaningPct, `${cleaningDone}/${cleaningTasks.length} tasks done`, cleaningPct>=80?'ok':'warn')}</a>
-        <a href="#wfhaccp" class="block hover:opacity-90">${statusPanel('HACCP compliance', haccpPct, `${haccpDone}/${haccpTasks.length} checks · ${tempCompliance}% temps OK`, haccpPct>=85?'ok':haccpPct>=60?'warn':'bad')}</a>
+        <a href="#wfhaccp" class="block hover:opacity-90">${statusPanel('HACCP compliance', haccpPct, `${haccpDone}/${haccpTasks.length} checks � ${tempCompliance}% temps OK`, haccpPct>=85?'ok':haccpPct>=60?'warn':'bad')}</a>
       </div>
 
       <div class="card card-pad mb-6" style="background:linear-gradient(135deg,#0f766e08,#fff)">
-        <div class="flex items-center justify-between mb-4"><h2 class="font-bold flex items-center gap-2">${icon('dashboard','w-5 h-5 text-brand-600')} Kitchen Performance Summary</h2><a href="#wfperf" class="btn btn-ghost btn-sm">Full report (10/page) →</a></div>
+        <div class="flex items-center justify-between mb-4"><h2 class="font-bold flex items-center gap-2">${icon('dashboard','w-5 h-5 text-brand-600')} Kitchen Performance Summary</h2><a href="#wfperf" class="btn btn-ghost btn-sm">Full report (10/page) ?</a></div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 text-center">
           <div><div class="text-3xl font-extrabold text-brand-700">${kitchenScore}</div><div class="text-xs text-ink-400 mt-1">Overall score</div></div>
           <div><div class="text-3xl font-extrabold">${completedToday.length}/${workflows.length}</div><div class="text-xs text-ink-400 mt-1">Tasks done today</div></div>
@@ -2583,8 +2584,8 @@
         </div>
       </div>
 
-      <details class="mb-4">
-        <summary class="font-bold text-sm uppercase tracking-wide text-ink-400 cursor-pointer py-2">Quick launch — apps & tools</summary>
+      <details class="mb-4" open>
+        <summary class="font-bold text-sm uppercase tracking-wide text-ink-400 cursor-pointer py-2">Quick launch ? apps & tools</summary>
         <div class="grid sm:grid-cols-2 gap-4 mt-3">${tiles}</div>
         <div class="card card-pad mt-4"><div class="grid grid-cols-4 sm:grid-cols-6 gap-1">${quick}</div></div>
       </details>`;
@@ -2603,7 +2604,7 @@
 
     // deterministic hash so derived prices/sales are stable per dish
     const hash = (s)=>{ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0); };
-    // realistic menu price bands per course (independent of cost → varied GP)
+    // realistic menu price bands per course (independent of cost ? varied GP)
     const band = { Starter:[5.5,8.5], Soup:[5,7], Main:[11,17], Dessert:[6,9], Lunch:[7.5,11.5], Side:[3,5], Breakfast:[6,10] };
     const derivePrice = (r,portionCost)=>{ const [lo,hi]=band[r.category]||[8,14]; const span=Math.round((hi-lo)*20); const p=lo+(hash(r.name)%(span+1))/20; return Math.max(+(portionCost*1.8).toFixed(2), +p.toFixed(2)); };
     const deriveSold = (r)=>{ const base = (r.category==='Soup'||r.category==='Lunch'||r.category==='Starter')?90:60; return base + (hash('s'+r.name)%80); };
@@ -2616,7 +2617,7 @@
       const fcPct = price>0 ? portionCost/price*100 : 0;
       const profit = (price-portionCost)*sold;
       const revenue = price*sold;
-      return { r, name:r.name, category:r.category||'—', portionCost, price, sold, gp, fcPct, profit, revenue };
+      return { r, name:r.name, category:r.category||'?', portionCost, price, sold, gp, fcPct, profit, revenue };
     });
 
     const totalRev = dishes.reduce((n,d)=>n+d.revenue,0);
@@ -2640,7 +2641,7 @@
       const cls = classify(d);
       const clsColor = {Star:'badge-green',Plowhorse:'badge-amber',Puzzle:'badge-blue',Dog:'badge-red'}[cls]||'badge-gray';
       return `<tr>
-        <td><div class="font-semibold">${escapeHtml(d.name)}</div><div class="text-xs text-ink-400">${escapeHtml(d.category)} · ${d.sold} sold</div></td>
+        <td><div class="font-semibold">${escapeHtml(d.name)}</div><div class="text-xs text-ink-400">${escapeHtml(d.category)} � ${d.sold} sold</div></td>
         <td>${money(d.portionCost)}</td>
         <td>${money(d.price)}</td>
         <td>${d.fcPct.toFixed(0)}%</td>
@@ -2654,7 +2655,7 @@
     // menu engineering quadrants
     const quad = (key,title,desc,color)=>{
       const items = dishes.filter(d=>classify(d)===key);
-      const list = items.length ? items.map(d=>`<div class="flex justify-between text-sm py-0.5"><span>${escapeHtml(d.name)}</span><span class="text-ink-400">${d.gp.toFixed(0)}% · ${d.sold}</span></div>`).join('') : '<div class="text-sm text-ink-300">None</div>';
+      const list = items.length ? items.map(d=>`<div class="flex justify-between text-sm py-0.5"><span>${escapeHtml(d.name)}</span><span class="text-ink-400">${d.gp.toFixed(0)}% � ${d.sold}</span></div>`).join('') : '<div class="text-sm text-ink-300">None</div>';
       return `<div class="card card-pad" style="border-top:3px solid ${color}">
         <div class="flex items-center justify-between mb-1"><h4 class="font-bold">${title}</h4><span class="badge" style="background:${color}1a;color:${color};border:none">${items.length}</span></div>
         <p class="text-xs text-ink-400 mb-2">${desc}</p>${list}</div>`;
@@ -2672,10 +2673,10 @@
 
       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Menu engineering matrix</h3>
       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        ${quad('Star','⭐ Stars','High profit · high popularity — promote & protect','#059669')}
-        ${quad('Plowhorse','🐴 Plowhorses','Popular but low margin — re-engineer cost','#d97706')}
-        ${quad('Puzzle','🧩 Puzzles','High margin but low sales — reposition/upsell','#2563eb')}
-        ${quad('Dog','🐶 Dogs','Low profit · low sales — consider removing','#dc2626')}
+        ${quad('Star','? Stars','High profit � high popularity ? promote & protect','#059669')}
+        ${quad('Plowhorse','?? Plowhorses','Popular but low margin ? re-engineer cost','#d97706')}
+        ${quad('Puzzle','?? Puzzles','High margin but low sales ? reposition/upsell','#2563eb')}
+        ${quad('Dog','?? Dogs','Low profit � low sales ? consider removing','#dc2626')}
       </div>
 
       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Dish profitability</h3>
@@ -2692,13 +2693,13 @@
       document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{
         const r = db.recipes.find(x=>x.id===b.dataset.edit); if(!r) return;
         const portionCost = (r.cost||0)/(r.servings||1);
-        modal('Edit pricing — '+escapeHtml(r.name), `<div class="space-y-3">
-          <div class="text-sm text-ink-500">Portion cost: <b>${money(portionCost)}</b> (batch ${money(r.cost||0)} ÷ ${r.servings||1} servings)</div>
+        modal('Edit pricing ? '+escapeHtml(r.name), `<div class="space-y-3">
+          <div class="text-sm text-ink-500">Portion cost: <b>${money(portionCost)}</b> (batch ${money(r.cost||0)} � ${r.servings||1} servings)</div>
           <div><label class="label">Menu price (${cur})</label><input id="fc_p" type="number" step="0.05" class="input" value="${(r.price!=null&&r.price>0?r.price:derivePrice(r,portionCost)).toFixed(2)}"></div>
           <div><label class="label">Units sold / week</label><input id="fc_s" type="number" class="input" value="${r.sold!=null?r.sold:deriveSold(r)}"></div>
           <div id="fc_prev" class="text-sm font-semibold"></div>
           <button class="btn btn-primary w-full" id="fc_save">Save pricing</button></div>`);
-        const prev = ()=>{ const p=parseFloat(document.getElementById('fc_p').value)||0; const gp=p>0?((p-portionCost)/p*100):0; document.getElementById('fc_prev').innerHTML = `Gross profit: <span class="${gp>=TARGET_GP?'text-brand-700':'text-red-600'}">${gp.toFixed(1)}%</span> · Food cost ${(p>0?portionCost/p*100:0).toFixed(1)}%`; };
+        const prev = ()=>{ const p=parseFloat(document.getElementById('fc_p').value)||0; const gp=p>0?((p-portionCost)/p*100):0; document.getElementById('fc_prev').innerHTML = `Gross profit: <span class="${gp>=TARGET_GP?'text-brand-700':'text-red-600'}">${gp.toFixed(1)}%</span> � Food cost ${(p>0?portionCost/p*100:0).toFixed(1)}%`; };
         document.getElementById('fc_p').oninput = prev; prev();
         document.getElementById('fc_save').onclick = ()=>{
           r.price = parseFloat(document.getElementById('fc_p').value)||0;
@@ -2717,20 +2718,20 @@
     const rejected = all.length - accepted;
     const acceptRate = all.length ? Math.round(accepted/all.length*100) : 100;
     const catBadge=(c)=>{ const m={Chilled:'badge-blue',Frozen:'badge-blue',Produce:'badge-green',Dairy:'badge-gray',Ambient:'badge-gray',Bakery:'badge-amber'}; return `<span class="badge ${m[c]||'badge-gray'}">${escapeHtml(c)}</span>`; };
-    const okBadge=(v)=> v==='Pass'?'<span class="badge badge-green">Pass</span>':v==='Fail'?'<span class="badge badge-red">Fail</span>':'<span class="text-ink-300">—</span>';
-    const tempCell=(d)=>{ if(d.temp==null) return '<span class="text-ink-300">n/a</span>'; const bad=d.target!=null && d.temp>d.target; return `<span class="font-semibold ${bad?'text-red-600':''}">${d.temp}°C</span>`; };
+    const okBadge=(v)=> v==='Pass'?'<span class="badge badge-green">Pass</span>':v==='Fail'?'<span class="badge badge-red">Fail</span>':'<span class="text-ink-300">?</span>';
+    const tempCell=(d)=>{ if(d.temp==null) return '<span class="text-ink-300">n/a</span>'; const bad=d.target!=null && d.temp>d.target; return `<span class="font-semibold ${bad?'text-red-600':''}">${d.temp}�C</span>`; };
     const rows = all.map(d=>`<tr data-status="${d.accepted?'Accepted':'Rejected'}">
       <td><div class="font-semibold">${escapeHtml(d.supplier)}</div><div class="text-xs text-ink-400">${escapeHtml(d.items||'')}</div></td>
       <td>${catBadge(d.category)}</td>
       <td>${tempCell(d)}</td>
-      <td class="text-ink-400">${d.target!=null?(d.category==='Frozen'?'≤ '+d.target:'≤ '+d.target)+'°C':'—'}</td>
+      <td class="text-ink-400">${d.target!=null?(d.category==='Frozen'?'? '+d.target:'? '+d.target)+'�C':'?'}</td>
       <td>${d.packaging==='Good'?'<span class="badge badge-green">Good</span>':'<span class="badge badge-red">Damaged</span>'}</td>
       <td>${okBadge(d.dateCheck)}</td>
       <td>${d.accepted?'<span class="badge badge-green">Accepted</span>':'<span class="badge badge-red">Rejected</span>'}</td>
       <td class="text-xs ${d.accepted?'text-ink-300':'text-ink-700'}">${d.reason?escapeHtml(d.reason):''}</td>
       <td>${escapeHtml(S.member(d.by).name)}</td><td>${fmt.ago(d.at)}</td></tr>`).join('');
     const html = `
-      ${sectionHeader('Deliveries — Goods In','Temperature & quality checks on every delivery (chilled ≤5°C, frozen ≤-18°C)', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log delivery</button>`)}
+      ${sectionHeader('Deliveries ? Goods In','Temperature & quality checks on every delivery (chilled ?5�C, frozen ?-18�C)', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log delivery</button>`)}
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         ${kpiCard('Deliveries (site)', all.length, 'truck')}
         ${kpiCard('Accepted', accepted, 'check')}
@@ -2753,7 +2754,7 @@
           <input id="d_i" class="input" placeholder="Items (e.g. chilled chicken, dairy)">
           <div class="grid grid-cols-2 gap-3">
             <select id="d_c" class="select">${['Chilled','Frozen','Produce','Dairy','Ambient','Bakery'].map(x=>`<option>${x}</option>`).join('')}</select>
-            <div><label class="label">Delivery temp °C</label><input id="d_t" type="number" step="0.1" class="input" value="3"></div>
+            <div><label class="label">Delivery temp �C</label><input id="d_t" type="number" step="0.1" class="input" value="3"></div>
           </div>
           <div class="grid grid-cols-3 gap-3">
             <select id="d_p" class="select"><option>Good</option><option>Damaged</option></select>
@@ -2764,7 +2765,7 @@
           <div id="d_rwrap" class="hidden"><label class="label">Rejection reason</label><textarea id="d_r" class="input" rows="2" placeholder="Why was it rejected / partially rejected?"></textarea></div>
           <button class="btn btn-primary w-full" id="d_save">Save delivery</button></div>`);
         const targetFor=(c)=> c==='Frozen'?-18 : (c==='Ambient'||c==='Bakery')?null : (c==='Produce'?8:5);
-        const grade=()=>{ const c=document.getElementById('d_c').value, t=+document.getElementById('d_t').value, tg=targetFor(c); const pk=document.getElementById('d_p').value, dc=document.getElementById('d_d').value; const tempOk = tg==null?true:(t<=tg); const ok = tempOk && pk==='Good' && dc==='Pass'; document.getElementById('d_grade').innerHTML = `Recommendation: <span class="${ok?'text-brand-700':'text-red-600'}">${ok?'Accept':'Reject / check'}</span>${tg!=null?` · target ≤${tg}°C`:' · ambient (no temp)'}`; document.getElementById('d_rwrap').classList.toggle('hidden', ok); return ok; };
+        const grade=()=>{ const c=document.getElementById('d_c').value, t=+document.getElementById('d_t').value, tg=targetFor(c); const pk=document.getElementById('d_p').value, dc=document.getElementById('d_d').value; const tempOk = tg==null?true:(t<=tg); const ok = tempOk && pk==='Good' && dc==='Pass'; document.getElementById('d_grade').innerHTML = `Recommendation: <span class="${ok?'text-brand-700':'text-red-600'}">${ok?'Accept':'Reject / check'}</span>${tg!=null?` � target ?${tg}�C`:' � ambient (no temp)'}`; document.getElementById('d_rwrap').classList.toggle('hidden', ok); return ok; };
         ['d_c','d_t','d_p','d_v','d_d'].forEach(id=>{ const el=document.getElementById(id); el.oninput=grade; el.onchange=grade; }); grade();
         document.getElementById('d_save').onclick=()=>{
           const supplier=document.getElementById('d_s').value.trim(); if(!supplier)return toast('Enter a supplier','warn');
@@ -2784,7 +2785,7 @@
   function taskoverview() {
     const db = S.db;
     const member = (id)=>db.team.find(t=>t.id===id);
-    const siteName = (id)=>{ try { return S.site(id).name; } catch(e){ const s=db.sites.find(x=>x.id===id); return s?s.name:'—'; } };
+    const siteName = (id)=>{ try { return S.site(id).name; } catch(e){ const s=db.sites.find(x=>x.id===id); return s?s.name:'?'; } };
     const now = new Date();
     const minsNow = now.getHours()*60 + now.getMinutes();
     const parseDue = (due)=>{ const m=/(\d{1,2}):(\d{2})\s*$/.exec(due||''); return m ? (+m[1]*60 + +m[2]) : null; };
@@ -2807,11 +2808,11 @@
       id:'as_'+a.id, title:'Service overdue: '+a.name, type:'Equipment service', site:a.site, assignee:null,
       due:fmt.date(a.nextService), done:0, total:0, status:'Overdue', route:'assets' }));
     db.training.filter(t=>daysUntil(t.expires)<0).forEach(t=>{ const m=member(t.person); tasks.push({
-      id:'tr_'+t.id, title:'Renew training: '+(m?m.name:'Staff')+' — '+t.course, type:'Staff training', site:(m?m.siteId:db.currentSite), assignee:t.person,
+      id:'tr_'+t.id, title:'Renew training: '+(m?m.name:'Staff')+' ? '+t.course, type:'Staff training', site:(m?m.siteId:db.currentSite), assignee:t.person,
       due:fmt.date(t.expires), done:0, total:0, status:'Overdue', route:'training' }); });
     db.maintenance.filter(m=>m.status!=='Closed'&&m.status!=='Resolved').forEach(m=>tasks.push({
       id:'mt_'+m.id, title:'Maintenance: '+m.title, type:'Repair ticket', site:m.site, assignee:null,
-      due:m.priority||'—', done:0, total:0, status:'In progress', route:'maintenance' }));
+      due:m.priority||'?', done:0, total:0, status:'In progress', route:'maintenance' }));
     (db.cooling||[]).filter(c=>c.result==='Fail').forEach(c=>tasks.push({
       id:'co_'+c.id, title:'Investigate failed cooling: '+(c.item||'batch'), type:'Cooling verification', site:c.site, assignee:null,
       due:'ASAP', done:0, total:0, status:'Overdue', route:'cooling' }));
@@ -2827,7 +2828,7 @@
     const rows = tasks.map(t=>{
       const m = t.assignee?member(t.assignee):null;
       const who = m ? `<span class="inline-flex items-center gap-1.5"><span class="w-6 h-6 rounded-full bg-ink-100 text-ink-600 text-[10px] font-bold flex items-center justify-center">${m.initials}</span>${escapeHtml(m.name)}</span>` : '<span class="text-ink-300">Unassigned</span>';
-      const prog = t.total ? `<div class="flex items-center gap-2"><div class="h-1.5 w-16 bg-ink-100 rounded-full overflow-hidden"><div class="h-full bg-brand-600" style="width:${Math.round(t.done/t.total*100)}%"></div></div><span class="text-xs text-ink-400">${t.done}/${t.total}</span></div>` : '<span class="text-xs text-ink-300">—</span>';
+      const prog = t.total ? `<div class="flex items-center gap-2"><div class="h-1.5 w-16 bg-ink-100 rounded-full overflow-hidden"><div class="h-full bg-brand-600" style="width:${Math.round(t.done/t.total*100)}%"></div></div><span class="text-xs text-ink-400">${t.done}/${t.total}</span></div>` : '<span class="text-xs text-ink-300">?</span>';
       return `<tr data-status="${t.status}">
         <td><div class="font-semibold">${escapeHtml(t.title)}</div><div class="text-xs text-ink-400">${escapeHtml(t.type)}</div></td>
         <td>${escapeHtml(siteName(t.site))}</td>
@@ -2883,7 +2884,7 @@
     const list = S.db.assets;
     const stBadge = (s)=> s==='Operational'?'<span class="badge badge-green">Operational</span>':s==='Needs attention'?'<span class="badge badge-amber">Needs attention</span>':'<span class="badge badge-red">Out of service</span>';
     const rows = list.map(a=>`<tr>
-      <td><div class="font-semibold">${escapeHtml(a.name)}</div><div class="text-xs text-ink-400">${escapeHtml(a.serial)} · ${escapeHtml(a.supplier||'')}</div></td>
+      <td><div class="font-semibold">${escapeHtml(a.name)}</div><div class="text-xs text-ink-400">${escapeHtml(a.serial)} � ${escapeHtml(a.supplier||'')}</div></td>
       <td>${escapeHtml(a.type)}</td><td>${escapeHtml(S.site(a.site).name)}</td>
       <td>${fmt.date(a.lastService)}</td><td>${serviceBadge(a.nextService)}</td><td>${stBadge(a.status)}</td>
       <td class="text-right"><button class="btn btn-ghost btn-sm" data-edit="${a.id}">Edit</button></td>
@@ -2932,10 +2933,10 @@
     const rows = list.map(b=>`<tr>
       <td><div class="font-semibold">${escapeHtml(b.product)}</div><div class="text-xs text-ink-400">${escapeHtml(b.batchNo)}</div></td>
       <td>${escapeHtml(b.qty)}</td><td>${fmt.date(b.made)}</td>
-      <td>${b.cookTemp}°C</td><td>${passBadge(b.coolResult)}</td><td>${fmt.date(b.useBy)}</td>
+      <td>${b.cookTemp}�C</td><td>${passBadge(b.coolResult)}</td><td>${fmt.date(b.useBy)}</td>
       <td>${escapeHtml(S.member(b.by).name)}</td></tr>`).join('');
     const html = `
-      ${sectionHeader('Batch Production','Cook → cool → use-by traceability for prepared batches', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} New batch</button>`)}
+      ${sectionHeader('Batch Production','Cook ? cool ? use-by traceability for prepared batches', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} New batch</button>`)}
       <div class="grid sm:grid-cols-3 gap-4 mb-5">
         ${kpiCard('Batches (site)', list.length, 'layers')}
         ${kpiCard('Cooling fails', list.filter(b=>b.coolResult==='Fail').length, 'alert')}
@@ -2947,7 +2948,7 @@
         modal('New Batch',`<div class="space-y-3">
           <input id="b_p" class="input" placeholder="Product">
           <div class="grid grid-cols-2 gap-3"><input id="b_no" class="input" placeholder="Batch no"><input id="b_q" class="input" placeholder="Quantity (e.g. 8 trays)"></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Cook core temp (°C)</label><input id="b_ct" type="number" step="0.1" class="input" value="75"></div><select id="b_cr" class="select"><option>Pass</option><option>Fail</option></select></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Cook core temp (�C)</label><input id="b_ct" type="number" step="0.1" class="input" value="75"></div><select id="b_cr" class="select"><option>Pass</option><option>Fail</option></select></div>
           <div><label class="label">Use-by date</label><input id="b_ub" type="date" class="input" value="${new Date(Date.now()+2*864e5).toISOString().slice(0,10)}"></div>
           <button class="btn btn-primary w-full" id="b_save">Add batch</button></div>`);
         document.getElementById('b_save').onclick=()=>{
@@ -2964,25 +2965,25 @@
     const list = S.db.cooling.filter(c=>c.site===S.db.currentSite);
     const rows = list.map(c=>`<tr>
       <td class="font-semibold">${escapeHtml(c.item)}</td>
-      <td>${c.startTemp}°C<div class="text-xs text-ink-400">${fmt.ago(c.startAt)}</div></td>
-      <td>${c.s1Temp}°C <span class="text-xs text-ink-400">/ ${c.s1Mins}min</span></td>
-      <td>${c.s2Temp}°C <span class="text-xs text-ink-400">/ ${c.s2Mins}min</span></td>
+      <td>${c.startTemp}�C<div class="text-xs text-ink-400">${fmt.ago(c.startAt)}</div></td>
+      <td>${c.s1Temp}�C <span class="text-xs text-ink-400">/ ${c.s1Mins}min</span></td>
+      <td>${c.s2Temp}�C <span class="text-xs text-ink-400">/ ${c.s2Mins}min</span></td>
       <td>${passBadge(c.result)}</td><td>${escapeHtml(S.member(c.by).name)}</td></tr>`).join('');
     const html = `
-      ${sectionHeader('Cooling Verification','Two-stage cooling: 60→21°C within 2h, then →5°C within 4h', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log cooling</button>`)}
+      ${sectionHeader('Cooling Verification','Two-stage cooling: 60?21�C within 2h, then ?5�C within 4h', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log cooling</button>`)}
       <div class="grid sm:grid-cols-3 gap-4 mb-5">
         ${kpiCard('Logs (site)', list.length, 'snow')}
         ${kpiCard('Passes', list.filter(c=>c.result==='Pass').length, 'check')}
         ${kpiCard('Fails', list.filter(c=>c.result==='Fail').length, 'alert')}
       </div>
-      <div class="card overflow-hidden"><table class="table"><thead><tr><th>Item</th><th>Start</th><th>Stage 1 (≤21°C/2h)</th><th>Stage 2 (≤5°C/4h)</th><th>Result</th><th>By</th></tr></thead><tbody>${rows||'<tr><td colspan=6 class="text-ink-400 p-4">No cooling logs for this site.</td></tr>'}</tbody></table></div>`;
+      <div class="card overflow-hidden"><table class="table"><thead><tr><th>Item</th><th>Start</th><th>Stage 1 (?21�C/2h)</th><th>Stage 2 (?5�C/4h)</th><th>Result</th><th>By</th></tr></thead><tbody>${rows||'<tr><td colspan=6 class="text-ink-400 p-4">No cooling logs for this site.</td></tr>'}</tbody></table></div>`;
     return { title:'Cooling', html, mount() {
       document.querySelector('[data-act="add"]').onclick=()=>{
         modal('Log Cooling',`<div class="space-y-3">
           <input id="c_i" class="input" placeholder="Item">
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Start temp °C</label><input id="c_st" type="number" step="0.1" class="input" value="60"></div></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 1 temp °C</label><input id="c_s1t" type="number" step="0.1" class="input" value="21"></div><div><label class="label">Stage 1 mins</label><input id="c_s1m" type="number" class="input" value="120"></div></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 2 temp °C</label><input id="c_s2t" type="number" step="0.1" class="input" value="5"></div><div><label class="label">Stage 2 mins</label><input id="c_s2m" type="number" class="input" value="240"></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Start temp �C</label><input id="c_st" type="number" step="0.1" class="input" value="60"></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 1 temp �C</label><input id="c_s1t" type="number" step="0.1" class="input" value="21"></div><div><label class="label">Stage 1 mins</label><input id="c_s1m" type="number" class="input" value="120"></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 2 temp �C</label><input id="c_s2t" type="number" step="0.1" class="input" value="5"></div><div><label class="label">Stage 2 mins</label><input id="c_s2m" type="number" class="input" value="240"></div></div>
           <button class="btn btn-primary w-full" id="c_save">Save (auto-graded)</button></div>`);
         document.getElementById('c_save').onclick=()=>{
           const item=document.getElementById('c_i').value.trim(); if(!item)return toast('Enter an item','warn');
@@ -3003,7 +3004,7 @@
       <td><span class="font-mono">${p.ph}</span></td><td>${escapeHtml(p.target)}</td>
       <td>${passBadge(p.result)}</td><td>${escapeHtml(S.member(p.by).name)}</td><td>${fmt.ago(p.at)}</td></tr>`).join('');
     const html = `
-      ${sectionHeader('pH Monitoring','Acidified foods & sanitiser solutions — pH checks against targets', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log pH</button>`)}
+      ${sectionHeader('pH Monitoring','Acidified foods & sanitiser solutions ? pH checks against targets', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log pH</button>`)}
       <div class="grid sm:grid-cols-3 gap-4 mb-5">
         ${kpiCard('Readings (site)', list.length, 'droplet')}
         ${kpiCard('In spec', list.filter(p=>p.result==='Pass').length, 'check')}
@@ -3014,7 +3015,7 @@
       document.querySelector('[data-act="add"]').onclick=()=>{
         modal('Log pH Reading',`<div class="space-y-3">
           <input id="p_i" class="input" placeholder="Item / solution">
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">pH value</label><input id="p_v" type="number" step="0.1" class="input" value="4.2"></div><div><label class="label">Target</label><input id="p_t" class="input" value="≤ 4.6"></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">pH value</label><input id="p_v" type="number" step="0.1" class="input" value="4.2"></div><div><label class="label">Target</label><input id="p_t" class="input" value="? 4.6"></div></div>
           <select id="p_r" class="select"><option>Pass</option><option>Fail</option></select>
           <button class="btn btn-primary w-full" id="p_save">Add reading</button></div>`);
         document.getElementById('p_save').onclick=()=>{
@@ -3037,18 +3038,18 @@
       <td class="font-semibold">${escapeHtml(h.unit)}</td>
       <td>${h.kind==='Hot'?'<span class="badge badge-red">Hot</span>':'<span class="badge badge-blue">Cold</span>'}</td>
       <td>${periodBadge(h.period)}</td>
-      <td class="font-semibold ${h.result==='Fail'?'text-red-600':''}">${h.temp}°C</td>
-      <td class="text-ink-400">${h.kind==='Hot'?'≥ '+h.target:'≤ '+h.target}°C</td>
+      <td class="font-semibold ${h.result==='Fail'?'text-red-600':''}">${h.temp}�C</td>
+      <td class="text-ink-400">${h.kind==='Hot'?'? '+h.target:'? '+h.target}�C</td>
       <td>${passBadge(h.result)}</td>
-      <td class="text-xs ${h.result==='Fail'?'text-ink-700':'text-ink-300'}">${h.action?escapeHtml(h.action):(h.result==='Fail'?'—':'')}</td>
+      <td class="text-xs ${h.result==='Fail'?'text-ink-700':'text-ink-300'}">${h.action?escapeHtml(h.action):(h.result==='Fail'?'?':'')}</td>
       <td>${escapeHtml(S.member(h.by).name)}</td><td>${fmt.ago(h.at)}</td></tr>`;
     const rows = all.map(row).join('');
     const html = `
-      ${sectionHeader('Hot & Cold Holding','Service temperature checks — hot held ≥63°C, cold held ≤8°C', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log holding</button>`)}
+      ${sectionHeader('Hot & Cold Holding','Service temperature checks ? hot held ?63�C, cold held ?8�C', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log holding</button>`)}
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         ${kpiCard('Compliance', compliance+'%', 'check')}
-        ${kpiCard('Hot checks', hot.length+' · '+hot.filter(h=>h.result==='Pass').length+' ok', 'temp')}
-        ${kpiCard('Cold checks', cold.length+' · '+cold.filter(h=>h.result==='Pass').length+' ok', 'snow')}
+        ${kpiCard('Hot checks', hot.length+' � '+hot.filter(h=>h.result==='Pass').length+' ok', 'temp')}
+        ${kpiCard('Cold checks', cold.length+' � '+cold.filter(h=>h.result==='Pass').length+' ok', 'snow')}
         ${kpiCard('Out of range', all.filter(h=>h.result==='Fail').length, 'alert')}
       </div>
       <div class="flex flex-wrap gap-2 mb-3" id="hold-filters">
@@ -3070,12 +3071,12 @@
           <div class="grid grid-cols-3 gap-3">
             <select id="h_k" class="select"><option>Hot</option><option>Cold</option></select>
             <select id="h_p" class="select"><option>Breakfast</option><option selected>Lunch</option><option>Dinner</option></select>
-            <div><label class="label">Temp °C</label><input id="h_t" type="number" step="0.1" class="input" value="70"></div>
+            <div><label class="label">Temp �C</label><input id="h_t" type="number" step="0.1" class="input" value="70"></div>
           </div>
           <div id="h_grade" class="text-sm font-semibold"></div>
           <div id="h_actwrap" class="hidden"><label class="label">Corrective action (required on fail)</label><textarea id="h_act" class="input" rows="2" placeholder="What did you do to correct it?"></textarea></div>
           <button class="btn btn-primary w-full" id="h_save">Save (auto-graded)</button></div>`);
-        const grade=()=>{ const kind=document.getElementById('h_k').value, temp=+document.getElementById('h_t').value; const result=kind==='Hot'?(temp>=63?'Pass':'Fail'):(temp<=8?'Pass':'Fail'); document.getElementById('h_grade').innerHTML=`Auto-grade: <span class="${result==='Pass'?'text-brand-700':'text-red-600'}">${result}</span> (${kind} target ${kind==='Hot'?'≥63':'≤8'}°C)`; document.getElementById('h_actwrap').classList.toggle('hidden', result!=='Fail'); return result; };
+        const grade=()=>{ const kind=document.getElementById('h_k').value, temp=+document.getElementById('h_t').value; const result=kind==='Hot'?(temp>=63?'Pass':'Fail'):(temp<=8?'Pass':'Fail'); document.getElementById('h_grade').innerHTML=`Auto-grade: <span class="${result==='Pass'?'text-brand-700':'text-red-600'}">${result}</span> (${kind} target ${kind==='Hot'?'?63':'?8'}�C)`; document.getElementById('h_actwrap').classList.toggle('hidden', result!=='Fail'); return result; };
         document.getElementById('h_k').onchange=grade; document.getElementById('h_t').oninput=grade; grade();
         document.getElementById('h_save').onclick=()=>{
           const unit=document.getElementById('h_u').value.trim(); if(!unit)return toast('Enter a unit','warn');
@@ -3105,14 +3106,14 @@
       return `<div class="card card-pad fade-in">
         <div class="flex items-start justify-between gap-3 mb-1">
           <div><div class="font-bold">${escapeHtml(t.title)}</div>
-          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} · ${escapeHtml(S.site(t.site).name)} · ${fmt.ago(t.createdAt)}${t.ref?' · ref '+escapeHtml(t.ref):''}</div></div>
+          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} � ${escapeHtml(S.site(t.site).name)} � ${fmt.ago(t.createdAt)}${t.ref?' � ref '+escapeHtml(t.ref):''}</div></div>
           <div class="flex flex-col items-end gap-1">${priBadge(t.priority)}${stBadge(t.status)}</div>
         </div>
-        <div class="text-xs text-ink-500 mb-2">${icon('mail','inline w-3.5 h-3.5')} ${escapeHtml(t.dept)} · ${escapeHtml(t.email)}</div>
+        <div class="text-xs text-ink-500 mb-2">${icon('mail','inline w-3.5 h-3.5')} ${escapeHtml(t.dept)} � ${escapeHtml(t.email)}</div>
         <div class="p-2.5 rounded-xl bg-ink-50 border border-ink-100 text-sm">
           <span class="font-semibold ${last.type==='dept'?'text-brand-700':'text-ink-700'}">${escapeHtml(last.by)}${last.type==='dept'?' (dept)':''}:</span>
-          ${escapeHtml((last.body||'').slice(0,140))}${(last.body||'').length>140?'…':''}
-          <div class="text-[11px] text-ink-400 mt-1">${fmt.ago(last.at)} · ${t.thread.length} message(s)</div>
+          ${escapeHtml((last.body||'').slice(0,140))}${(last.body||'').length>140?'?':''}
+          <div class="text-[11px] text-ink-400 mt-1">${fmt.ago(last.at)} � ${t.thread.length} message(s)</div>
         </div>
         <div class="flex gap-2 mt-3">
           <button class="btn btn-ghost btn-sm" data-open="${t.id}">${icon('records','ico')} Open thread</button>
@@ -3146,7 +3147,7 @@
             <input id="mt_email" class="input" placeholder="Email to send to" value="maintenance@kiteline.uk">
           </div>
           <input id="mt_subj" class="input" placeholder="Email subject">
-          <textarea id="mt_body" class="input" rows="4" placeholder="Describe the fault…"></textarea>
+          <textarea id="mt_body" class="input" rows="4" placeholder="Describe the fault?"></textarea>
           <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="mt_send" class="accent-brand-600" checked> Open email to send now</label>
           <button class="btn btn-primary w-full" id="mt_save">${icon('mail','ico')} Create ticket &amp; email</button>
         </div>`, {wide:true});
@@ -3164,7 +3165,7 @@
             thread:[{ at:new Date().toISOString(), by:me, type:'app', subject, body }] };
           S.db.maintenance.unshift(t); S.persist(); S._pushRemote(true);
           if(document.getElementById('mt_send').checked) sendEmail(email, subject, body);
-          closeModal(); window.App.render(); toast('Ticket created'+(document.getElementById('mt_send')&&document.getElementById('mt_send').checked?' — opening email…':''));
+          closeModal(); window.App.render(); toast('Ticket created'+(document.getElementById('mt_send')&&document.getElementById('mt_send').checked?' ? opening email?':''));
         };
       };
 
@@ -3172,17 +3173,17 @@
         const t=S.db.maintenance.find(x=>x.id===id);
         const thread=t.thread.map(m=>`<div class="flex ${m.type==='dept'?'justify-start':'justify-end'}">
           <div class="max-w-[80%] p-2.5 rounded-xl text-sm ${m.type==='dept'?'bg-brand-50 border border-brand-100':'bg-ink-100'}">
-            <div class="text-[11px] font-semibold ${m.type==='dept'?'text-brand-700':'text-ink-600'}">${escapeHtml(m.by)}${m.type==='dept'?' · maintenance':''}</div>
+            <div class="text-[11px] font-semibold ${m.type==='dept'?'text-brand-700':'text-ink-600'}">${escapeHtml(m.by)}${m.type==='dept'?' � maintenance':''}</div>
             ${m.subject?`<div class="text-xs font-semibold">${escapeHtml(m.subject)}</div>`:''}
             <div>${escapeHtml(m.body)}</div>
             <div class="text-[10px] text-ink-400 mt-1">${fmt.ago(m.at)}</div>
           </div></div>`).join('');
         modal(t.title, `<div class="space-y-3">
-          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} · ${escapeHtml(S.site(t.site).name)} · to ${escapeHtml(t.email)}${t.ref?' · ref '+escapeHtml(t.ref):''}</div>
+          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} � ${escapeHtml(S.site(t.site).name)} � to ${escapeHtml(t.email)}${t.ref?' � ref '+escapeHtml(t.ref):''}</div>
           <div class="space-y-2 max-h-72 overflow-auto p-1">${thread}</div>
           <div class="border-t border-ink-100 pt-3 space-y-2">
             <select id="v_status" class="select">${['Open','Acknowledged','In progress','Resolved'].map(x=>`<option ${x===t.status?'selected':''}>${x}</option>`).join('')}</select>
-            <textarea id="v_msg" class="input" rows="2" placeholder="Write an update / email to the department…"></textarea>
+            <textarea id="v_msg" class="input" rows="2" placeholder="Write an update / email to the department?"></textarea>
             <div class="flex gap-2">
               <button class="btn btn-ghost btn-sm flex-1" id="v_status_save">Update status</button>
               <button class="btn btn-primary btn-sm flex-1" id="v_send">${icon('mail','ico')} Send email update</button>
@@ -3211,7 +3212,7 @@
     const m = I.manual();
     const langBtns = I.langs.map(l=>`<button class="btn ${l===I.lang?'btn-primary':'btn-ghost'} btn-sm" data-lang="${l}">${I.langName(l)}</button>`).join('');
     const html = `
-      ${sectionHeader('User Manual', 'How to use every part of Kiteline — available in multiple languages', `<button class="btn btn-ghost btn-sm" data-act="print">${icon('print','ico')} Print</button>`)}
+      ${sectionHeader('User Manual', 'How to use every part of Kiteline ? available in multiple languages', `<button class="btn btn-ghost btn-sm" data-act="print">${icon('print','ico')} Print</button>`)}
       <div class="flex flex-wrap gap-2 mb-5">${langBtns}</div>
       <div class="card card-pad fade-in" id="manualDoc">
         <p class="text-ink-600 mb-5 text-lg">${escapeHtml(m.intro)}</p>
@@ -3245,7 +3246,7 @@
         </div>
         <div class="card card-pad" id="billingCard">
           <h3 class="font-bold mb-1">Billing</h3>
-          <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription…</p>
+          <p class="text-sm text-ink-500 mb-2" id="billingLine">Checking subscription?</p>
           <p class="text-xs text-ink-400 mb-3 hidden" id="billingTeamLine"></p>
           <div class="flex flex-wrap gap-2" id="billingPlanBtns"></div>
           <button class="btn btn-ghost btn-sm hidden mt-2" id="billPortal">Manage subscription</button>
@@ -3256,30 +3257,30 @@
           ${prod.map(([k,l])=>`<label class="flex items-center justify-between py-2 cursor-pointer"><span class="text-sm font-medium">${l}</span><input type="checkbox" data-prod="${k}" ${o.products[k]?'checked':''} class="w-5 h-5 accent-brand-600"></label>`).join('')}
           <h3 class="font-bold mt-5 mb-3">Notification Channels</h3>
           ${[['sms','SMS'],['email','Email'],['push','Push']].map(([k,l])=>`<label class="flex items-center justify-between py-2 cursor-pointer"><span class="text-sm font-medium">${l}</span><input type="checkbox" data-ch="${k}" ${o.channels[k]?'checked':''} class="w-5 h-5 accent-brand-600"></label>`).join('')}
-          <p class="text-xs text-ink-400 mt-2">Email → Admins. SMS → Admins + site Managers with a mobile on Team (or NOTIFY_PHONE in server/.env).</p>
+          <p class="text-xs text-ink-400 mt-2">Email ? Admins. SMS ? Admins + site Managers with a mobile on Team (or NOTIFY_PHONE in server/.env).</p>
           <button class="btn btn-ghost btn-sm w-full mt-3" id="testemail">${icon('mail','ico')} Send test email</button>
           <button class="btn btn-ghost btn-sm w-full mt-2" id="testsms">${icon('mail','ico')} Send test SMS</button>
-          <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup…</p>
+          <p class="text-xs text-ink-400 mt-3" id="notifyStatus">Checking notification setup?</p>
         </div>
         <div class="card card-pad lg:col-span-2" id="recipeAiCard">
-          <h3 class="font-bold mb-1">Recipe AI assistant — 3 ways to enable</h3>
-          <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking…</p>
+          <h3 class="font-bold mb-1">Recipe AI assistant ? 3 ways to enable</h3>
+          <p class="text-sm text-ink-500 mb-2" id="recipeAiLine">Checking?</p>
           <p class="text-xs text-ink-400 mb-3" id="recipeAiUsage"></p>
           <div id="recipeAiServerBits" class="flex flex-wrap gap-2 mb-4 text-[10px] font-semibold uppercase tracking-wide"></div>
           <div class="grid md:grid-cols-3 gap-4">
             <div class="rounded-xl border border-brand-200 bg-brand-50/50 p-4">
               <p class="text-xs font-bold text-brand-800 mb-1">Option A</p>
               <p class="text-sm font-bold text-brand-900 mb-1">Kiteline subscription</p>
-              <p class="text-xs text-ink-600 mb-3">Your company pays Kiteline monthly. AI runs on our server — <b>not charged to other customers</b>.</p>
+              <p class="text-xs text-ink-600 mb-3">Your company pays Kiteline monthly. AI runs on our server ? <b>not charged to other customers</b>.</p>
               <button class="btn btn-primary btn-sm w-full" id="recipeAiSubscribe">Subscribe to Recipe AI</button>
               <a href="mailto:contact@kiteline.uk?subject=Recipe%20AI%20subscription" class="btn btn-ghost btn-sm w-full mt-2 hidden" id="recipeAiSubscribeEmail">Email to subscribe</a>
-              <p class="text-xs text-ink-400 mt-2" id="recipeAiPrice">—</p>
+              <p class="text-xs text-ink-400 mt-2" id="recipeAiPrice">?</p>
             </div>
             <div class="rounded-xl border border-ink-200 bg-ink-50 p-4">
               <p class="text-xs font-bold text-ink-500 mb-1">Option B</p>
               <p class="text-sm font-bold mb-1">Your own OpenAI key</p>
               <p class="text-xs text-ink-600 mb-2">OpenAI bills <b>your company</b> directly at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="text-brand-700 font-semibold">platform.openai.com</a></p>
-              <input id="recipeAiKey" type="password" class="input text-sm mb-2" placeholder="sk-…" autocomplete="off">
+              <input id="recipeAiKey" type="password" class="input text-sm mb-2" placeholder="sk-?" autocomplete="off">
               <div class="flex gap-2">
                 <button class="btn btn-primary btn-sm flex-1" id="recipeAiSaveKey">Save key</button>
                 <button class="btn btn-ghost btn-sm" id="recipeAiRemoveKey">Remove</button>
@@ -3288,13 +3289,13 @@
             <div class="rounded-xl border border-amber-200 bg-amber-50/80 p-4" id="recipeAiOptionC">
               <p class="text-xs font-bold text-amber-800 mb-1">Option C</p>
               <p class="text-sm font-bold mb-1">Kiteline sets up for you</p>
-              <p class="text-xs text-ink-600 mb-3">Email <a href="mailto:contact@kiteline.uk?subject=Enable%20Recipe%20AI%20for%20my%20company" class="text-brand-700 font-semibold">contact@kiteline.uk</a> — we enable AI on your account (invoice separately).</p>
+              <p class="text-xs text-ink-600 mb-3">Email <a href="mailto:contact@kiteline.uk?subject=Enable%20Recipe%20AI%20for%20my%20company" class="text-brand-700 font-semibold">contact@kiteline.uk</a> ? we enable AI on your account (invoice separately).</p>
               <p class="text-xs text-ink-500 hidden" id="recipeAiGrantHint">Owner: use the panel below to enable a customer instantly.</p>
             </div>
           </div>
         </div>
         <div class="card card-pad lg:col-span-2 hidden" id="recipeAiGrantCard">
-          <h3 class="font-bold mb-1">Owner — enable Recipe AI for a customer</h3>
+          <h3 class="font-bold mb-1">Owner ? enable Recipe AI for a customer</h3>
           <p class="text-sm text-ink-500 mb-3">Turn on Kiteline-hosted AI for a registered company without Stripe (uses your platform OpenAI key).</p>
           <div class="flex flex-wrap gap-2 max-w-xl">
             <input id="recipeAiGrantEmail" class="input flex-1 min-w-[200px]" placeholder="customer@company.com">
@@ -3303,7 +3304,7 @@
           </div>
         </div>
         <div class="card card-pad lg:col-span-2" id="staffQrCard">
-          <h3 class="font-bold mb-1">Staff QR — scan to install app</h3>
+          <h3 class="font-bold mb-1">Staff QR ? scan to install app</h3>
           <p class="text-sm text-ink-500 mb-4">Print or display this QR so employees can open Kiteline on their phone and add it to their home screen. Links to <b>${escapeHtml(S.site(S.db.currentSite).name)}</b>.</p>
           <div class="flex flex-wrap items-center gap-6">
             <div id="settingsStaffQr" class="p-3 bg-white rounded-xl border border-ink-100"></div>
@@ -3313,23 +3314,23 @@
                 <button class="btn btn-primary btn-sm" id="settingsStaffQrModal">${icon('qr','ico')} Full screen / print</button>
                 <button class="btn btn-ghost btn-sm" id="settingsStaffQrCopy">Copy link</button>
               </div>
-              <p class="text-xs text-ink-400">Also on <b>Team</b> and each site card under <b>Sites</b>. Per-site QR codes use that kitchen’s link.</p>
+              <p class="text-xs text-ink-400">Also on <b>Team</b> and each site card under <b>Sites</b>. Per-site QR codes use that kitchen?s link.</p>
             </div>
           </div>
         </div>
         <div class="card card-pad lg:col-span-2" id="iotCard">
           <h3 class="font-bold mb-1">Temperature sensors (IoT setup)</h3>
-          <p class="text-sm text-ink-500 mb-3">Register each probe in <b>Temperatures → Add sensor</b>, then point your hardware at the ingest URL below using the <b>device ID</b> shown on each sensor card.</p>
-          <div id="iotStatus" class="text-sm text-ink-500 mb-3">Checking server…</div>
+          <p class="text-sm text-ink-500 mb-3">Register each probe in <b>Temperatures ? Add sensor</b>, then point your hardware at the ingest URL below using the <b>device ID</b> shown on each sensor card.</p>
+          <div id="iotStatus" class="text-sm text-ink-500 mb-3">Checking server?</div>
           <div class="grid md:grid-cols-2 gap-4 text-sm">
             <div class="rounded-lg bg-ink-50 p-3">
               <div class="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-1">Ingest URL</div>
-              <code id="iotUrl" class="text-xs break-all">—</code>
+              <code id="iotUrl" class="text-xs break-all">?</code>
               <button type="button" class="btn btn-ghost btn-sm mt-2" id="cpIotUrl">Copy URL</button>
             </div>
             <div class="rounded-lg bg-ink-50 p-3">
               <div class="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-1">API key (x-api-key header)</div>
-              <code id="iotKey" class="text-xs break-all">—</code>
+              <code id="iotKey" class="text-xs break-all">?</code>
               <button type="button" class="btn btn-ghost btn-sm mt-2" id="cpIotKey">Copy key</button>
               <p class="text-xs text-ink-400 mt-2" id="iotKeyHint"></p>
             </div>
@@ -3340,13 +3341,13 @@
           </div>
           <div class="mt-4">
             <div class="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">Sensors at this site</div>
-            <div id="iotSensorList" class="text-sm text-ink-500">—</div>
+            <div id="iotSensorList" class="text-sm text-ink-500">?</div>
           </div>
-          <p class="text-xs text-ink-400 mt-3">ESP32 sketch: <code>server/hardware/esp32-ingest.ino</code> · Full guide: <code>IOT.md</code></p>
+          <p class="text-xs text-ink-400 mt-3">ESP32 sketch: <code>server/hardware/esp32-ingest.ino</code> � Full guide: <code>IOT.md</code></p>
         </div>
         <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-1">Security &amp; account</h3>
-          <p class="text-sm text-ink-500 mb-3" id="secServerLine">Checking server security…</p>
+          <p class="text-sm text-ink-500 mb-3" id="secServerLine">Checking server security?</p>
           <div class="grid md:grid-cols-2 gap-4 mb-4">
             <div class="rounded-xl border border-ink-100 p-3 bg-ink-50">
               <p class="text-sm font-semibold mb-2">Change password</p>
@@ -3357,12 +3358,12 @@
             </div>
             <div>
               <p class="text-sm font-medium mb-2">Device PIN (local)</p>
-              <label class="label">New PIN (4–6 digits)</label>
-              <input id="secNewPin" type="password" inputmode="numeric" maxlength="6" class="input mb-2" placeholder="••••" autocomplete="off">
+              <label class="label">New PIN (4?6 digits)</label>
+              <input id="secNewPin" type="password" inputmode="numeric" maxlength="6" class="input mb-2" placeholder="????" autocomplete="off">
               <label class="label">Confirm PIN</label>
-              <input id="secConfPin" type="password" inputmode="numeric" maxlength="6" class="input mb-3" placeholder="••••" autocomplete="off">
+              <input id="secConfPin" type="password" inputmode="numeric" maxlength="6" class="input mb-3" placeholder="????" autocomplete="off">
               <button class="btn btn-primary btn-sm w-full" id="secSavePin">Save PIN</button>
-              <p class="text-xs text-ink-400 mt-2" id="secPinStatus">No PIN set — required before any delete or reset.</p>
+              <p class="text-xs text-ink-400 mt-2" id="secPinStatus">No PIN set ? required before any delete or reset.</p>
             </div>
           </div>
           <div class="grid md:grid-cols-2 gap-4">
@@ -3375,19 +3376,19 @@
             </div>
             <div>
               <p class="text-sm font-medium mb-2">Session</p>
-              <p class="text-xs text-ink-500 mb-3" id="secSessionLine">—</p>
+              <p class="text-xs text-ink-500 mb-3" id="secSessionLine">?</p>
               <button class="btn btn-ghost btn-sm w-full" id="settingsLogout">${icon('logout','w-4 h-4')} Sign out this device</button>
             </div>
           </div>
         </div>
         <div class="card card-pad lg:col-span-2" id="workspaceExportCard">
           <h3 class="font-bold mb-1">Your data (GDPR export)</h3>
-          <p class="text-sm text-ink-500 mb-3">Download a JSON copy of your organisation’s workspace — recipes, sites, team, logs, and settings.</p>
+          <p class="text-sm text-ink-500 mb-3">Download a JSON copy of your organisation?s workspace ? recipes, sites, team, logs, and settings.</p>
           <button class="btn btn-ghost btn-sm" id="workspaceExportBtn">${icon('download','ico')} Download my workspace</button>
         </div>
         <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-2">Legal</h3>
-          <p class="text-sm text-ink-500 mb-3">© 2026 Kiteline � All rights reserved.</p>
+          <p class="text-sm text-ink-500 mb-3">� 2026 Kiteline ? All rights reserved.</p>
           <div class="flex flex-wrap gap-3 text-sm">
             <a href="/contact.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Contact</a>
             <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a>
@@ -3401,19 +3402,19 @@
           <button class="btn btn-danger btn-sm" id="reset">Reset demo data</button>
         </div>
         <div class="card card-pad lg:col-span-2 hidden" id="ownerBackupCard">
-          <h3 class="font-bold mb-1">Owner — download all data</h3>
+          <h3 class="font-bold mb-1">Owner ? download all data</h3>
           <p class="text-sm text-ink-500 mb-3">Save users, registrations, and full kitchen state from the live server (JSON file).</p>
           <button class="btn btn-primary btn-sm" id="ownerBackupBtn">${icon('download','ico')} Download backup JSON</button>
-          <p class="text-xs text-ink-400 mt-2">Keep this file safe — it is your cloud database copy. Local code backup: run SAVE-ALL-DATA.bat on your Desktop.</p>
+          <p class="text-xs text-ink-400 mt-2">Keep this file safe ? it is your cloud database copy. Local code backup: run SAVE-ALL-DATA.bat on your Desktop.</p>
         </div>
         <div class="card card-pad lg:col-span-2 hidden" id="waitlistCard">
           <h3 class="font-bold mb-1">Hardware waitlist</h3>
-          <p class="text-sm text-ink-500 mb-3">People who registered on <a href="/hardware.html" class="text-brand-700 font-semibold">kiteline.uk/hardware</a> — who wants sensors, printers, or labels. No payment taken yet.</p>
+          <p class="text-sm text-ink-500 mb-3">People who registered on <a href="/hardware.html" class="text-brand-700 font-semibold">kiteline.uk/hardware</a> ? who wants sensors, printers, or labels. No payment taken yet.</p>
           <div id="waitlistSummary" class="flex flex-wrap gap-2 mb-4 text-xs"></div>
           <div class="overflow-x-auto">
             <table class="table text-sm" id="waitlistTable"><thead><tr><th>When</th><th>Product</th><th>Name</th><th>Email</th><th>Mobile</th><th>Sites</th><th>Notes</th></tr></thead><tbody id="waitlistBody"></tbody></table>
           </div>
-          <p class="text-xs text-ink-400 mt-3" id="waitlistEmpty">Loading…</p>
+          <p class="text-xs text-ink-400 mt-3" id="waitlistEmpty">Loading?</p>
         </div>
       </div>`;
     return { title:'Settings', html, mount() {
@@ -3429,13 +3430,13 @@
       const te = document.getElementById('testemail');
       if (te) te.onclick = async () => {
         if (!o.channels.email) return toast('Turn on Email channel first','warn');
-        if (!window.Api || !S.remote) return toast('Server required — run npm start','warn');
-        te.disabled = true; te.textContent = 'Sending…';
+        if (!window.Api || !S.remote) return toast('Server required ? run npm start','warn');
+        te.disabled = true; te.textContent = 'Sending?';
         try {
           const r = await window.Api.testNotify('email');
           const m = r.result || {};
           if (m.mode === 'smtp') toast('Test email sent to ' + (m.to || []).join(', '));
-          else if (m.mode === 'outbox') toast('Saved to server outbox — add SMTP in server/.env');
+          else if (m.mode === 'outbox') toast('Saved to server outbox ? add SMTP in server/.env');
           else if (m.skipped) toast('Email channel is off','warn');
           else toast('Test email sent');
         } catch (e) { toast(e.message || 'Send failed', 'error'); }
@@ -3444,13 +3445,13 @@
       const ts = document.getElementById('testsms');
       if (ts) ts.onclick = async () => {
         if (!o.channels.sms) return toast('Turn on SMS channel first','warn');
-        if (!window.Api || !S.remote) return toast('Server required — run npm start','warn');
-        ts.disabled = true; ts.textContent = 'Sending…';
+        if (!window.Api || !S.remote) return toast('Server required ? run npm start','warn');
+        ts.disabled = true; ts.textContent = 'Sending?';
         try {
           const r = await window.Api.testNotify('sms');
           const m = r.result || {};
           if (m.mode === 'twilio') toast('Test SMS sent to ' + (m.to || []).join(', '));
-          else if (m.mode === 'sms-outbox') toast('Saved to server outbox — add Twilio keys in server/.env');
+          else if (m.mode === 'sms-outbox') toast('Saved to server outbox ? add Twilio keys in server/.env');
           else if (m.skipped) toast(m.reason || 'SMS skipped','warn');
           else toast('Test SMS sent');
         } catch (e) { toast(e.message || 'SMS failed', 'error'); }
@@ -3462,7 +3463,7 @@
           const bits = [];
           bits.push(st.email && st.email.configured ? 'Email: SMTP ready' : 'Email: add SMTP to server/.env');
           bits.push(st.sms && st.sms.configured ? 'SMS: Twilio ready (' + st.sms.from + ')' : 'SMS: add Twilio to server/.env');
-          ns.textContent = bits.join(' · ');
+          ns.textContent = bits.join(' � ');
         }).catch(() => { ns.textContent = 'Run npm start for live notifications.'; });
       } else if (ns) ns.textContent = 'Run npm start for live notifications.';
       const iotStatus = document.getElementById('iotStatus');
@@ -3475,7 +3476,7 @@
       if (iotSensorList) {
         iotSensorList.innerHTML = siteSensors.length
           ? siteSensors.map(s => `<div class="flex flex-wrap items-center gap-2 py-1 border-b border-ink-100 last:border-0"><span class="font-semibold">${escapeHtml(s.name)}</span><code class="text-xs bg-ink-100 px-1.5 py-0.5 rounded">${escapeHtml(s.id)}</code><button type="button" class="btn btn-ghost btn-sm" data-copy-id="${escapeHtml(s.id)}">Copy ID</button></div>`).join('')
-          : '<span class="text-ink-400">No sensors yet — add one on the Temperatures page.</span>';
+          : '<span class="text-ink-400">No sensors yet ? add one on the Temperatures page.</span>';
         iotSensorList.querySelectorAll('[data-copy-id]').forEach(b => b.onclick = () => { navigator.clipboard.writeText(b.dataset.copyId); toast('Device ID copied'); });
       }
       async function loadIngestInfo() {
@@ -3484,13 +3485,13 @@
           try {
             const info = await window.Api.ingestInfo();
             if (iotUrl) iotUrl.textContent = info.ingestUrl || fallbackUrl;
-            if (iotKey) iotKey.textContent = info.apiKey || '—';
+            if (iotKey) iotKey.textContent = info.apiKey || '?';
             if (iotKeyHint) {
               if (info.keyWarning) iotKeyHint.textContent = info.keyWarning;
-              else if (info.demoKey) iotKeyHint.textContent = 'Using default sensor key — add INGEST_KEY on Render for production.';
+              else if (info.demoKey) iotKeyHint.textContent = 'Using default sensor key ? add INGEST_KEY on Render for production.';
               else iotKeyHint.textContent = 'Custom sensor key configured on server.';
             }
-            if (iotStatus) iotStatus.textContent = 'Server ready — devices POST readings here every 1–5 minutes.';
+            if (iotStatus) iotStatus.textContent = 'Server ready ? devices POST readings here every 1?5 minutes.';
             if (iotExample && siteSensors[0]) {
               iotExample.textContent = JSON.stringify({ sensorId: siteSensors[0].id, temp: 3.4, battery: 92 }, null, 2);
             }
@@ -3499,8 +3500,8 @@
         }
         if (iotUrl) iotUrl.textContent = fallbackUrl;
         if (iotKey) iotKey.textContent = 'kiteline-demo-key';
-        if (iotKeyHint) iotKeyHint.textContent = 'Local demo key — run npm start and sign in for live settings.';
-        if (iotStatus) iotStatus.textContent = S.remote ? 'Could not load ingest settings.' : 'Offline mode — run npm start to connect real sensors.';
+        if (iotKeyHint) iotKeyHint.textContent = 'Local demo key ? run npm start and sign in for live settings.';
+        if (iotStatus) iotStatus.textContent = S.remote ? 'Could not load ingest settings.' : 'Offline mode ? run npm start to connect real sensors.';
         if (iotExample && siteSensors[0]) {
           iotExample.textContent = JSON.stringify({ sensorId: siteSensors[0].id, temp: 3.4, battery: 92 }, null, 2);
         }
@@ -3508,8 +3509,8 @@
       loadIngestInfo();
       const cpIotUrl = document.getElementById('cpIotUrl');
       const cpIotKey = document.getElementById('cpIotKey');
-      if (cpIotUrl) cpIotUrl.onclick = () => { if (iotUrl && iotUrl.textContent !== '—') { navigator.clipboard.writeText(iotUrl.textContent); toast('Ingest URL copied'); } };
-      if (cpIotKey) cpIotKey.onclick = () => { if (iotKey && iotKey.textContent !== '—') { navigator.clipboard.writeText(iotKey.textContent); toast('API key copied'); } };
+      if (cpIotUrl) cpIotUrl.onclick = () => { if (iotUrl && iotUrl.textContent !== '?') { navigator.clipboard.writeText(iotUrl.textContent); toast('Ingest URL copied'); } };
+      if (cpIotKey) cpIotKey.onclick = () => { if (iotKey && iotKey.textContent !== '?') { navigator.clipboard.writeText(iotKey.textContent); toast('API key copied'); } };
       const billLine = document.getElementById('billingLine');
       const billTeamLine = document.getElementById('billingTeamLine');
       const billHint = document.getElementById('billingHint');
@@ -3527,7 +3528,7 @@
       function renderPlanButtons(plans, active) {
         if (!billPlanBtns || !plans || !plans.length) return;
         billPlanBtns.innerHTML = plans.map(p => `
-          <button type="button" class="btn btn-primary btn-sm billing-plan-btn" data-plan="${escapeHtml(p.id)}">${escapeHtml(p.maxUsers)} users · ${escapeHtml(p.display)}</button>
+          <button type="button" class="btn btn-primary btn-sm billing-plan-btn" data-plan="${escapeHtml(p.id)}">${escapeHtml(p.maxUsers)} users � ${escapeHtml(p.display)}</button>
         `).join('');
         billPlanBtns.querySelectorAll('.billing-plan-btn').forEach(btn => {
           btn.onclick = () => startCheckout(btn.dataset.plan);
@@ -3549,13 +3550,13 @@
           const trial = st.trial || {};
           const plans = st.plans || [];
           if (!st.enabled) {
-            billLine.textContent = 'Online checkout not configured — contact support for an invoice.';
+            billLine.textContent = 'Online checkout not configured ? contact support for an invoice.';
             billHint.textContent = 'Add STRIPE_SECRET_KEY on the server to enable Subscribe buttons.';
             renderPlanButtons(plans, false);
             return;
           }
           if (trial.active && !trial.exempt) {
-            billLine.textContent = 'Free trial — ' + trial.daysLeft + ' day' + (trial.daysLeft === 1 ? '' : 's') + ' left (up to ' + (trial.maxUsers || st.maxUsers || 5) + ' users)';
+            billLine.textContent = 'Free trial ? ' + trial.daysLeft + ' day' + (trial.daysLeft === 1 ? '' : 's') + ' left (up to ' + (trial.maxUsers || st.maxUsers || 5) + ' users)';
             if (billTeamLine) {
               billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + (st.maxUsers || trial.maxUsers || 5) + ' during trial.';
               billTeamLine.classList.remove('hidden');
@@ -3565,7 +3566,7 @@
             return;
           }
           if (sub.status === 'active') {
-            billLine.textContent = 'Plan: ' + (sub.orgPlan || sub.plan || 'Active') + (sub.currentPeriodEnd ? ' · renews ' + fmt.date(sub.currentPeriodEnd) : '');
+            billLine.textContent = 'Plan: ' + (sub.orgPlan || sub.plan || 'Active') + (sub.currentPeriodEnd ? ' � renews ' + fmt.date(sub.currentPeriodEnd) : '');
             if (billTeamLine && st.maxUsers) {
               billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + st.maxUsers + ' users on this plan.';
               billTeamLine.classList.remove('hidden');
@@ -3574,9 +3575,9 @@
             billHint.textContent = 'Need more users? Upgrade via Stripe portal or pick a larger plan below.';
             renderPlanButtons(plans, false);
           } else {
-            billLine.textContent = 'No active subscription — choose a plan by team size.';
+            billLine.textContent = 'No active subscription ? choose a plan by team size.';
             renderPlanButtons(plans, false);
-            billHint.textContent = 'Price scales with users — larger teams get a lower per-user rate. Secure payment via Stripe.';
+            billHint.textContent = 'Price scales with users ? larger teams get a lower per-user rate. Secure payment via Stripe.';
           }
         }).catch(() => { billLine.textContent = 'Sign in on the server to view billing.'; });
       } else if (billLine) billLine.textContent = 'Run npm start for billing.';
@@ -3588,17 +3589,17 @@
         const subEmail = document.getElementById('recipeAiSubscribeEmail');
         if (!line) return;
         if (st.enabled) {
-          const modeLabel = { byok: 'Active — Option B (your OpenAI key)', kiteline: 'Active — Option A (Kiteline subscription)', granted: 'Active — Option C (enabled by Kiteline)', owner: 'Active — owner platform key' }[st.mode] || 'Active';
+          const modeLabel = { byok: 'Active ? Option B (your OpenAI key)', kiteline: 'Active ? Option A (Kiteline subscription)', granted: 'Active ? Option C (enabled by Kiteline)', owner: 'Active ? owner platform key' }[st.mode] || 'Active';
           line.innerHTML = '<span class="text-brand-700 font-semibold">' + modeLabel + '</span>';
         } else {
           line.textContent = st.message || 'Pick Option A, B, or C below.';
         }
         if (usage && st.usage && st.limits && st.limits.text) {
-          usage.textContent = 'This month: ' + (st.usage.text || 0) + ' / ' + st.limits.text + ' text · ' + (st.usage.image || 0) + ' / ' + st.limits.image + ' photos';
+          usage.textContent = 'This month: ' + (st.usage.text || 0) + ' / ' + st.limits.text + ' text � ' + (st.usage.image || 0) + ' / ' + st.limits.image + ' photos';
         } else if (usage && st.mode === 'byok') {
           usage.textContent = st.keyHint ? 'Key on file: ' + st.keyHint : '';
         } else if (usage) usage.textContent = '';
-        if (price && st.addon) price.textContent = st.addon.display + ' per company · includes monthly AI limits';
+        if (price && st.addon) price.textContent = st.addon.display + ' per company � includes monthly AI limits';
         if (subBtn) {
           const kitelineOn = st.enabled && (st.kitelineAddon || st.mode === 'granted' || st.mode === 'kiteline');
           subBtn.disabled = !!kitelineOn;
@@ -3614,7 +3615,7 @@
         if (bits) {
           bits.innerHTML = [
             setup.platformKey ? '<span class="badge badge-green">Platform AI ready</span>' : '<span class="badge badge-amber">Platform AI off</span>',
-            setup.stripe ? '<span class="badge badge-green">Stripe checkout</span>' : '<span class="badge badge-gray">Stripe off — email to subscribe</span>',
+            setup.stripe ? '<span class="badge badge-green">Stripe checkout</span>' : '<span class="badge badge-gray">Stripe off ? email to subscribe</span>',
             setup.byokStorage ? '<span class="badge badge-green">BYOK storage OK</span>' : '<span class="badge badge-amber">BYOK needs INGEST_KEY</span>',
           ].join('');
         }
@@ -3623,7 +3624,7 @@
           subEmail.classList.remove('hidden');
         }
         const price = document.getElementById('recipeAiPrice');
-        if (price && addon.display) price.textContent = addon.display + ' per company · Option A';
+        if (price && addon.display) price.textContent = addon.display + ' per company � Option A';
       };
       if (window.Api && S.remote) {
         fetch('/api/config').then(r => r.json()).then(paintRecipeAiSetup).catch(() => {});
@@ -3637,7 +3638,7 @@
           try {
             const r = await window.Api.recipeAiCheckout();
             if (r.url) location.href = r.url;
-            else toast('Checkout not available — email contact@kiteline.uk', 'warn');
+            else toast('Checkout not available ? email contact@kiteline.uk', 'warn');
           } catch (e) {
             toast(e.message || 'Checkout failed', 'error');
           }
@@ -3678,7 +3679,7 @@
           const rows = (data.entries || []).slice().reverse();
           if (!rows.length) {
             wlBody.innerHTML = '';
-            wlEmpty.textContent = 'No sign-ups yet — share the hardware page with pilot kitchens.';
+            wlEmpty.textContent = 'No sign-ups yet ? share the hardware page with pilot kitchens.';
             return;
           }
           wlEmpty.textContent = rows.length + ' sign-up' + (rows.length === 1 ? '' : 's') + ' total';
@@ -3687,9 +3688,9 @@
             <td>${escapeHtml(wlLabels[e.product] || e.product)}</td>
             <td>${escapeHtml(e.name)}</td>
             <td><a href="mailto:${escapeHtml(e.email)}" class="text-brand-700">${escapeHtml(e.email)}</a></td>
-            <td class="text-xs">${escapeHtml(e.phone || '—')}</td>
-            <td>${escapeHtml(e.sites || '—')}</td>
-            <td class="text-xs max-w-[12rem] truncate" title="${escapeHtml(e.note || '')}">${escapeHtml(e.note || '—')}</td>
+            <td class="text-xs">${escapeHtml(e.phone || '?')}</td>
+            <td>${escapeHtml(e.sites || '?')}</td>
+            <td class="text-xs max-w-[12rem] truncate" title="${escapeHtml(e.note || '')}">${escapeHtml(e.note || '?')}</td>
           </tr>`).join('');
         }).catch(() => { /* not owner or server offline */ });
       }
@@ -3705,7 +3706,7 @@
       if (window.Api && S.remote && secLine) {
         window.Api.securityStatus().then(st => {
           if (st.isOwner) {
-            secLine.textContent = 'Your owner account — full access. Security: login lockout, rate limits, and session expiry are active for all users.';
+            secLine.textContent = 'Your owner account ? full access. Security: login lockout, rate limits, and session expiry are active for all users.';
             const grantCard = document.getElementById('recipeAiGrantCard');
             const grantHint = document.getElementById('recipeAiGrantHint');
             if (grantCard) grantCard.classList.remove('hidden');
@@ -3715,7 +3716,7 @@
           } else {
             const bits = ['Password rules enforced', 'Login lockout after ' + st.maxLoginAttempts + ' tries'];
             if (!st.ingestKeySecure) bits.push('Add INGEST_KEY on Render (sensor security)');
-            secLine.textContent = bits.join(' · ');
+            secLine.textContent = bits.join(' � ');
           }
           if (secSession && st.sessionExpiresAt) secSession.textContent = 'This device session expires ' + fmt.date(st.sessionExpiresAt);
         }).catch(() => { secLine.textContent = 'Sign in on the server for account security options.'; });
@@ -3734,9 +3735,9 @@
       if (grantOff) grantOff.onclick = () => runGrant(false);
       const exportBtn = document.getElementById('workspaceExportBtn');
       if (exportBtn) exportBtn.onclick = async () => {
-        if (!window.Api || !S.remote) return toast('Server required — sign in on kiteline.uk', 'warn');
+        if (!window.Api || !S.remote) return toast('Server required ? sign in on kiteline.uk', 'warn');
         exportBtn.disabled = true;
-        exportBtn.textContent = 'Preparing…';
+        exportBtn.textContent = 'Preparing?';
         try {
           const data = await window.Api.exportWorkspace();
           const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -3753,7 +3754,7 @@
       const backupBtn = document.getElementById('ownerBackupBtn');
       if (backupBtn) backupBtn.onclick = async () => {
         backupBtn.disabled = true;
-        backupBtn.textContent = 'Preparing…';
+        backupBtn.textContent = 'Preparing?';
         try {
           const data = await window.Api.downloadBackup();
           const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -3785,9 +3786,9 @@
       const bioStatus = document.getElementById('secBioStatus');
       const bioOff = document.getElementById('secBioOff');
       const refreshSec = () => {
-        if (pinStatus) pinStatus.textContent = window.Security.hasPin() ? 'PIN is set — deletes and reset are protected.' : 'No PIN set — required before any delete or reset.';
+        if (pinStatus) pinStatus.textContent = window.Security.hasPin() ? 'PIN is set ? deletes and reset are protected.' : 'No PIN set ? required before any delete or reset.';
         if (bioStatus) {
-          if (!window.Security.biometricAvailable()) bioStatus.textContent = 'Biometric not available on this address — use kiteline.uk or the tunnel link.';
+          if (!window.Security.biometricAvailable()) bioStatus.textContent = 'Biometric not available on this address ? use kiteline.uk or the tunnel link.';
           else if (window.Security.hasBiometric()) bioStatus.textContent = 'Face ID / fingerprint enabled.';
           else bioStatus.textContent = 'Biometric not set up yet.';
         }

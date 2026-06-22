@@ -40,6 +40,8 @@
 
   <!-- Chart.js for analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- JSZip for compliance audit exports -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <!-- QR code generator -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
@@ -88,12 +90,14 @@
   <script src="/js/store.js?v=14"></script>
   <script src="/js/ui.js?v=12"></script>
   <script src="/js/security.js?v=1"></script>
+  <script src="/js/compliance.js?v=3"></script>
   <script src="/js/recipe-nutrition.js?v=3"></script>
   <script src="/js/recipe-media.js?v=1"></script>
   <script src="/js/recipe-ai.js?v=2"></script>
   <script src="/js/register-form.js?v=6"></script>
   <script src="/js/views.js?v=22"></script>
-  <script src="/js/app.js?v=25"></script>
+  <script src="/js/compliance-views.js?v=3"></script>
+  <script src="/js/app.js?v=27"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));

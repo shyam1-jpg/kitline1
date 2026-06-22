@@ -361,14 +361,15 @@
           const r = await window.Api.register(d.email, pw, `${d.firstName} ${d.lastName}`.trim(), profile);
           clearDraft();
           if (r.needsVerification) {
+            sessionStorage.setItem('kiteline.pendingEmail', d.email);
+            if (r.message) sessionStorage.setItem('kiteline.pendingVerifyMsg', r.message);
             if (r.verifyUrl) {
-              location.href = app.normalizeVerifyUrl ? app.normalizeVerifyUrl(r.verifyUrl) : r.verifyUrl;
-              return;
+              sessionStorage.setItem('kiteline.pendingVerifyUrl', app.normalizeVerifyUrl ? app.normalizeVerifyUrl(r.verifyUrl) : r.verifyUrl);
+            } else {
+              sessionStorage.removeItem('kiteline.pendingVerifyUrl');
             }
-            toast('Account created — sign in with your password');
-            app.clearVerifyPending && app.clearVerifyPending();
-            location.hash = '';
-            app.renderLogin();
+            location.hash = 'verify-pending';
+            if (app.renderVerifyPending) app.renderVerifyPending();
             return;
           }
           await window.Store.hydrateFromServer();

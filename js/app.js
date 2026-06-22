@@ -21,9 +21,11 @@
     { id:'wfperf', label:'Performance', icon:'dashboard' },
     { id:'dashboard', label:'Dashboard', icon:'dashboard' },
     { id:'taskoverview', label:'Task Overview', icon:'check' },
-    { id:'temps', label:'Temperatures', icon:'temp' },
-    { id:'alerts', label:'Alerts', icon:'alert' },
+    { id:'temps', label:'Fridge & Freezer Temps', icon:'temp' },
+    { id:'alerts', label:'Alerts & SMS', icon:'alert' },
     { id:'haccp', label:'HACCP & Checklists', icon:'check' },
+    { sep:'Kitchen Compliance', sepKey:'complianceSec' },
+    { id:'compliance', label:'Kitchen Compliance', icon:'shield' },
     { id:'deliveries', label:'Deliveries', icon:'truck' },
     { id:'records', label:'Records', icon:'records' },
     { id:'cooling', label:'Cooling', icon:'snow' },
@@ -102,7 +104,14 @@
   const ROUTE_ROLE = {
     suppliers:'Manager', assets:'Manager', sites:'Manager', reports:'Manager',
     team:'Manager', training:'Manager', foodcost:'Manager', settings:'Admin',
+    compliance:'Staff',
   };
+  function routeViewId(route) {
+    if (!route) return 'home';
+    if (route === 'compliance' || route.startsWith('compliance-')) return 'compliance';
+    const q = route.indexOf('?');
+    return q >= 0 ? route.slice(0, q) : route;
+  }
   // Resolve the signed-in user + role. Works on existing data (infers role from job title).
   function currentUser() {
     const email = (window.Api && S.remote) ? (window.Api.email() || '') : ((S.session && S.session() && S.session().email) || '');
@@ -492,7 +501,7 @@
                 <a href="${escapeHtml(verifyUrl)}" class="btn btn-primary w-full mb-3">Verify my email now</a>
                 <p class="text-xs text-ink-500 break-all mb-2">${escapeHtml(verifyUrl)}</p>
                 <button type="button" class="btn btn-ghost btn-sm w-full" id="copyVerify">Copy link</button>
-                <p class="text-xs text-ink-400 mt-2">Email is not set up on the server yet — this link stays here until you verify.</p>
+                <p class="text-xs text-ink-400 mt-2">If email did not arrive, use this link — it works even when inbox delivery fails.</p>
               </div>` : `
               <p class="text-sm text-ink-500 mb-6">Open the email and click <b>Verify email address</b>. Check spam if you do not see it.</p>`;
       document.getElementById('root').innerHTML = `
@@ -617,15 +626,21 @@
         try {
           const r = await window.Api.forgotPassword(email);
           if (r.resetUrl) {
+            const linkTitle = r.emailSent
+              ? 'Reset link — also check your email'
+              : 'Your reset link (email could not be delivered)';
+            const linkNote = r.emailSent
+              ? 'We sent an email if possible. You can also use the button below.'
+              : (r.message || 'Tap the button to choose a new password.');
             if (result) {
               result.classList.remove('hidden');
               result.innerHTML = `
                 <div class="rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">
-                  <p class="font-bold mb-2">Your reset link (use this — no email will arrive)</p>
-                  <p class="text-ink-600 mb-3">${escapeHtml(r.message || 'Tap the button to choose a new password.')}</p>
+                  <p class="font-bold mb-2">${escapeHtml(linkTitle)}</p>
+                  <p class="text-ink-600 mb-3">${escapeHtml(linkNote)}</p>
                   <a href="${r.resetUrl}" class="btn btn-primary w-full text-center mb-3" style="display:block">Open reset page</a>
                   <p class="text-xs text-ink-500 break-all">${escapeHtml(r.resetUrl)}</p>
-                  <p class="text-xs text-ink-400 mt-3">Link expires in 1 hour.</p>
+                  <p class="text-xs text-ink-400 mt-3">Link expires in 1 hour. Check spam/junk if you expected an email.</p>
                 </div>`;
             }
             btn.disabled = false;
@@ -640,7 +655,9 @@
                 <div class="rounded-xl border ${r.emailSent ? 'border-brand-200 bg-brand-50' : 'border-amber-200 bg-amber-50'} p-4 text-sm">
                   <p class="font-semibold mb-2">${r.emailSent ? 'Email sent' : 'No link to show'}</p>
                   <p class="text-ink-600 mb-3">${escapeHtml(msg)}</p>
-                  ${!r.emailSent ? `<p class="text-xs text-ink-500">Tip: use the same email you typed when you registered. Or <a href="#register" class="text-brand-600 font-semibold">create account</a>.</p>` : ''}
+                  ${r.emailSent
+                    ? '<p class="text-xs text-ink-500 mt-2">Check spam/junk. If nothing arrives in a few minutes, try again or contact support@kiteline.uk</p>'
+                    : '<p class="text-xs text-ink-500">Tip: use the same email you typed when you registered. Or <a href="#register" class="text-brand-600 font-semibold">create account</a>.</p>'}
                 </div>`;
             }
             toast(msg, r.emailSent ? 'info' : 'warn');
@@ -698,12 +715,13 @@
     render() {
       if (!this.authed()) return this.renderAuthScreen();
       const me = currentUser();
-      let r = this.route;
+      let r = routeViewId(this.route);
       // route guard: bounce to home if this role can't access the route
       if (!canAccess(r, me.rank)) { toast('You don’t have access to that section', 'warn'); r = 'home'; this.route = 'home'; if (location.hash.slice(1) !== 'home') location.hash = 'home'; }
       const unknown = !V[r];
       if (unknown) { toast('Page not found — showing Home', 'warn'); r = 'home'; this.route = 'home'; if (location.hash.slice(1) !== 'home') location.hash = 'home'; }
       const view = (V[r] || V.home)();
+      const navRoute = r;
       const site = S.site();
       const openAlerts = S.db.alerts.filter(a => a.status==='open').length;
 
@@ -718,7 +736,7 @@
             <nav class="flex-1 space-y-1 overflow-auto">
               ${NAV.filter(n => n.sep!==undefined || canAccess(n.id, me.rank)).map(n => n.sep!==undefined
                 ? `<div class="text-[10px] uppercase tracking-wider text-ink-500 font-bold px-3 pt-4 pb-1">${n.sepKey?t('nav.'+n.sepKey,n.sep):n.sep==='Products'?t('nav.products','Products'):n.sep}</div>`
-                : `<a class="nav-link ${r===n.id?'active':''}" href="#${n.id}">${icon(n.icon)} <span>${t('nav.'+n.id, n.label)}</span>${n.id==='alerts'&&openAlerts?`<span class="ml-auto badge badge-red">${openAlerts}</span>`:''}</a>`
+                : `<a class="nav-link ${navRoute===n.id?'active':''}" href="#${n.id}">${icon(n.icon)} <span>${t('nav.'+n.id, n.label)}</span>${n.id==='alerts'&&openAlerts?`<span class="ml-auto badge badge-red">${openAlerts}</span>`:''}</a>`
               ).join('')}
             </nav>
             <div class="border-t border-white/10 pt-3 mt-3">
@@ -868,6 +886,8 @@
     },
   };
 
+  App.currentUser = currentUser;
+  App.routeViewId = routeViewId;
   window.App = App;
   document.addEventListener('DOMContentLoaded', () => App.boot());
 })();

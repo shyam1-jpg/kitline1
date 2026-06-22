@@ -310,6 +310,15 @@ async function sendRawEmail(to, msg) {
   }
 }
 
+/** True only when SMTP accepted the message — not outbox fallback. */
+function emailActuallySent(result) {
+  return !!(result && result.mode === 'smtp' && !result.smtpError);
+}
+
+function shouldShowEmailLink(sendResult) {
+  return process.env.SHOW_RESET_LINK === 'true' || !emailActuallySent(sendResult);
+}
+
 const WAITLIST_LABELS = {
   'sensor-kit': 'SafeServe Sensor Kit',
   'printer-bundle': 'LabelSmart Printer Bundle',
@@ -362,4 +371,6 @@ module.exports = {
   normalizePhone,
   notifyWaitlistSignup,
   sendRawEmail,
+  emailActuallySent,
+  shouldShowEmailLink,
 };

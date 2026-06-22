@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-19-vedanta-reports';
+const APP_BUILD = '2026-06-22-starter-pack';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -188,9 +188,11 @@ async function sendVerificationEmail(db, email, baseUrl) {
       <p style="color:#64748b;font-size:13px">Link expires in 48 hours.</p>
     </div>`,
   };
-  await notify.sendRawEmail(email, msg);
-  const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
-  return { verifyUrl: showLink ? verifyUrl : undefined };
+  const sendResult = await notify.sendRawEmail(email, msg);
+  return {
+    verifyUrl: notify.shouldShowEmailLink(sendResult) ? verifyUrl : undefined,
+    emailSent: notify.emailActuallySent(sendResult),
+  };
 }
 
 function completeEmailVerification(db, verifyToken, emailHint, ip) {
@@ -420,9 +422,11 @@ async function sendAcademyVerificationEmail(db, email, baseUrl) {
     text: `Welcome to Kiteline Academy!\n\nVerify your email to activate your student account:\n\n${verifyUrl}\n\nExpires in 48 hours.`,
     html: `<div style="font-family:Inter,sans-serif;max-width:520px"><h2 style="color:#36e6ff">Verify Kiteline Academy</h2><p>Confirm your email to sign in and access courses.</p><p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#36e6ff;color:#061020;font-weight:bold;border-radius:8px;text-decoration:none">Verify email</a></p><p style="color:#64748b;font-size:13px">${verifyUrl}</p></div>`,
   };
-  await notify.sendRawEmail(email, msg);
-  const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
-  return { verifyUrl: showLink ? verifyUrl : undefined };
+  const sendResult = await notify.sendRawEmail(email, msg);
+  return {
+    verifyUrl: notify.shouldShowEmailLink(sendResult) ? verifyUrl : undefined,
+    emailSent: notify.emailActuallySent(sendResult),
+  };
 }
 
 async function completeAcademyEmailVerification(db, verifyToken, ip) {
@@ -692,9 +696,10 @@ async function handleApi(req, res, url) {
       ok: true,
       needsVerification: true,
       trialDays: billing.TRIAL_DAYS,
-      message: notify.smtpConfigured()
+      emailSent: !!mail.emailSent,
+      message: mail.emailSent
         ? 'Account created — check your email and click Verify to activate your ' + billing.TRIAL_DAYS + '-day free trial.'
-        : 'Account created — use the verification link below (email not configured on server). Your ' + billing.TRIAL_DAYS + '-day free trial starts when you verify.',
+        : 'Account created — email could not be delivered. Use the verification link on screen. Your ' + billing.TRIAL_DAYS + '-day free trial starts when you verify.',
       verifyUrl: mail.verifyUrl,
     });
   }
@@ -756,9 +761,10 @@ async function handleApi(req, res, url) {
     const mail = await sendVerificationEmail(db, email, base);
     return apiSend( 200, {
       ok: true,
-      message: notify.smtpConfigured()
+      emailSent: !!mail.emailSent,
+      message: mail.emailSent
         ? 'Verification email sent — check your inbox (and spam folder).'
-        : 'Use the verification link below.',
+        : 'Email could not be delivered — use the verification link below.',
       verifyUrl: mail.verifyUrl,
     });
   }
@@ -797,14 +803,15 @@ async function handleApi(req, res, url) {
         <p style="color:#64748b;font-size:13px">Link expires in 1 hour. If you did not ask for this, ignore this email.</p>
       </div>`,
     };
-    await notify.sendRawEmail(email, msg);
-    const showLink = process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured();
+    const sendResult = await notify.sendRawEmail(email, msg);
+    const emailSent = notify.emailActuallySent(sendResult);
+    const showLink = notify.shouldShowEmailLink(sendResult);
     return apiSend( 200, {
       ok: true,
-      emailSent: notify.smtpConfigured(),
-      message: notify.smtpConfigured()
+      emailSent,
+      message: emailSent
         ? 'Reset link sent — check your inbox and spam folder.'
-        : 'Email is not set up yet — use the reset link on screen (copy and open it).',
+        : 'Email could not be delivered — use the reset link on screen (copy and open it).',
       resetUrl: showLink ? resetUrl : undefined,
     });
   }
@@ -981,6 +988,7 @@ async function handleApi(req, res, url) {
   if (route === '/state' && req.method === 'GET') {
     const state = tenants.getStateForUser(db, me.email);
     if (!state) return apiSend(409, { error: 'No workspace for this account — contact support.' });
+    if (tenants.ensureStarterPack(state, db.users[me.email], me.email)) writeDb(db);
     if (state.org && state.org.name === 'Brigade') {
       state.org.name = 'Kiteline';
       state.org.plan = 'Complete Kiteline';

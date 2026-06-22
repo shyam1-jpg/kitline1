@@ -142,7 +142,10 @@ async function handleAcademyRoute(ctx) {
       return plainSend(200, {
         ok: true,
         needsVerification: true,
-        message: 'Account created — check your email and click Verify before signing in.',
+        emailSent: !!mail.emailSent,
+        message: mail.emailSent
+          ? 'Account created — check your email and click Verify before signing in.'
+          : 'Account created — email could not be delivered. Use the verification link on screen.',
         verifyUrl: mail.verifyUrl,
       });
     }
@@ -241,16 +244,52 @@ async function handleAcademyRoute(ctx) {
       writeDb(db);
       const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
       const resetUrl = `${base}/academy/?reset=${resetToken}`;
-      await notify.sendRawEmail(email, {
+      const msg = {
         subject: 'Reset your Kiteline Academy password',
         text: `Reset link (1 hour):\n${resetUrl}`,
-        html: `<p><a href="${resetUrl}">Reset Kiteline Academy password</a></p>`,
-      }).catch(() => {});
-      if (process.env.SHOW_RESET_LINK === 'true' || !notify.smtpConfigured()) {
-        return plainSend(200, { ok: true, message: 'If registered, reset link sent.', resetUrl });
-      }
+        html: `<div style="font-family:Inter,sans-serif;max-width:520px"><h2 style="color:#36e6ff">Reset Kiteline Academy password</h2><p><a href="${resetUrl}" style="display:inline-block;padding:12px 20px;background:#36e6ff;color:#061020;font-weight:bold;border-radius:8px;text-decoration:none">Reset password</a></p><p style="color:#64748b;font-size:13px">${resetUrl}</p></div>`,
+      };
+      const sendResult = await notify.sendRawEmail(email, msg).catch((e) => {
+        console.error('[academy] reset email failed:', e.message);
+        return { mode: 'outbox', smtpError: e.message };
+      });
+      const emailSent = notify.emailActuallySent(sendResult);
+      const showLink = notify.shouldShowEmailLink(sendResult);
+      return plainSend(200, {
+        ok: true,
+        emailSent,
+        message: emailSent
+          ? 'If that email is registered, we sent a reset link — check inbox and spam.'
+          : 'Email could not be delivered — use the reset link on screen.',
+        resetUrl: showLink ? resetUrl : undefined,
+      });
     }
     return plainSend(200, { ok: true, message: 'If that email is registered, we sent a reset link.' });
+  }
+
+  if (route === '/academy/resend-verification' && req.method === 'POST') {
+    const rl = security.checkRateLimit(req, 'resend');
+    if (!rl.ok) return plainSend(429, { error: 'Too many requests. Try again later.', retryAfter: rl.retryAfter });
+    const email = (body.email || '').toLowerCase().trim();
+    if (!email) return plainSend(400, { error: 'Email required' });
+    const user = await academyStore.getUser(db, email);
+    if (!user) {
+      return plainSend(200, { ok: true, message: 'If that email is registered, we sent a new verification link.' });
+    }
+    if (user.emailVerified !== false) {
+      return plainSend(200, { ok: true, message: 'This email is already verified — you can sign in.' });
+    }
+    const base = APP_URL || `${url.protocol}//${req.headers.host || 'localhost'}`;
+    const mail = await sendAcademyVerificationEmail(db, email, base);
+    writeDb(db);
+    return plainSend(200, {
+      ok: true,
+      emailSent: !!mail.emailSent,
+      message: mail.emailSent
+        ? 'Verification email sent — check your inbox and spam folder.'
+        : 'Email could not be delivered — use the verification link below.',
+      verifyUrl: mail.verifyUrl,
+    });
   }
 
   if (route === '/academy/reset-password' && req.method === 'POST') {

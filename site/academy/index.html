@@ -129,6 +129,10 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 .pw-meter span{display:block;height:100%;width:0;border-radius:999px;transition:.2s}
 .pw-hint{font-size:12px;color:var(--muted);margin:-6px 0 10px}
 .auth-link{background:none;border:0;color:var(--cyan);font-weight:800;cursor:pointer;padding:0;margin-top:10px}
+.link-box{border:1px solid rgba(54,230,255,.35);background:rgba(54,230,255,.08);border-radius:16px;padding:16px;margin-top:12px;text-align:left}
+.link-box p{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 12px}
+.link-box a.btn{display:block;text-align:center;margin-bottom:10px}
+.link-box code{display:block;font-size:11px;word-break:break-all;color:#c8fbff;background:#050814;padding:10px;border-radius:10px;margin-bottom:10px}
 .secure-note{font-size:12px;color:#ffe4b2;margin-top:10px;line-height:1.5}
 .account-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(54,230,255,.1);border:1px solid rgba(54,230,255,.2);font-size:12px;color:#bdf8ff;margin-bottom:12px}
 .course-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;font-size:12px;color:var(--muted)}
@@ -484,6 +488,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
       <div id="loginCaptcha" style="margin-bottom:10px"></div>
       <button class="btn" style="width:100%" type="button" onclick="loginAccount()" data-i18n="loginBtn">Sign in to my account</button>
       <button type="button" class="auth-link" onclick="forgotPassword()">Forgot password?</button>
+      <button type="button" class="auth-link" onclick="resendVerification()">Resend verification email</button>
       <p class="secure-note">🔒 Secure sign-in with encrypted session cookies.</p>
     </div>
     <div class="auth-panel" id="panel2fa">
@@ -517,6 +522,20 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
       <label class="check-row"><input id="regTerms" type="checkbox"><span>I agree to the <a href="terms.html" target="_blank" rel="noopener" style="color:var(--cyan)">terms</a>, <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy policy</a> and <a href="refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a></span></label>
       <div id="regCaptcha" style="margin-bottom:10px"></div>
       <button class="btn" style="width:100%" type="button" onclick="registerAccount()" data-i18n="createAccount">Create my account</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="linkModal">
+  <div class="box" style="width:min(560px,100%)">
+    <button class="close" type="button" onclick="closeLinkModal()">×</button>
+    <h2 id="linkModalTitle">Your link</h2>
+    <p id="linkModalMsg" style="color:var(--muted);line-height:1.6"></p>
+    <div class="link-box">
+      <a id="linkModalBtn" class="btn" href="#">Open link</a>
+      <code id="linkModalUrl"></code>
+      <button type="button" class="btn secondary" style="width:100%" onclick="copyLinkModal()">Copy link</button>
+      <p style="color:var(--muted);font-size:12px;margin:10px 0 0">Check spam/junk if you expected an email. Link expires soon.</p>
     </div>
   </div>
 </div>
@@ -768,6 +787,20 @@ function authTab(mode){
 }
 function openAuth(mode){authTab(mode||'signin');$('auth').classList.add('open');applyKaLang(kaLang);renderCaptchaWidgets()}
 function closeAuth(){$('auth').classList.remove('open')}
+function showLinkModal(title,message,url){
+  $('linkModalTitle').textContent=title||'Your link';
+  $('linkModalMsg').textContent=message||'Use this link if email did not arrive.';
+  $('linkModalBtn').href=url;
+  $('linkModalBtn').textContent=title&&title.includes('Reset')?'Reset my password':'Verify my email';
+  $('linkModalUrl').textContent=url;
+  $('linkModal').classList.add('open');
+}
+function closeLinkModal(){$('linkModal').classList.remove('open')}
+function copyLinkModal(){
+  const url=$('linkModalUrl').textContent;
+  if(!url)return;
+  navigator.clipboard.writeText(url).then(()=>toast('Link copied')).catch(()=>toast('Copy the link manually'));
+}
 async function registerAccount(){
   const fullName=$('regName').value.trim();
   const payload={
@@ -789,14 +822,30 @@ async function registerAccount(){
     const data=await api('/register',payload);
     if(data.needsVerification){
       closeAuth();
-      toast(data.message);
-      if(data.verifyUrl){alert('Verify your email:\n\n'+data.verifyUrl)}
+      toast(data.message||'Account created — verify your email');
+      if(data.verifyUrl){
+        showLinkModal('Verify your Kiteline Academy email', data.message||'Tap the button below to activate your account.', data.verifyUrl);
+      }else{
+        toast('Check your inbox and spam folder for the verification email');
+      }
       return;
     }
     setUser(data.user);
     serverEnrollments=[];
     closeAuth();toast(kaT('accountCreated')+' — '+data.user.name);renderStudent();
-  }catch(e){toast(e.message)}
+  }catch(e){
+    if(e.message&&e.message.includes('Verify your email'))openAuth('signin');
+    toast(e.message)
+  }
+}
+async function resendVerification(){
+  const email=($('loginEmail')&&$('loginEmail').value.trim())||prompt('Enter your registered email:');
+  if(!email)return;
+  try{
+    const data=await api('/resend-verification',{email:email.trim()});
+    toast(data.message||'Check your email');
+    if(data.verifyUrl)showLinkModal('Verify your Kiteline Academy email', data.message||'Use this link to verify.', data.verifyUrl);
+  }catch(err){toast(err.message)}
 }
 async function loginAccount(){
   const email=$('loginEmail').value.trim(), password=$('loginPass').value;
@@ -806,7 +855,10 @@ async function loginAccount(){
     if(data.needs2fa){pending2fa=data.pendingToken;authTab('2fa');toast(data.message||'Enter 2FA code');return}
     setUser(data.user);
     closeAuth();toast(kaT('welcome')+' — '+data.user.name);renderStudent();
-  }catch(e){toast(e.message)}
+  }catch(e){
+    if(e.message&&/verify your email/i.test(e.message))openAuth('signin');
+    toast(e.message);
+  }
 }
 async function verify2faLogin(){
   const code=$('twofaCode').value.trim();
@@ -819,11 +871,14 @@ async function verify2faLogin(){
   }catch(e){toast(e.message)}
 }
 async function forgotPassword(){
-  const email=prompt('Enter your registered email:');if(!email)return;
+  const email=($('loginEmail')&&$('loginEmail').value.trim())||prompt('Enter your registered email:');
+  if(!email)return;
   try{
     const data=await api('/forgot-password',{email:email.trim()});
     toast(data.message||'Check your email');
-    if(data.resetUrl)alert('Reset link:\n\n'+data.resetUrl);
+    if(data.resetUrl){
+      showLinkModal('Reset your Kiteline Academy password', data.message||'Use this link to choose a new password.', data.resetUrl);
+    }
   }catch(e){toast(e.message)}
 }
 function toggleAuth(){if(getUser()&&isSignedIn())logoutServer();else openAuth('signin')}
