@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-22-starter-pack';
+const APP_BUILD = '2026-06-22-login-fix';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -121,6 +121,7 @@ function bootstrapProductionDb() {
     emailVerified: true,
     createdAt: (db.users[ownerEmail] && db.users[ownerEmail].createdAt) || new Date().toISOString(),
   };
+  security.clearLoginFailures(db.users[ownerEmail]);
   writeDb(db);
   console.log('  Owner login ready: ' + ownerEmail + ' (password from OWNER_PASSWORD env)');
 }
@@ -805,14 +806,13 @@ async function handleApi(req, res, url) {
     };
     const sendResult = await notify.sendRawEmail(email, msg);
     const emailSent = notify.emailActuallySent(sendResult);
-    const showLink = notify.shouldShowEmailLink(sendResult);
     return apiSend( 200, {
       ok: true,
       emailSent,
       message: emailSent
-        ? 'Reset link sent — check your inbox and spam folder.'
+        ? 'Reset link sent — also use the link on screen below (check spam if no email).'
         : 'Email could not be delivered — use the reset link on screen (copy and open it).',
-      resetUrl: showLink ? resetUrl : undefined,
+      resetUrl,
     });
   }
 

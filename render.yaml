@@ -52,6 +52,8 @@ services:
         value: https://kiteline.uk
       - key: DEMO_MODE
         value: "false"
+      - key: SHOW_RESET_LINK
+        value: "true"
       - key: REQUIRE_EMAIL_VERIFY
         value: "false"
       - key: OPENAI_API_KEY
