@@ -778,14 +778,20 @@ async function handleApi(req, res, url) {
     if (!email) return apiSend( 400, { error: 'Email required' });
     const user = db.users[email];
     if (!user) {
+      const ownerEm = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
       const smtpOn = notify.smtpConfigured();
+      let message = smtpOn
+        ? 'If that email is registered, we sent a reset link — check inbox and spam.'
+        : 'No email is sent from Kiteline yet. If that address is registered, a reset link would appear on this page. If nothing appeared, check the spelling or create an account.';
+      if (email === ownerEm && !process.env.OWNER_PASSWORD) {
+        message = 'Owner account not created yet. In Render → kitline1 → Environment, set OWNER_PASSWORD, save, wait 3 minutes, then sign in with that password. Or create a new account at Register.';
+      }
       return apiSend( 200, {
         ok: true,
-        message: smtpOn
-          ? 'If that email is registered, we sent a reset link — check inbox and spam.'
-          : 'No email is sent from Kiteline yet. If that address is registered, a reset link would appear on this page. If nothing appeared, check the spelling or create an account.',
+        message,
         emailSent: false,
         emailConfigured: smtpOn,
+        ownerSetupRequired: email === ownerEm && !process.env.OWNER_PASSWORD,
       });
     }
     security.audit(db, 'forgot_password', { ip, email });
