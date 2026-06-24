@@ -104,6 +104,12 @@
     async recipeAiRemoveKey() { return req('PUT', '/recipe-ai/settings', { removeKey: true }); },
     async recipeAiCheckout() { return req('POST', '/recipe-ai/checkout', {}); },
     async recipeAiGrant(email, enable) { return req('POST', '/recipe-ai/grant', { email, enable }); },
+    async aiTokens() { return req('GET', '/ai/tokens'); },
+    async aiCreateToken(body) { return req('POST', '/ai/tokens', body); },
+    async aiRevokeToken(id) { return req('DELETE', '/ai/tokens/' + id); },
+    async aiOAuthConfig() { return req('GET', '/ai/oauth/config'); },
+    async aiOAuthPending(id) { return req('GET', '/ai/oauth/pending?id=' + encodeURIComponent(id)); },
+    async aiOAuthApprove(body) { return req('POST', '/ai/oauth/approve', body); },
     async downloadBackup() { return req('GET', '/backup'); },
     async exportWorkspace() { return req('GET', '/workspace/export'); },
   };

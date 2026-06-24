@@ -4,7 +4,7 @@
 (function () {
   const S = window.Store;
   const V = window.Views;
-  const { icon, toast, modal, escapeHtml } = window.UI;
+  const { icon, toast, modal, closeModal, escapeHtml } = window.UI;
 
   const NAV = [
     { id:'home', label:'Home', icon:'grid' },
@@ -93,9 +93,9 @@
   }
 
   const brandLogo = (size, light) =>
-    `<div class="brand-lockup${size==='lg'?' brand-lockup--lg':''}${light?' brand-lockup--light':''}">
-      <img src="/kiteline-logo.png?v=mark3" alt="" class="brand-mark" width="36" height="36">
-      <span class="brand-name">Kit<em>eline</em></span>
+    `<div class="brand-lockup${size==='lg'?' brand-lockup--lg':''}${light?' brand-lockup--light':''}" aria-label="Kiteline">
+      <img src="/kiteline-logo.png?v=mark3" alt="Kiteline" class="brand-mark" width="36" height="36">
+      <span class="brand-name" aria-hidden="true">Kit<em>eline</em></span>
     </div>`;
 
   /* ---------- ROLES & PERMISSIONS ---------- */
@@ -231,6 +231,18 @@
       this.normalizeAppHash();
       this.route = this.resolveRoute();
       this.saveInviteSiteFromUrl();
+      this.saveAiOAuthFromUrl();
+      const bootTimer = setTimeout(() => {
+        const fb = document.getElementById('app-boot-fallback');
+        if (!fb || !fb.isConnected) return;
+        fb.innerHTML = `<div class="text-center max-w-sm p-6">
+          <p class="text-lg font-bold text-brand-700">Kiteline</p>
+          <p class="text-ink-600 mt-2 text-sm">The app is taking longer than usual to load. Check your connection or try again.</p>
+          <p class="mt-4 flex flex-col gap-2"><a href="/app" class="btn btn-primary">Reload app</a><a href="/app#register" class="text-brand-600 font-semibold text-sm">Create account</a><a href="/app#forgot-password" class="text-brand-600 font-semibold text-sm">Forgot password</a></p>
+        </div>`;
+      }, 12000);
+      const clearBoot = () => { clearTimeout(bootTimer); };
+      try {
       window.addEventListener('hashchange', () => {
         if (!this.authed()) { this.renderAuthScreen(); return; }
         const authPath = this.authHashPath();
@@ -282,6 +294,7 @@
           }
           await S.hydrateFromServer();
           this.applyInviteSite();
+          await this.maybeAiOAuth();
           this.render();
         } catch (e) {
           window.Api.setToken(null);
@@ -293,7 +306,9 @@
         // offline / file:// mode
         if (!S.session()) this.renderLogin(); else this.render();
       }
-
+      } finally {
+        clearBoot();
+      }
       this.startSimulation();
     },
 
@@ -302,6 +317,78 @@
       if (site) {
         sessionStorage.setItem('kiteline_invite_site', site);
         sessionStorage.setItem('kiteline_invite_pending', '1');
+      }
+    },
+
+    saveAiOAuthFromUrl() {
+      const pending = new URLSearchParams(location.search).get('ai_oauth');
+      if (pending) sessionStorage.setItem('kiteline_ai_oauth', pending);
+    },
+
+    clearAiOAuthUrl() {
+      sessionStorage.removeItem('kiteline_ai_oauth');
+      const u = new URL(location.href);
+      u.searchParams.delete('ai_oauth');
+      history.replaceState(null, '', u.pathname + u.search + (location.hash || ''));
+    },
+
+    async maybeAiOAuth() {
+      const pendingId = sessionStorage.getItem('kiteline_ai_oauth')
+        || new URLSearchParams(location.search).get('ai_oauth');
+      if (!pendingId || !window.Api || !window.Api.token()) return;
+      if (sessionStorage.getItem('kiteline_ai_oauth_handled') === pendingId) return;
+      const me = currentUser();
+      if ((me.rank || 0) < 3 && me.role !== 'Admin') {
+        toast('Only Admins can connect ChatGPT for this company', 'warn');
+        this.clearAiOAuthUrl();
+        return;
+      }
+      try {
+        const info = await window.Api.aiOAuthPending(pendingId);
+        const permHtml = Object.entries({
+          read_recipes: 'Read recipes',
+          read_allergen_data: 'Read allergen data',
+          read_temperature_logs: 'Read temperature logs',
+          read_haccp_records: 'Read HACCP records',
+          create_draft_recipes: 'Create draft recipes',
+          create_menu_drafts: 'Create menu drafts',
+          export_reports: 'Export reports',
+        }).map(([k, label]) =>
+          `<label class="flex gap-2 py-1 text-sm"><input type="checkbox" data-oauth-perm="${k}" ${info.permissions && info.permissions[k] ? 'checked' : ''} class="accent-brand-600">${escapeHtml(label)}</label>`
+        ).join('');
+        const layer = modal('Connect ChatGPT to Kiteline', `
+          <p class="text-sm text-ink-600 mb-3"><b>ChatGPT</b> is requesting access to your Kiteline workspace. Only approve if you started this from your Custom GPT.</p>
+          <p class="text-xs text-ink-400 mb-3">Scope: ${escapeHtml(info.scope || 'kiteline')}</p>
+          <div class="mb-4">${permHtml}</div>
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-primary btn-sm" id="oauthApprove">Allow access</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="oauthDeny">Deny</button>
+          </div>`, { wide: true });
+        layer.querySelector('#oauthDeny').onclick = async () => {
+          try {
+            const r = await window.Api.aiOAuthApprove({ pendingId, approve: false });
+            if (r.redirect) location.href = r.redirect;
+          } catch (e) { toast(e.message || 'Could not deny', 'error'); }
+          closeModal();
+          this.clearAiOAuthUrl();
+        };
+        layer.querySelector('#oauthApprove').onclick = async () => {
+          const permissions = {};
+          layer.querySelectorAll('[data-oauth-perm]').forEach((c) => { permissions[c.dataset.oauthPerm] = c.checked; });
+          try {
+            const r = await window.Api.aiOAuthApprove({ pendingId, approve: true, permissions });
+            sessionStorage.setItem('kiteline_ai_oauth_handled', pendingId);
+            closeModal();
+            this.clearAiOAuthUrl();
+            if (r.redirect) {
+              toast('ChatGPT connected — returning to ChatGPT');
+              location.href = r.redirect;
+            }
+          } catch (e) { toast(e.message || 'Could not approve', 'error'); }
+        };
+      } catch (e) {
+        toast(e.message || 'ChatGPT link expired — try again from ChatGPT', 'error');
+        this.clearAiOAuthUrl();
       }
     },
 
@@ -407,6 +494,7 @@
               toast('Signed in');
             }
             if (data.trial) this.trial = data.trial;
+            await this.maybeAiOAuth();
             this.render();
           } catch (e) {
             if (e.data && e.data.code === 'email_not_verified') {

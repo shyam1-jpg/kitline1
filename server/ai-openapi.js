@@ -87,6 +87,19 @@ function buildOpenApi(baseUrl) {
           name: 'x-api-key',
           description: 'Kiteline AI token (kl_ai_…)',
         },
+        OAuth2: {
+          type: 'oauth2',
+          flows: {
+            authorizationCode: {
+              authorizationUrl: `${origin}/api/ai/oauth/authorize`,
+              tokenUrl: `${origin}/api/ai/oauth/token`,
+              scopes: {
+                'kiteline.read': 'Read recipes, allergens, logs, and reports',
+                'kiteline.write': 'Create and update records (with user confirmation)',
+              },
+            },
+          },
+        },
       },
     },
     paths,

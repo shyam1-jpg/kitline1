@@ -220,4 +220,5 @@ module.exports = {
   requireConfirm,
   publicTokenEntry,
   RANK,
+  roleAtLeast,
 };

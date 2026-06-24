@@ -5,6 +5,7 @@ const tenants = require('./tenants');
 const security = require('./security');
 const aiAuth = require('./ai-auth');
 const { buildOpenApi } = require('./ai-openapi');
+const aiOauth = require('./ai-oauth');
 
 function uid(prefix) {
   return `${prefix}_${crypto.randomBytes(4).toString('hex')}`;
@@ -480,6 +481,13 @@ async function handleApi(opts) {
     return true;
   }
 
+  if (resource === 'oauth') {
+    await aiOauth.handleRoute({
+      db, req, parts, method, body, ip, apiSend, userFromReq, writeDb, query, security,
+    });
+    return true;
+  }
+
   if (resource === 'tokens') {
     const sessionUser = userFromReq(db, req);
     if (!sessionUser) {
@@ -501,6 +509,12 @@ async function handleApi(opts) {
     }
     if (method === 'POST') {
       try {
+        const state = tenants.getStateForUser(db, sessionUser.email);
+        const role = state ? aiAuth.resolveRole(state, sessionUser.email) : 'Staff';
+        if (!aiAuth.roleAtLeast(role, 'Admin')) {
+          await apiSend(403, { error: 'Only Admins can create AI tokens for this company' });
+          return true;
+        }
         const created = aiAuth.createToken(db, sessionUser.email, body || {});
         security.audit(db, 'ai_token_create', { ip, email: sessionUser.email, detail: created.id });
         writeDb(db);
