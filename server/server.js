@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-22-login-fix';
+const APP_BUILD = '2026-06-24-ai-connector';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -40,6 +40,7 @@ const recipeAiAccess = require('./recipe-ai-access');
 const tenants = require('./tenants');
 const academyStore = require('./academy/store');
 const academyHandlers = require('./academy/handlers');
+const aiConnector = require('./ai-connector');
 
 function ensureBreachAlerts(state) {
   if (!state || !Array.isArray(state.sensors)) return [];
@@ -969,6 +970,15 @@ async function handleApi(req, res, url) {
     return apiSend( 200, { ok: true, ticket: { id: t.id, status: t.status, messages: t.thread.length } });
   }
 
+  // ChatGPT / AI connector (separate kl_ai_ tokens — not user passwords)
+  if (route.startsWith('/ai')) {
+    const query = Object.fromEntries(url.searchParams.entries());
+    const handled = await aiConnector.handleApi({
+      db, req, route, method: req.method, body, ip, apiSend, userFromReq, writeDb, query,
+    });
+    if (handled) return;
+  }
+
   // everything below requires auth
   const me = userFromReq(db, req);
   if (!me) return apiSend(401, { error: 'Session expired — sign in again', code: 'session_expired' });
@@ -1285,6 +1295,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
+
+    if (url.pathname === '/mcp') {
+      return send(res, 200, aiConnector.mcpInfo(), null, req);
+    }
 
     // Marketing site at "/"
     if (url.pathname === '/' || url.pathname === '') return serveFile(res, path.join(ROOT, 'site', 'index.html'));
