@@ -199,9 +199,12 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 .foot-col a:hover{color:#fff}
 .mobile-note{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted);font-size:13px}
 .build-list{margin:10px 0 0;padding-left:20px;color:var(--cyan);line-height:1.8;font-size:14px}
-@media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.form-grid{grid-template-columns:1fr}.hero,.playground,.about-grid,.free-trial-box{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid,.featured-strip,.pricing-grid,.testimonial-grid,.resources-grid,.foot-grid{grid-template-columns:1fr}.audience-grid,.roadmap-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.projects-grid{grid-template-columns:1fr}}
+@media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.form-grid{grid-template-columns:1fr}.hero,.playground,.about-grid,.free-trial-box{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid,.featured-strip,.pricing-grid,.testimonial-grid,.resources-grid,.foot-grid,.learn-track-grid,.learn-how-steps{grid-template-columns:1fr}.audience-grid,.roadmap-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.projects-grid,.learn-courses-grid,.ai-tools-grid{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="learn.css?v=1" />
 <script src="i18n.js?v=2"></script>
+<script src="curriculum.js?v=2"></script>
+<script src="learn.js?v=2"></script>
 </head>
 <body>
 <div class="beta-banner">✨ <b>Kiteline Academy is open for early learners.</b> Try free lessons today — no card required. <a href="#free-trial">Start free</a></div>
@@ -209,7 +212,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
   <nav class="nav">
     <a class="brand" href="#home"><img class="brand-wordmark" src="kitline-academy-wordmark.png?v=1" alt="Kiteline Academy — Code, AI, Data, Future Skills" width="280" height="52"></a>
     <div class="navlinks">
-      <a href="#home">Home</a><a href="#courses">Courses</a><a href="#pricing">Pricing</a><a href="#playground">Code Lab</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="#contact">Contact</a>
+      <a href="#home">Home</a><a href="#learn-hub">Learn</a><a href="#courses">Courses</a><a href="#ai-tools">AI Tools</a><a href="#pricing">Pricing</a><a href="#playground">Code Lab</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="#contact">Contact</a>
     </div>
     <div class="nav-auth" id="navAuth">
       <select id="langPick" class="lang-select" aria-label="Language" title="Language" onchange="applyKaLang(this.value)"></select>
@@ -226,14 +229,14 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
     <h1>Learn AI, coding and digital skills <span class="grad">from zero.</span></h1>
     <p class="lead">Choose a beginner-friendly course, practise in the Code Lab, download resources, track your progress and earn a Kiteline Academy certificate.</p>
     <div class="actions">
-      <button class="btn" type="button" onclick="openFreeLesson('ai')">Start free lesson</button>
+      <button class="btn" type="button" onclick="KA_LEARN.openLessonPlayer('ai-world-starter',0)">Start free lesson</button>
       <button class="btn gold" type="button" onclick="location.href='#pricing'">Join Pro</button>
       <a class="btn secondary" href="#courses">View courses</a>
     </div>
     <div class="mobile-note">📱 Mobile-friendly — learn from your phone, tablet or computer</div>
     <div class="stats">
       <div class="stat"><b>30+</b><span>courses available</span></div>
-      <div class="stat"><b>3</b><span>free sample lessons</span></div>
+      <div class="stat"><b>15</b><span>free lessons (AI + web)</span></div>
       <div class="stat"><b>✓</b><span>certificate included</span></div>
       <div class="stat"><b>24–48h</b><span>support reply time</span></div>
     </div>
@@ -257,12 +260,12 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
       <h2 style="margin:0 0 10px;font-size:clamp(28px,4vw,40px)">Free trial — start learning today</h2>
       <p style="color:var(--muted);line-height:1.65;margin:0">No credit card required. Create a free account and try sample lessons before you enrol.</p>
       <div class="free-trial-list">
-        <div>✅ <span><b style="color:#fff">3 free lessons</b> — AI, HTML and coding with ChatGPT</span></div>
+        <div>✅ <span><b style="color:#fff">10 free AI lessons</b> — full AI World starter course + web basics</span></div>
         <div>✅ <span><b style="color:#fff">1 free Code Lab</b> practice — edit HTML and see results live</span></div>
         <div>✅ <span><b style="color:#fff">No card required</b> — sign up with email only</span></div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
-        <button class="btn" type="button" onclick="openFreeLesson('ai')">Start free lesson</button>
+        <button class="btn" type="button" onclick="KA_LEARN.openLessonPlayer('ai-world-starter',0)">Start free lesson</button>
         <button class="btn secondary" type="button" onclick="openAuth('register')">Create free account</button>
       </div>
     </div>
@@ -272,6 +275,28 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
       <div class="line"></div>
       <div class="detail"><b style="color:#0f172a;font-size:18px">Your Name</b><br>Course Name<br>Completion Date</div>
     </div>
+  </div>
+</section>
+
+<section id="learn-hub">
+  <div class="head"><div><h2>Learning Hub</h2><p>Pick your stage — free starters get full access to AI World and Web Basics. Progress saves when you sign in.</p></div>
+    <button class="btn" type="button" onclick="KA_LEARN.openLessonPlayer('ai-world-starter',0)">Start AI World course</button></div>
+  <div class="learn-how-steps">
+    <div class="learn-how-step"><b>1</b><span>Read a short lesson (5–15 min each)</span></div>
+    <div class="learn-how-step"><b>2</b><span>Try it in ChatGPT, Claude or Code Lab</span></div>
+    <div class="learn-how-step"><b>3</b><span>Mark complete — progress tracks automatically</span></div>
+    <div class="learn-how-step"><b>4</b><span>Finish all lessons → starter certificate</span></div>
+  </div>
+  <div class="learn-track-grid" id="learnTracks"></div>
+  <div class="learn-courses-grid" id="learnCourseCards"></div>
+</section>
+
+<section id="ai-tools">
+  <div class="head"><div><h2>AI tools you should know</h2><p>What each app does, who makes it, and a prompt to try today. All have free tiers to start.</p></div></div>
+  <div class="ai-tools-grid" id="aiToolsGrid"></div>
+  <div style="margin-top:28px">
+    <h3 style="margin:0 0 12px;font-size:22px">Trusted sources & further reading</h3>
+    <ul class="learn-sources-list" id="learnSourcesList"></ul>
   </div>
 </section>
 
@@ -323,7 +348,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 <section id="pricing">
   <div class="head"><div><h2>Pricing</h2><p>Start free, upgrade when you are ready. Cancel monthly plans anytime.</p></div></div>
   <div class="pricing-grid">
-    <div class="plan"><h3>Free</h3><div class="amount">£0</div><ul><li>3 sample lessons</li><li>Code Lab practice</li><li>Student account</li><li>No card required</li></ul><button class="btn secondary" type="button" onclick="openFreeLesson('ai')">Start free lesson</button></div>
+    <div class="plan"><h3>Free</h3><div class="amount">£0</div><ul><li>AI World — 10 lessons</li><li>Web Basics — 5 lessons</li><li>Code Lab + progress tracking</li><li>No card required</li></ul><button class="btn secondary" type="button" onclick="KA_LEARN.openLessonPlayer('ai-world-starter',0)">Start free course</button></div>
     <div class="plan"><h3>Starter</h3><div class="amount">£9.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>Beginner courses</li><li>Progress tracking</li><li>Email support</li></ul><button class="btn secondary" type="button" onclick="requestEnrolment('Starter — £9.99/month')">Request enrolment</button></div>
     <div class="plan popular"><h3>Pro Student</h3><div class="amount">£19.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>All courses & paths</li><li>Code Lab & downloads</li><li>Certificates</li><li>Priority support</li></ul><button class="btn" type="button" onclick="requestEnrolment('Pro Student — £19.99/month')">Join Pro</button></div>
     <div class="plan"><h3>Lifetime Bundle</h3><div class="amount">£99</div><ul><li>All beginner courses</li><li>One-time payment</li><li>Lifetime access</li><li>Certificate included</li></ul><button class="btn gold" type="button" onclick="requestEnrolment('Lifetime Bundle — £99 one-time')">Request enrolment</button></div>
@@ -457,7 +482,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 <footer>
   <div class="foot-grid">
     <div class="foot-col"><b>Kiteline Academy</b><p style="margin:0;line-height:1.6">Learn AI, coding and digital skills from zero.</p><p style="margin-top:10px"><a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p><p class="company-note" style="margin-top:12px"><a href="https://kiteline.uk/" style="color:var(--muted)">Kiteline kitchen software</a> — separate product</p></div>
-    <div class="foot-col"><b>Explore</b><a href="#home">Home</a><a href="#courses">Courses</a><a href="#pricing">Pricing</a><a href="#contact">Contact</a><a href="#playground">Code Lab</a></div>
+    <div class="foot-col"><b>Explore</b><a href="#home">Home</a><a href="#learn-hub">Learning Hub</a><a href="#ai-tools">AI Tools</a><a href="#courses">Courses</a><a href="#pricing">Pricing</a><a href="#contact">Contact</a><a href="#playground">Code Lab</a></div>
     <div class="foot-col"><b>Legal</b><a href="terms.html">Terms & Conditions</a><a href="privacy.html">Privacy Policy</a><a href="refunds.html">Refund Policy</a><a href="cookies.html">Cookie Policy</a></div>
     <div class="foot-col"><b>Account</b><a href="#" onclick="openAuth('signin');return false">Sign in</a><a href="#" onclick="openAuth('register');return false">Create account</a><a href="#free-trial">Free trial</a><button type="button" class="btn secondary" style="margin-top:10px" onclick="openAuth('signin')">Student login</button></div>
   </div>
@@ -573,6 +598,30 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
   </div>
 </div>
 
+<div class="modal" id="lessonPlayer">
+  <div class="lp-shell box" style="padding:0;position:relative">
+    <button class="close lp-close-mobile" type="button" onclick="KA_LEARN.closeLessonPlayer()" style="position:absolute;top:12px;right:12px;z-index:5">×</button>
+    <aside class="lp-sidebar" id="lpSidebar"><h3>Lessons</h3></aside>
+    <div class="lp-main">
+      <div class="lp-topbar">
+        <div><h2 id="lpTitle">Course</h2><p class="lp-meta" id="lpMeta"></p></div>
+        <button class="btn secondary" type="button" onclick="KA_LEARN.closeLessonPlayer()">Close</button>
+      </div>
+      <div class="lp-scroll">
+        <div class="lp-body" id="lpBody"></div>
+        <div class="lp-tryit" id="lpTryIt" style="display:none"></div>
+        <div class="lp-quiz" id="lpQuiz" style="display:none"></div>
+        <div class="lp-sources" id="lpSources" style="display:none"></div>
+      </div>
+      <div class="lp-footer">
+        <button class="btn secondary" type="button" id="lpPrev">← Previous</button>
+        <button class="btn" type="button" id="lpComplete">Mark complete</button>
+        <button class="btn secondary" type="button" id="lpNext">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -647,7 +696,7 @@ function bindCourseCards(root){
     card.onkeydown=e=>{if(e.key==='Enter')openCourse(Number(card.dataset.id))};
   });
   root.querySelectorAll('[data-buy]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();const c=allCourses().find(x=>x.id===Number(btn.dataset.buy));if(c)requestEnrolment(c.title+' — £'+c.price)});
-  root.querySelectorAll('[data-free]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();const c=allCourses().find(x=>x.id===Number(btn.dataset.free));if(c)openFreeLesson(c.free||'ai',c.title)});
+  root.querySelectorAll('[data-free]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();const c=allCourses().find(x=>x.id===Number(btn.dataset.free));if(c){const map={ai:'ai-world-starter',html:'html-starter',chatgpt:'ai-world-starter',website:'html-starter'};KA_LEARN.openLessonPlayer(map[c.free||'ai']||'ai-world-starter',0)}});
 }
 function renderFeatured(){
   const featured=FEATURED_TITLES.map(t=>allCourses().find(c=>c.title===t)).filter(Boolean);
@@ -656,11 +705,8 @@ function renderFeatured(){
   bindCourseCards(el);
 }
 function openFreeLesson(key,courseName){
-  const lesson=FREE_LESSONS[key]||FREE_LESSONS.ai;
-  $('freeLessonTitle').textContent=lesson.title;
-  $('freeLessonMeta').textContent=(courseName||lesson.course)+' · Free sample lesson';
-  $('freeLessonBody').innerHTML=lesson.html;
-  $('freeLesson').classList.add('open');
+  if(window.KA_LEARN)KA_LEARN.openFreeLessonLegacy(key);
+  else{const lesson=FREE_LESSONS[key]||FREE_LESSONS.ai;$('freeLessonTitle').textContent=lesson.title;$('freeLessonMeta').textContent=(courseName||lesson.course)+' · Free sample lesson';$('freeLessonBody').innerHTML=lesson.html;$('freeLesson').classList.add('open')}
 }
 function closeFreeLesson(){$('freeLesson').classList.remove('open')}
 function requestEnrolment(label){
@@ -738,6 +784,10 @@ async function restoreSession(){
     if(r.ok&&data.user){
       setUser(data.user);
       serverEnrollments=data.enrollments||[];
+      if(window.KA_LEARN){
+        await KA_LEARN.loadProgress();
+        KA_LEARN.renderLearnHub();
+      }
       return;
     }
   }catch(e){}
@@ -832,7 +882,9 @@ async function registerAccount(){
     }
     setUser(data.user);
     serverEnrollments=[];
-    closeAuth();toast(kaT('accountCreated')+' — '+data.user.name);renderStudent();
+    closeAuth();toast(kaT('accountCreated')+' — '+data.user.name);
+    if(window.KA_LEARN)await KA_LEARN.loadProgress();
+    renderStudent();
   }catch(e){
     if(e.message&&e.message.includes('Verify your email'))openAuth('signin');
     toast(e.message)
@@ -854,7 +906,9 @@ async function loginAccount(){
     const data=await api('/login',{email,password,captchaToken:captchaToken(window.loginCaptchaWidget)});
     if(data.needs2fa){pending2fa=data.pendingToken;authTab('2fa');toast(data.message||'Enter 2FA code');return}
     setUser(data.user);
-    closeAuth();toast(kaT('welcome')+' — '+data.user.name);renderStudent();
+    closeAuth();toast(kaT('welcome')+' — '+data.user.name);
+    if(window.KA_LEARN)await KA_LEARN.loadProgress();
+    renderStudent();
   }catch(e){
     if(e.message&&/verify your email/i.test(e.message))openAuth('signin');
     toast(e.message);
@@ -984,7 +1038,7 @@ function openCourse(id){
   $('courseModalLearn').innerHTML=(c.learn||[]).map(x=>'<li>'+x+'</li>').join('');
   $('courseModalBuild').innerHTML=(c.build||[]).map(x=>'<li>'+x+'</li>').join('');
   $('courseModalLessons').innerHTML=sampleLessons.map(l=>'<li>'+l+'</li>').join('');
-  $('courseModalFree').onclick=()=>{closeCourse();openFreeLesson(c.free||'ai',c.title)};
+  $('courseModalFree').onclick=()=>{closeCourse();const map={ai:'ai-world-starter',html:'html-starter',chatgpt:'ai-world-starter',website:'html-starter'};KA_LEARN.openLessonPlayer(map[c.free||'ai']||'ai-world-starter',0)};
   $('courseModalBuy').onclick=()=>{closeCourse();requestEnrolment(c.title+' — £'+c.price)};
   $('courseModal').classList.add('open');
 }
@@ -1008,6 +1062,7 @@ function enrolledCourses(){
   return merged;
 }
 function renderStudent(){
+  if(window.KA_LEARN){KA_LEARN.renderDashboardCourses();return}
   const en=enrolledCourses(), u=getUser();
   let html='';
   if(u&&isSignedIn())html+='<div class="account-badge">🌍 '+u.country+' · '+u.ageGroup+' · '+u.email+(u.phone?' · '+u.phone:'')+(u.totpEnabled?' · 🔐 2FA':'')+'</div>';
@@ -1021,6 +1076,7 @@ function renderStudent(){
 function done(i){let p=JSON.parse(localStorage.getItem('kit_progress')||'{}');p[i]=true;localStorage.setItem('kit_progress',JSON.stringify(p));renderStudent();toast('Lesson marked complete')}
 function tab(id,el){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
 function makeCert(){
+  if(window.KA_LEARN){KA_LEARN.checkCertificate();return}
   const p=JSON.parse(localStorage.getItem('kit_progress')||'{}'), total=Object.values(p).filter(Boolean).length, name=localStorage.getItem('kit_name')||'Student';
   $('certBox').style.display='block';
   $('certBox').innerHTML=total>=sampleLessons.length?`<b>Certificate ready</b><br>${name} — Kiteline Academy Certificate of Completion.`:`Complete all ${sampleLessons.length} lessons in your course first. Progress: ${total}/${sampleLessons.length}.`;
@@ -1037,7 +1093,16 @@ function runCode(){const doc=$('preview').contentDocument;doc.open();doc.write($
 $('q').oninput=()=>renderCourses(false);
 $('level').onchange=()=>renderCourses(true);
 $('sort').onchange=()=>renderCourses(false);
-renderFilters();renderFeatured();renderCourses(false);runCode();initLangUi();initStaffMode();loadAcademyConfig().then(()=>handleAuthQuery()).then(()=>restoreSession()).then(()=>{renderStudent();renderSecurity()});
+renderFilters();renderFeatured();renderCourses(false);runCode();initLangUi();initStaffMode();
+if(window.KA_LEARN)KA_LEARN.init();
+loadAcademyConfig().then(()=>handleAuthQuery()).then(()=>restoreSession()).then(async()=>{
+  if(window.KA_LEARN){
+    await KA_LEARN.loadProgress();
+    KA_LEARN.renderLearnHub();
+    if(location.hash.indexOf('learn/')>=0)KA_LEARN.handleHashRoute();
+  }
+  renderStudent();renderSecurity();
+});
 </script>
 </body>
 </html>

@@ -8,6 +8,23 @@ const academyCookies = require('./cookies');
 const academyBilling = require('./billing');
 const billing = require('../billing');
 
+const FREE_ACADEMY_COURSES = ['ai-world-starter', 'html-starter'];
+
+function ensureAcademyLearning(user) {
+  if (!user) return user;
+  if (!user.learning) {
+    user.learning = { enrolled: FREE_ACADEMY_COURSES.slice(), progress: { courses: {} } };
+    return user;
+  }
+  if (!Array.isArray(user.learning.enrolled)) user.learning.enrolled = FREE_ACADEMY_COURSES.slice();
+  FREE_ACADEMY_COURSES.forEach((id) => {
+    if (user.learning.enrolled.indexOf(id) < 0) user.learning.enrolled.push(id);
+  });
+  if (!user.learning.progress) user.learning.progress = { courses: {} };
+  if (!user.learning.progress.courses) user.learning.progress.courses = {};
+  return user;
+}
+
 function academyAdminKey() {
   return process.env.ACADEMY_ADMIN_KEY || '';
 }
@@ -128,6 +145,10 @@ async function handleAcademyRoute(ctx) {
       failedAttempts: 0,
       totpEnabled: false,
       createdAt: new Date().toISOString(),
+      learning: {
+        enrolled: FREE_ACADEMY_COURSES.slice(),
+        progress: { courses: {} },
+      },
     };
     await academyStore.saveUser(db, profile.email, user);
     await academyStore.addRegistration(db, {
@@ -187,6 +208,7 @@ async function handleAcademyRoute(ctx) {
       return plainSend(401, { error: 'Invalid email or password', code: 'invalid_credentials' });
     }
     security.clearLoginFailures(user);
+    ensureAcademyLearning(user);
     await academyStore.saveUser(db, email, user);
     if (user.totpEnabled && user.totpSecret) {
       const pendingToken = issue2faPending(db, email);
@@ -317,13 +339,48 @@ async function handleAcademyRoute(ctx) {
     const { user } = await resolveAcademyUser(db, req, academyEmailVerificationRequired);
     if (!user) return plainSend(401, { error: 'Not signed in or session expired' });
     const enrollments = await academyStore.listEnrollments(db, user.email);
+    ensureAcademyLearning(user);
+    await academyStore.saveUser(db, user.email, user);
     writeDb(db);
     return plainSend(200, {
       user: Object.assign({}, publicAcademyUser(user), {
         totpEnabled: !!(user.totpEnabled && user.totpSecret),
       }),
       enrollments: enrollments.map((e) => e.courseTitle),
+      learning: user.learning,
     });
+  }
+
+  if (route === '/academy/progress' && req.method === 'GET') {
+    const { user } = await resolveAcademyUser(db, req, academyEmailVerificationRequired);
+    if (!user) return plainSend(401, { error: 'Not signed in or session expired' });
+    ensureAcademyLearning(user);
+    await academyStore.saveUser(db, user.email, user);
+    writeDb(db);
+    return plainSend(200, {
+      progress: user.learning.progress || { courses: {} },
+      enrolled: user.learning.enrolled || FREE_ACADEMY_COURSES.slice(),
+    });
+  }
+
+  if (route === '/academy/progress' && req.method === 'POST') {
+    const { user } = await resolveAcademyUser(db, req, academyEmailVerificationRequired);
+    if (!user) return plainSend(401, { error: 'Not signed in or session expired' });
+    const courseId = (body.courseId || '').trim();
+    const lessonId = (body.lessonId || '').trim();
+    if (!courseId || !lessonId) return plainSend(400, { error: 'courseId and lessonId required' });
+    ensureAcademyLearning(user);
+    user.learning.progress = user.learning.progress || { courses: {} };
+    const cp = user.learning.progress.courses[courseId] || { completed: [], quizScores: {} };
+    if (!Array.isArray(cp.completed)) cp.completed = [];
+    if (cp.completed.indexOf(lessonId) < 0) cp.completed.push(lessonId);
+    if (body.completed && Array.isArray(body.completed)) cp.completed = body.completed;
+    if (body.quizScores && typeof body.quizScores === 'object') cp.quizScores = body.quizScores;
+    user.learning.progress.courses[courseId] = cp;
+    user.learning.progress.updatedAt = new Date().toISOString();
+    await academyStore.saveUser(db, user.email, user);
+    writeDb(db);
+    return plainSend(200, { ok: true, progress: user.learning.progress, enrolled: user.learning.enrolled });
   }
 
   if (route === '/academy/2fa/setup' && req.method === 'POST') {
