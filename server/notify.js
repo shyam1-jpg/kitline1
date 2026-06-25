@@ -131,7 +131,9 @@ async function sendViaSmtp(to, msg) {
     auth: { user, pass },
   });
   const from = process.env.SMTP_FROM || `Kiteline <${user}>`;
-  const info = await transporter.sendMail({ from, to, subject: msg.subject, text: msg.text, html: msg.html });
+  const mailOpts = { from, to, subject: msg.subject, text: msg.text, html: msg.html };
+  if (msg.replyTo) mailOpts.replyTo = msg.replyTo;
+  const info = await transporter.sendMail(mailOpts);
   return { mode: 'smtp', messageId: info.messageId, to };
 }
 

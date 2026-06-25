@@ -56,6 +56,10 @@ services:
         value: "true"
       - key: REQUIRE_EMAIL_VERIFY
         value: "false"
+      - key: ACADEMY_REQUIRE_EMAIL_VERIFY
+        value: "false"
+      - key: ACADEMY_REPLY_TO
+        value: contact@kiteline.uk
       - key: OPENAI_API_KEY
         sync: false
       - key: RECIPE_AI_ENABLED

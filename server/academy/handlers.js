@@ -165,9 +165,10 @@ async function handleAcademyRoute(ctx) {
         needsVerification: true,
         emailSent: !!mail.emailSent,
         message: mail.emailSent
-          ? 'Account created — check your email and click Verify before signing in.'
-          : 'Account created — email could not be delivered. Use the verification link on screen.',
+          ? 'Account created. We emailed you a verification link — also use the button below if nothing arrives (check spam/junk).'
+          : 'Account created. Email could not be sent from our server — use the verify button below to activate your account.',
         verifyUrl: mail.verifyUrl,
+        smtpError: mail.smtpError || undefined,
       });
     }
     const token = await issueAcademySession(db, profile.email);

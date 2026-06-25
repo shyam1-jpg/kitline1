@@ -514,7 +514,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
       <button class="btn" style="width:100%" type="button" onclick="loginAccount()" data-i18n="loginBtn">Sign in to my account</button>
       <button type="button" class="auth-link" onclick="forgotPassword()">Forgot password?</button>
       <button type="button" class="auth-link" onclick="resendVerification()">Resend verification email</button>
-      <p class="secure-note">🔒 Secure sign-in with encrypted session cookies.</p>
+      <p class="secure-note" style="color:#c8fbff">📧 No email? Click <b>Resend verification</b> — we will show a verify link on screen. Check spam/junk too.</p>
     </div>
     <div class="auth-panel" id="panel2fa">
       <p style="color:var(--muted);margin:0 0 14px">Enter the 6-digit code from your authenticator app.</p>
@@ -872,11 +872,14 @@ async function registerAccount(){
     const data=await api('/register',payload);
     if(data.needsVerification){
       closeAuth();
-      toast(data.message||'Account created — verify your email');
       if(data.verifyUrl){
-        showLinkModal('Verify your Kiteline Academy email', data.message||'Tap the button below to activate your account.', data.verifyUrl);
+        showLinkModal(
+          'Activate your Kiteline Academy account',
+          (data.message||'') + ' If the email does not arrive within a few minutes, check spam/junk — or click the button below to verify instantly.',
+          data.verifyUrl
+        );
       }else{
-        toast('Check your inbox and spam folder for the verification email');
+        toast(data.message||'Account created — check your email and spam folder');
       }
       return;
     }
@@ -895,8 +898,15 @@ async function resendVerification(){
   if(!email)return;
   try{
     const data=await api('/resend-verification',{email:email.trim()});
-    toast(data.message||'Check your email');
-    if(data.verifyUrl)showLinkModal('Verify your Kiteline Academy email', data.message||'Use this link to verify.', data.verifyUrl);
+    if(data.verifyUrl){
+      showLinkModal(
+        'Verify your Kiteline Academy email',
+        (data.message||'Use this link if the email did not arrive.') + ' Check spam/junk folder as well.',
+        data.verifyUrl
+      );
+    }else{
+      toast(data.message||'Check your email and spam folder');
+    }
   }catch(err){toast(err.message)}
 }
 async function loginAccount(){
