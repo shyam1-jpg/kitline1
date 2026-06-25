@@ -60,6 +60,7 @@ services:
         value: "false"
       - key: ACADEMY_REPLY_TO
         value: contact@kiteline.uk
+      # Set ACADEMY_REQUIRE_EMAIL_VERIFY=true only when kiteline.uk SMTP is reliable
       - key: OPENAI_API_KEY
         sync: false
       - key: RECIPE_AI_ENABLED

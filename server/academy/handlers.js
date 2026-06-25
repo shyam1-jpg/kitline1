@@ -88,8 +88,7 @@ function consume2faPending(db, pending) {
 }
 
 function ctxEmailVerificationRequired() {
-  const notify = require('../notify');
-  return notify.smtpConfigured() && process.env.ACADEMY_REQUIRE_EMAIL_VERIFY !== 'false';
+  return process.env.ACADEMY_REQUIRE_EMAIL_VERIFY === 'true' && require('../notify').smtpConfigured();
 }
 
 async function handleAcademyRoute(ctx) {
@@ -199,7 +198,10 @@ async function handleAcademyRoute(ctx) {
       return plainSend(423, { error: 'Account temporarily locked after failed attempts. Try again in ' + mins + ' minute(s).', code: 'account_locked' });
     }
     if (academyEmailVerificationRequired() && user.emailVerified === false) {
-      return plainSend(403, { error: 'Verify your email before signing in — check your inbox.', code: 'email_not_verified' });
+      return plainSend(403, { error: 'Verify your email before signing in — click Resend verification on the sign-in form for an on-screen link.', code: 'email_not_verified' });
+    }
+    if (!academyEmailVerificationRequired() && user.emailVerified === false) {
+      user.emailVerified = true;
     }
     if (!verifyPassword(password, user.pass)) {
       security.recordFailedLogin(user);
@@ -309,8 +311,8 @@ async function handleAcademyRoute(ctx) {
       ok: true,
       emailSent: !!mail.emailSent,
       message: mail.emailSent
-        ? 'Verification email sent — check your inbox and spam folder.'
-        : 'Email could not be delivered — use the verification link below.',
+        ? 'Verification email sent — check inbox and spam, or use the button below now.'
+        : 'Email could not be sent — use the verify button below to activate your account.',
       verifyUrl: mail.verifyUrl,
     });
   }

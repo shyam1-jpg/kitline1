@@ -309,7 +309,24 @@ function publicAcademyUser(u) {
 }
 
 function academyEmailVerificationRequired() {
-  return notify.smtpConfigured() && process.env.ACADEMY_REQUIRE_EMAIL_VERIFY !== 'false';
+  // Opt-in only: students sign in immediately unless you set ACADEMY_REQUIRE_EMAIL_VERIFY=true on Render.
+  return process.env.ACADEMY_REQUIRE_EMAIL_VERIFY === 'true' && notify.smtpConfigured();
+}
+
+function bootstrapAcademyEmailVerification(db) {
+  if (academyEmailVerificationRequired()) return;
+  let changed = false;
+  Object.keys(db.academyUsers || {}).forEach((email) => {
+    const u = db.academyUsers[email];
+    if (u && u.emailVerified === false) {
+      u.emailVerified = true;
+      changed = true;
+    }
+  });
+  if (changed) {
+    writeDb(db);
+    console.log('  Kiteline Academy: email verification off — all student accounts activated.');
+  }
 }
 
 function computeAgeFromDob(dob) {
@@ -1339,11 +1356,12 @@ bootstrapProductionDb();
 vedantaReports.startScheduler();
 
 academyStore.init().then(async (ok) => {
+  const db = readDb();
   if (ok) {
-    const db = readDb();
     await academyStore.migrateFromJson(db);
-    writeDb(db);
   }
+  bootstrapAcademyEmailVerification(db);
+  writeDb(db);
 }).catch((e) => console.warn('[academy] init failed:', e.message));
 
 // Listen on several ports locally; single PORT in production (Render, Railway, etc.)
