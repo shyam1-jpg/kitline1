@@ -520,7 +520,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
     <div class="foot-col"><b>Kiteline Academy</b><p style="margin:0;line-height:1.6">Learn AI, coding and digital skills from zero.</p><p style="margin-top:10px"><a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p><p class="company-note" style="margin-top:12px"><a href="https://kiteline.uk/" style="color:var(--muted)">Kiteline kitchen software</a> — separate product</p></div>
     <div class="foot-col"><b>Explore</b><a href="#home">Home</a><a href="#learn-hub">Learning Hub</a><a href="#ai-tools">AI Tools</a><a href="#courses">Courses</a><a href="#pricing">Pricing</a><a href="#contact">Contact</a><a href="#playground">Code Lab</a></div>
     <div class="foot-col"><b>Legal</b><a href="terms.html">Terms & Conditions</a><a href="privacy.html">Privacy Policy</a><a href="refunds.html">Refund Policy</a><a href="cookies.html">Cookie Policy</a></div>
-    <div class="foot-col"><b>Account</b><a href="#" onclick="openAuth('signin');return false">Sign in</a><a href="#" onclick="openAuth('register');return false">Create account</a><a href="staff.html">Staff login</a><a href="#free-trial">Free trial</a><button type="button" class="btn secondary" style="margin-top:10px" onclick="openAuth('signin')">Student login</button></div>
+    <div class="foot-col"><b>Account</b><a href="#" onclick="openAuth('signin');return false">Sign in</a><a href="#" onclick="openAuth('register');return false">Create account</a><a href="#" onclick="openStaffLogin();return false">Staff login</a><a href="staff.html">Staff page</a><a href="#free-trial">Free trial</a><button type="button" class="btn secondary" style="margin-top:10px" onclick="openAuth('signin')">Student login</button></div>
   </div>
 </footer>
 
@@ -541,6 +541,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
     <div class="auth-tabs">
       <button type="button" id="tabSignIn" class="active" onclick="authTab('signin')" data-i18n="authSignIn">Sign in</button>
       <button type="button" id="tabRegister" onclick="authTab('register')" data-i18n="authRegister">Create account</button>
+      <button type="button" id="tabStaff" onclick="authTab('staff')">Staff</button>
     </div>
     <div class="auth-panel active" id="panelSignIn">
       <p style="color:var(--muted);margin:0 0 14px" data-i18n="authSignInDesc">Use your Kiteline Academy account — email and password required.</p>
@@ -551,6 +552,15 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
       <button type="button" class="auth-link" onclick="forgotPassword()">Forgot password?</button>
       <button type="button" class="auth-link" onclick="resendVerification()">Resend verification email</button>
       <p class="secure-note" style="color:#c8fbff">📧 No email? Click <b>Resend verification</b> — we will show a verify link on screen. Check spam/junk too.</p>
+      <p style="margin:14px 0 0;font-size:13px;color:var(--muted)">Teaching staff? <button type="button" class="auth-link" onclick="authTab('staff')">Staff login →</button></p>
+    </div>
+    <div class="auth-panel" id="panelStaff">
+      <p style="color:var(--muted);margin:0 0 14px">Staff preview — enter your staff login ID plus your Academy email and password to unlock all courses.</p>
+      <input id="staffIdInput" autocomplete="off" placeholder="Staff login ID (e.g. KITELINE-STAFF-2026)" style="width:100%;margin-bottom:10px">
+      <input id="staffEmail" type="email" autocomplete="username" placeholder="Work email" style="width:100%;margin-bottom:10px">
+      <input id="staffPass" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;margin-bottom:10px">
+      <button class="btn gold" style="width:100%" type="button" onclick="loginStaffAccount()">Sign in with staff ID</button>
+      <button type="button" class="auth-link" onclick="authTab('signin')">← Student sign in</button>
     </div>
     <div class="auth-panel" id="panel2fa">
       <p style="color:var(--muted);margin:0 0 14px">Enter the 6-digit code from your authenticator app.</p>
@@ -969,10 +979,13 @@ function renderAuth(){
 function authTab(mode){
   $('tabSignIn').classList.toggle('active',mode==='signin');
   $('tabRegister').classList.toggle('active',mode==='register');
+  $('tabStaff').classList.toggle('active',mode==='staff');
   $('panelSignIn').classList.toggle('active',mode==='signin');
   $('panelRegister').classList.toggle('active',mode==='register');
+  $('panelStaff').classList.toggle('active',mode==='staff');
   $('panel2fa').classList.toggle('active',mode==='2fa');
 }
+function openStaffLogin(){openAuth('staff')}
 function openAuth(mode){authTab(mode||'signin');$('auth').classList.add('open');applyKaLang(kaLang);renderCaptchaWidgets()}
 function closeAuth(){$('auth').classList.remove('open')}
 function showLinkModal(title,message,url){
@@ -1049,6 +1062,20 @@ async function resendVerification(){
     }
   }catch(err){toast(err.message)}
 }
+async function loginStaffAccount(){
+  const staffId=($('staffIdInput')&&$('staffIdInput').value.trim())||'';
+  const email=($('staffEmail')&&$('staffEmail').value.trim())||'';
+  const password=($('staffPass')&&$('staffPass').value)||'';
+  if(!staffId||!email||!password){toast('Staff ID, email and password required');return}
+  try{
+    const data=await api('/staff/login',{staffId,email,password});
+    setUser(data.user);
+    closeAuth();toast(data.message||'Staff login OK — all courses unlocked');
+    if(window.KA_LEARN)await KA_LEARN.loadProgress();
+    renderStudent();renderBilling();
+    location.hash='learn-hub';
+  }catch(e){toast(e.message||'Staff login failed')}
+}
 async function loginAccount(){
   const email=$('loginEmail').value.trim(), password=$('loginPass').value;
   if(!email||!password){toast('Email and password required');return}
@@ -1099,6 +1126,7 @@ async function handleAuthQuery(){
   }
   if(checkout==='success'){toast('Payment received — refreshing your courses…');history.replaceState({},'','/academy/');await restoreSession();renderStudent();renderBilling()}
   if(checkout==='cancel'){toast('Checkout cancelled');history.replaceState({},'','/academy/')}
+  if(location.hash==='#staff-login'||location.hash==='#staff')openStaffLogin();
 }
 function renderSecurity(){
   const el=$('securityPanel'); if(!el)return;

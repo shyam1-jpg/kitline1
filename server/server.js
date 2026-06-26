@@ -27,7 +27,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-24-chatgpt-settings';
+const APP_BUILD = '2026-06-26-academy-staff';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -1339,6 +1339,15 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/academy/learn' || url.pathname.startsWith('/academy/learn/')) {
       return serveFile(res, path.join(ROOT, 'site', 'academy', 'learn.html'));
+    }
+    if (url.pathname === '/academy/staff' || url.pathname === '/academy/staff/') {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'staff.html'));
+    }
+    if (url.pathname === '/academy/staff.html') {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'staff.html'));
+    }
+    if (url.pathname === '/academy/admin' || url.pathname === '/academy/admin/') {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'admin.html'));
     }
 
     // Static files (css, js, marketing pages). Try root first.
