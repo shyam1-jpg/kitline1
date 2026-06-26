@@ -1,21 +1,26 @@
 # Trigger Render redeploy on every push to main.
-# One-time setup in GitHub: Settings → Secrets → RENDER_DEPLOY_HOOK
+# One-time setup: GitHub repo → Settings → Secrets → RENDER_DEPLOY_HOOK
 # Get hook URL from Render → your service → Settings → Deploy Hook
 name: Deploy to Render
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render deploy hook
-        if: ${{ secrets.RENDER_DEPLOY_HOOK != '' }}
-        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
-      - name: No deploy hook configured
-        if: ${{ secrets.RENDER_DEPLOY_HOOK == '' }}
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          echo "Add RENDER_DEPLOY_HOOK in GitHub repo secrets to auto-deploy Render on push."
-          echo "Render dashboard → kitline1 → Settings → Deploy Hook → copy URL"
+          if [ -n "$DEPLOY_HOOK" ]; then
+            curl -fsS -X POST "$DEPLOY_HOOK"
+            echo "Render deploy hook triggered."
+          else
+            echo "RENDER_DEPLOY_HOOK secret not set — add it in GitHub repo secrets."
+            echo "Render dashboard → kitline1 → Settings → Deploy Hook → copy URL"
+            exit 1
+          fi
