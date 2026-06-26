@@ -6,9 +6,15 @@ const academyCaptcha = require('./captcha');
 const academyTotp = require('./totp');
 const academyCookies = require('./cookies');
 const academyBilling = require('./billing');
+const academyFounder = require('./founder');
 const billing = require('../billing');
 
-const FREE_ACADEMY_COURSES = ['ai-world-starter', 'html-starter'];
+const FREE_ACADEMY_COURSES = ['ai-world-starter', 'html-starter', 'css-starter', 'js-starter', 'python-starter'];
+
+function prepareAcademyUser(user, paidEnrollments) {
+  academyFounder.prepareAcademyAccess(user, ensureAcademyLearning, paidEnrollments);
+  return user;
+}
 
 function ensureAcademyLearning(user) {
   if (!user) return user;
@@ -101,6 +107,7 @@ async function handleAcademyRoute(ctx) {
 
   const apiSend = (code, obj, opts) => { academySend(res, req, code, obj, opts, send, isProd); return true; };
   const plainSend = (code, obj) => { send(res, code, obj, null, req); return true; };
+  const academyPublicUser = (user) => Object.assign({}, publicAcademyUser(user), academyFounder.publicUserFlags(user));
 
   if (route === '/academy/config' && req.method === 'GET') {
     return plainSend(200, {
@@ -112,7 +119,41 @@ async function handleAcademyRoute(ctx) {
       stripe: academyBilling.isConfigured(),
       postgres: academyStore.usingPostgres(),
       sessionCookie: true,
+      staffLoginPath: '/academy/staff.html',
     });
+  }
+
+  if (route === '/academy/staff/login' && req.method === 'POST') {
+    const staffId = (body.staffId || '').trim();
+    const email = (body.email || '').toLowerCase().trim();
+    const password = body.password || '';
+    if (!academyFounder.isValidStaffId(staffId)) {
+      return plainSend(403, { error: 'Invalid staff login ID', code: 'invalid_staff_id' });
+    }
+    if (!email || !password) return plainSend(400, { error: 'Email and password required' });
+    const user = await academyStore.getUser(db, email);
+    if (!user || !verifyPassword(password, user.pass)) {
+      security.audit(db, 'academy_staff_login_failed', { ip, email });
+      writeDb(db);
+      return plainSend(401, { error: 'Invalid email, password, or staff ID', code: 'invalid_credentials' });
+    }
+    if (academyEmailVerificationRequired() && user.emailVerified === false) {
+      return plainSend(403, { error: 'Verify your email before using staff login.', code: 'email_not_verified' });
+    }
+    user.staffAccess = true;
+    user.staffAccessAt = new Date().toISOString();
+    const enrollments = await academyStore.listEnrollments(db, email);
+    prepareAcademyUser(user, enrollments);
+    await academyStore.saveUser(db, email, user);
+    await academyStore.revokeAllSessions(db, email);
+    const token = await issueAcademySession(db, email);
+    security.audit(db, 'academy_staff_login_success', { ip, email });
+    writeDb(db);
+    return apiSend(200, {
+      ok: true,
+      user: academyPublicUser(user),
+      message: 'Staff login successful — all courses unlocked in preview mode.',
+    }, { token });
   }
 
   if (route === '/academy/register' && req.method === 'POST') {
@@ -172,9 +213,10 @@ async function handleAcademyRoute(ctx) {
     }
     const token = await issueAcademySession(db, profile.email);
     writeDb(db);
+    prepareAcademyUser(user, []);
     return apiSend(200, {
       ok: true,
-      user: publicAcademyUser(user),
+      user: academyPublicUser(user),
       message: 'Account created — welcome to Kiteline Academy',
     }, { token });
   }
@@ -211,7 +253,8 @@ async function handleAcademyRoute(ctx) {
       return plainSend(401, { error: 'Invalid email or password', code: 'invalid_credentials' });
     }
     security.clearLoginFailures(user);
-    ensureAcademyLearning(user);
+    const enrollments = await academyStore.listEnrollments(db, email);
+    prepareAcademyUser(user, enrollments);
     await academyStore.saveUser(db, email, user);
     if (user.totpEnabled && user.totpSecret) {
       const pendingToken = issue2faPending(db, email);
@@ -222,7 +265,7 @@ async function handleAcademyRoute(ctx) {
     const token = await issueAcademySession(db, email);
     security.audit(db, 'academy_login_success', { ip, email });
     writeDb(db);
-    return apiSend(200, { ok: true, user: publicAcademyUser(user) }, { token });
+    return apiSend(200, { ok: true, user: academyPublicUser(user) }, { token });
   }
 
   if (route === '/academy/2fa/verify-login' && req.method === 'POST') {
@@ -236,9 +279,12 @@ async function handleAcademyRoute(ctx) {
     }
     await academyStore.revokeAllSessions(db, email);
     const token = await issueAcademySession(db, email);
+    const enrollments = await academyStore.listEnrollments(db, email);
+    prepareAcademyUser(user, enrollments);
+    await academyStore.saveUser(db, email, user);
     security.audit(db, 'academy_2fa_login', { ip, email });
     writeDb(db);
-    return apiSend(200, { ok: true, user: publicAcademyUser(user) }, { token });
+    return apiSend(200, { ok: true, user: academyPublicUser(user) }, { token });
   }
 
   if (route === '/academy/logout' && req.method === 'POST') {
@@ -335,7 +381,9 @@ async function handleAcademyRoute(ctx) {
     const token = await issueAcademySession(db, entry.email);
     security.audit(db, 'academy_password_reset', { ip, email: entry.email });
     writeDb(db);
-    return apiSend(200, { ok: true, user: publicAcademyUser(user), message: 'Password updated — signed in.' }, { token });
+    const enrollments = await academyStore.listEnrollments(db, entry.email);
+    prepareAcademyUser(user, enrollments);
+    return apiSend(200, { ok: true, user: academyPublicUser(user), message: 'Password updated — signed in.' }, { token });
   }
 
   if (route === '/academy/me' && req.method === 'GET') {
@@ -343,10 +391,11 @@ async function handleAcademyRoute(ctx) {
     if (!user) return plainSend(401, { error: 'Not signed in or session expired' });
     const enrollments = await academyStore.listEnrollments(db, user.email);
     ensureAcademyLearning(user);
+    prepareAcademyUser(user, enrollments);
     await academyStore.saveUser(db, user.email, user);
     writeDb(db);
     return plainSend(200, {
-      user: Object.assign({}, publicAcademyUser(user), {
+      user: Object.assign({}, academyPublicUser(user), {
         totpEnabled: !!(user.totpEnabled && user.totpSecret),
       }),
       enrollments: enrollments.map((e) => e.courseTitle),
@@ -358,6 +407,8 @@ async function handleAcademyRoute(ctx) {
     const { user } = await resolveAcademyUser(db, req, academyEmailVerificationRequired);
     if (!user) return plainSend(401, { error: 'Not signed in or session expired' });
     ensureAcademyLearning(user);
+    const enrollments = await academyStore.listEnrollments(db, user.email);
+    prepareAcademyUser(user, enrollments);
     await academyStore.saveUser(db, user.email, user);
     writeDb(db);
     return plainSend(200, {
@@ -373,6 +424,8 @@ async function handleAcademyRoute(ctx) {
     const lessonId = (body.lessonId || '').trim();
     if (!courseId || !lessonId) return plainSend(400, { error: 'courseId and lessonId required' });
     ensureAcademyLearning(user);
+    const enrollments = await academyStore.listEnrollments(db, user.email);
+    prepareAcademyUser(user, enrollments);
     user.learning.progress = user.learning.progress || { courses: {} };
     const cp = user.learning.progress.courses[courseId] || { completed: [], quizScores: {} };
     if (!Array.isArray(cp.completed)) cp.completed = [];

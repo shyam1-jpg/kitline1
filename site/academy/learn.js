@@ -102,8 +102,15 @@
   }
 
   function isPaidUser() {
+    if (typeof global.isStaffUser === 'function' && global.isStaffUser()) return true;
     if (typeof global.isPaidUser === 'function') return global.isPaidUser();
     return enrollments().length > 0;
+  }
+
+  function isStaffUser() {
+    if (typeof global.isStaffUser === 'function') return global.isStaffUser();
+    const u = user();
+    return !!(u && u.staffPreview);
   }
 
   function normalizeProgress(raw) {
@@ -164,7 +171,7 @@
     if (CC && CC.FREE_COURSE_IDS && CC.FREE_COURSE_IDS.indexOf(courseId) >= 0) return true;
     if (course.tier === 'free') return true;
     if (CC && CC.lessonAccess) {
-      return CC.lessonAccess(course, lessonIndex, enrollments(), isPaidUser());
+      return CC.lessonAccess(course, lessonIndex, enrollments(), isPaidUser(), isStaffUser());
     }
     return lessonIndex === 0;
   }
@@ -458,7 +465,7 @@
     if (!course) return;
     if (index < 0 || index >= course.lessons.length) return;
     if (!canAccessLesson(player.courseId, index)) {
-      toast('This module preview only — lesson 1 is available. Full chapters are on free starter courses.');
+      if (!isStaffUser() && !isPaidUser()) toast('This module preview only — lesson 1 is available. Enrol in Pro or use staff preview for full access.');
       /* learn flow: no checkout prompts */
       return;
     }
@@ -476,7 +483,7 @@
     }
     const idx = typeof lessonIndex === 'number' ? lessonIndex : 0;
     if (!canAccessLesson(courseId, idx)) {
-      toast('This module preview only — lesson 1 is available. Full chapters are on free starter courses.');
+      if (!isStaffUser() && !isPaidUser()) toast('This module preview only — lesson 1 is available. Enrol in Pro or use staff preview for full access.');
       /* learn flow: no checkout prompts */
       return;
     }
@@ -661,7 +668,7 @@
       if (canAccessLesson(courseId, idx)) {
         renderLessonPlayer();
       } else {
-        toast('This module preview only — lesson 1 is available. Full chapters are on free starter courses.');
+        if (!isStaffUser() && !isPaidUser()) toast('This module preview only — lesson 1 is available. Enrol in Pro or use staff preview for full access.');
         renderLessonPlayer();
       }
       return;

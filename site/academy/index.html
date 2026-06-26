@@ -175,6 +175,9 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 .free-lesson-box{background:rgba(54,230,255,.08);border:1px solid rgba(54,230,255,.2);border-radius:18px;padding:16px;margin-top:14px}
 .free-lesson-box h4{margin:0 0 8px;color:#c8fbff}
 .staff-only{display:none!important}
+body.staff-preview .staff-only{display:block!important}
+body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{display:inline-flex!important}
+.founder-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:rgba(255,202,107,.15);color:#ffca6b;border:1px solid rgba(255,202,107,.35);margin-right:8px}
 .legal-links{display:flex;flex-wrap:wrap;gap:12px 18px;margin-top:14px;font-size:13px}
 .legal-links a{color:var(--cyan);font-weight:800}
 .company-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.6}
@@ -207,10 +210,10 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 .build-list{margin:10px 0 0;padding-left:20px;color:var(--cyan);line-height:1.8;font-size:14px}
 @media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.form-grid{grid-template-columns:1fr}.hero,.playground,.about-grid,.free-trial-box{grid-template-columns:1fr}.playground{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid,.featured-strip,.pricing-grid,.testimonial-grid,.resources-grid,.foot-grid,.learn-track-grid,.learn-how-steps{grid-template-columns:1fr}.audience-grid,.roadmap-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.projects-grid,.learn-courses-grid,.ai-tools-grid{grid-template-columns:1fr}.code-lab-panel{min-height:320px}.editor textarea{min-height:280px}.preview{min-height:320px}}
 </style>
-<link rel="stylesheet" href="learn.css?v=6" />
+<link rel="stylesheet" href="learn.css?v=7" />
 <script src="i18n.js?v=2"></script>
-<script src="curriculum.js?v=6"></script>
-<script src="learn.js?v=6"></script>
+<script src="curriculum.js?v=9"></script>
+<script src="learn.js?v=7"></script>
 </head>
 <body>
 <div class="beta-banner">✨ <b>Kiteline Academy is open for early learners.</b> Try free lessons today — no card required. <a href="#free-trial">Start free</a></div>
@@ -231,7 +234,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 
 <main class="hero" id="home">
   <div>
-    <div class="kicker">Learn from phone, tablet or computer · 8 interface languages · 2 free starter courses</div>
+    <div class="kicker">Learn from phone, tablet or computer · 8 interface languages · 5 free starter courses · 45 Pro lessons</div>
     <h1>Learn AI, coding and digital skills <span class="grad">from zero.</span></h1>
     <p class="lead">Choose a beginner-friendly course, practise in the Code Lab, download resources, track your progress and earn a Kiteline Academy certificate.</p>
     <div class="actions">
@@ -241,8 +244,8 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
     </div>
     <div class="mobile-note">📱 Mobile-friendly — learn from your phone, tablet or computer</div>
     <div class="stats">
-      <div class="stat"><b>10</b><span>starter courses (2 free now)</span></div>
-      <div class="stat"><b>15</b><span>free lessons live today</span></div>
+      <div class="stat"><b>10</b><span>courses (5 free · 5 Pro)</span></div>
+      <div class="stat"><b>146</b><span>lessons with Try it Yourself</span></div>
       <div class="stat"><b>✓</b><span>completion certificate</span></div>
       <div class="stat"><b>24–48h</b><span>support reply time</span></div>
     </div>
@@ -432,7 +435,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 <section id="dashboard">
   <div class="head"><div><h2>Student dashboard</h2><p>Your courses, lesson progress, downloads, security settings and certificates — all in one place after you sign in.</p></div></div>
   <div class="dashboard">
-      <aside class="side"><button class="active" onclick="tab('my',this)">My Courses</button><button onclick="tab('lessons',this)">Lessons</button><button onclick="tab('downloads',this)">Downloads</button><button onclick="tab('billing',this)">Billing</button><button onclick="tab('security',this)">Security</button><button onclick="tab('certificate',this)">Certificate</button></aside>
+      <aside class="side"><button class="active" onclick="tab('my',this)">My Courses</button><button onclick="tab('lessons',this)">Lessons</button><button onclick="tab('downloads',this)">Downloads</button><button onclick="tab('billing',this)">Billing</button><button onclick="tab('security',this)">Security</button><button onclick="tab('certificate',this)">Certificate</button><button class="staff-only" type="button" onclick="location.href='admin.html'">Staff tools</button></aside>
     <div>
       <div class="panel active" id="my"><h3>My Courses</h3><div id="myCourses"></div></div>
       <div class="panel" id="lessons"><h3>Lesson Progress</h3><div id="lessonRows"></div></div>
@@ -517,7 +520,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
     <div class="foot-col"><b>Kiteline Academy</b><p style="margin:0;line-height:1.6">Learn AI, coding and digital skills from zero.</p><p style="margin-top:10px"><a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p><p class="company-note" style="margin-top:12px"><a href="https://kiteline.uk/" style="color:var(--muted)">Kiteline kitchen software</a> — separate product</p></div>
     <div class="foot-col"><b>Explore</b><a href="#home">Home</a><a href="#learn-hub">Learning Hub</a><a href="#ai-tools">AI Tools</a><a href="#courses">Courses</a><a href="#pricing">Pricing</a><a href="#contact">Contact</a><a href="#playground">Code Lab</a></div>
     <div class="foot-col"><b>Legal</b><a href="terms.html">Terms & Conditions</a><a href="privacy.html">Privacy Policy</a><a href="refunds.html">Refund Policy</a><a href="cookies.html">Cookie Policy</a></div>
-    <div class="foot-col"><b>Account</b><a href="#" onclick="openAuth('signin');return false">Sign in</a><a href="#" onclick="openAuth('register');return false">Create account</a><a href="#free-trial">Free trial</a><button type="button" class="btn secondary" style="margin-top:10px" onclick="openAuth('signin')">Student login</button></div>
+    <div class="foot-col"><b>Account</b><a href="#" onclick="openAuth('signin');return false">Sign in</a><a href="#" onclick="openAuth('register');return false">Create account</a><a href="staff.html">Staff login</a><a href="#free-trial">Free trial</a><button type="button" class="btn secondary" style="margin-top:10px" onclick="openAuth('signin')">Student login</button></div>
   </div>
 </footer>
 
@@ -719,12 +722,21 @@ function $(id){return document.getElementById(id)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2600)}
 function getUser(){return sessionUser}
 function isSignedIn(){return signedIn}
-function clearSession(){sessionUser=null;signedIn=false;localStorage.removeItem('kit_user');localStorage.removeItem('kit_token');renderAuth();renderSecurity()}
+function isStaffUser(){const u=getUser();return !!(u&&u.staffPreview)}
+function isPaidUser(){const u=getUser();return !!(u&&(u.paidAccess||u.paidSubscriber))}
+window.isStaffUser=isStaffUser;
+window.isPaidUser=isPaidUser;
+function applyStaffUi(){
+  document.body.classList.toggle('staff-preview',isStaffUser());
+  if(window.KA_LEARN&&KA_LEARN.loadProgress){KA_LEARN.loadProgress().then(function(){if(KA_LEARN.renderLearnHub)KA_LEARN.renderLearnHub();if(KA_LEARN.renderDashboardCourses)KA_LEARN.renderDashboardCourses();}).catch(function(){});}
+  renderStudent();
+}
+function clearSession(){sessionUser=null;signedIn=false;localStorage.removeItem('kit_user');localStorage.removeItem('kit_token');applyStaffUi();renderAuth();renderSecurity()}
 function setUser(u){
   sessionUser=u||null;signedIn=!!u;
   if(u){localStorage.setItem('kit_name',u.name||'');if(u.lang)applyKaLang(u.lang)}
   else clearSession();
-  renderAuth();renderSecurity();
+  applyStaffUi();renderAuth();renderSecurity();
 }
 function captchaToken(widgetId){
   if(!academyConfig.captcha||!academyConfig.captcha.required)return '';
@@ -948,7 +960,10 @@ window.onKaLangChange=function(){
 };
 function renderAuth(){
   const u=getUser(), btn=$('authBtn'), label=$('navUser');
-  if(u&&isSignedIn()){btn.textContent=kaT('signOut');label.textContent=(kaT('signedIn')+' '+(u.firstName||u.name||u.email));}
+  if(u&&isSignedIn()){
+    btn.textContent=kaT('signOut');
+    label.innerHTML=(isStaffUser()?'<span class="founder-badge">Preview mode</span>':(isPaidUser()?'<span class="founder-badge" style="background:rgba(80,240,160,.12);color:#50f0a0;border-color:rgba(80,240,160,.35)">Pro</span>':''))+(kaT('signedIn')+' '+(u.firstName||u.name||u.email));
+  }
   else{btn.textContent=kaT('signIn');label.textContent=''}
 }
 function authTab(mode){

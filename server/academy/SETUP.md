@@ -18,7 +18,10 @@ Alternatives: use `RECAPTCHA_SITE_KEY` + `RECAPTCHA_SECRET_KEY` instead of Turns
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `ACADEMY_ADMIN_KEY` | (owner only) | Admin panel export — long random secret |
+| `ACADEMY_FOUNDER_EMAILS` | `contact@kiteline.uk` | Comma-separated founder emails — full course preview when signed in |
+| `OWNER_EMAIL` | (see Kiteline billing) | Also grants founder preview on Academy |
+| `ACADEMY_STAFF_ID` | `KITELINE-STAFF-2026` | Staff login ID for `/academy/staff.html` — unlocks all courses in preview mode |
+| `ACADEMY_ADMIN_KEY` | (owner only) | Staff admin panel — student list and CSV export |
 | `ACADEMY_SESSION_DAYS` | `7` | HttpOnly cookie session length |
 | `ACADEMY_REQUIRE_CAPTCHA` | `false` | Fail register/login if CAPTCHA not configured |
 | `ACADEMY_REQUIRE_EMAIL_VERIFY` | auto when SMTP set | Require email verify before login |
