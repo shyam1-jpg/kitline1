@@ -99,8 +99,8 @@ else pass('checkout modal present');
 if (!fs.existsSync(path.join(dir, 'learn.html'))) fail('learn.html missing');
 else pass('learn.html present');
 
-if (!html.includes('curriculum.js?v=5')) fail('bump cache version to v=5 for deploy');
-else pass('cache bust v=5 set');
+if (!html.includes('curriculum.js?v=6')) fail('bump cache version to v=6 for deploy');
+else pass('cache bust v=6 set');
 
 console.log('\n' + (failed ? failed + ' check(s) failed' : 'All module checks passed'));
 process.exit(failed ? 1 : 0);

@@ -13,7 +13,7 @@
     beginner: {
       id: 'beginner',
       title: 'Beginner',
-      badge: 'Starter plan',
+      badge: 'Beginner path',
       desc: 'Structured courses with projects, worksheets and email support.',
       color: '#676bff',
     },
@@ -579,9 +579,9 @@
       desc: 'Spreadsheets for work and study: formulas, tables, charts, and Copilot-assisted reporting.',
       outcomes: ["Build clean tables and charts","Use SUM, IF, and VLOOKUP-style thinking","Ask Copilot to draft formulas safely"],
       lessons: [
-        lesson("xls-1", "Course outline — enrol to unlock", 5,
-          "<p>This course opens when you enrol in Starter or Pro.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
-          {"objective":"Preview the Excel Starter syllabus.","tryIt":"Enrol via Starter plan when payments launch — all core web courses are free today."}),
+        lesson("xls-1", "Course preview — syllabus", 5,
+          "<p>Full chapters for this topic are being added.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
+          {"objective":"Preview the Excel Starter syllabus.","tryIt":"Use the free HTML, CSS, JavaScript and Python starter courses — all chapters are open."}),
       ],
     },
     'sql-starter': {
@@ -596,9 +596,9 @@
       desc: 'Query databases with SELECT, WHERE, JOIN, and GROUP BY using real-world examples.',
       outcomes: ["Read and write SQL queries","Filter and sort data","Combine tables with JOINs"],
       lessons: [
-        lesson("sql-1", "Course outline — enrol to unlock", 5,
-          "<p>This course opens when you enrol in Starter or Pro.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
-          {"objective":"Preview the SQL Starter syllabus.","tryIt":"Enrol via Starter plan when payments launch — all core web courses are free today."}),
+        lesson("sql-1", "Course preview — syllabus", 5,
+          "<p>Full chapters for this topic are being added.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
+          {"objective":"Preview the SQL Starter syllabus.","tryIt":"Use the free HTML, CSS, JavaScript and Python starter courses — all chapters are open."}),
       ],
     },
     'ai-tools-beginners': {
@@ -613,9 +613,9 @@
       desc: 'Guided path beyond the free AI World track — certificates and teacher support when enrolled.',
       outcomes: ["Structured AI tool practice","Business and study workflows","Responsible AI habits"],
       lessons: [
-        lesson("atb-1", "Course outline — enrol to unlock", 5,
-          "<p>This course opens when you enrol in Starter or Pro.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
-          {"objective":"Preview the AI Tools for Beginners (paid path) syllabus.","tryIt":"Enrol via Starter plan when payments launch — all core web courses are free today."}),
+        lesson("atb-1", "Course preview — syllabus", 5,
+          "<p>Full chapters for this topic are being added.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
+          {"objective":"Preview the AI Tools for Beginners (paid path) syllabus.","tryIt":"Use the free HTML, CSS, JavaScript and Python starter courses — all chapters are open."}),
       ],
     },
     'react-starter': {
@@ -630,9 +630,9 @@
       desc: 'Components, props, state, hooks, and a small app — unlocks after web fundamentals.',
       outcomes: ["Build React components","Manage state with hooks","Fetch data into a UI"],
       lessons: [
-        lesson("rx-1", "Course outline — enrol to unlock", 5,
-          "<p>This course opens when you enrol in Starter or Pro.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
-          {"objective":"Preview the React Starter syllabus.","tryIt":"Enrol via Starter plan when payments launch — all core web courses are free today."}),
+        lesson("rx-1", "Course preview — syllabus", 5,
+          "<p>Full chapters for this topic are being added.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
+          {"objective":"Preview the React Starter syllabus.","tryIt":"Use the free HTML, CSS, JavaScript and Python starter courses — all chapters are open."}),
       ],
     },
     'node-starter': {
@@ -647,9 +647,9 @@
       desc: 'Server-side JavaScript: APIs, Express basics, and deployment concepts.',
       outcomes: ["Create a simple API","Understand npm and modules","Connect a frontend to a backend"],
       lessons: [
-        lesson("nd-1", "Course outline — enrol to unlock", 5,
-          "<p>This course opens when you enrol in Starter or Pro.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
-          {"objective":"Preview the Node.js Starter syllabus.","tryIt":"Enrol via Starter plan when payments launch — all core web courses are free today."}),
+        lesson("nd-1", "Course preview — syllabus", 5,
+          "<p>Full chapters for this topic are being added.</p><p>Preview lesson 1 shows the syllabus.</p><p>Email contact@kiteline.uk for help.</p>",
+          {"objective":"Preview the Node.js Starter syllabus.","tryIt":"Use the free HTML, CSS, JavaScript and Python starter courses — all chapters are open."}),
       ],
     },
   };

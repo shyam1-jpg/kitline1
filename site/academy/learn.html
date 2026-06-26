@@ -2,43 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Learn — Kiteline Academy</title>
 <link rel="icon" type="image/png" href="kiteline-academy-logo.png?v=1" />
 <style>
-:root{--bg:#070b18;--line:rgba(255,255,255,.12);--text:#f6f8ff;--muted:#aab4d6;--cyan:#36e6ff;--blue:#676bff;--violet:#a855f7;--radius:24px}
-*{box-sizing:border-box}body.learn-page{margin:0;background:#0a1024;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
-.learn-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:rgba(7,11,24,.92);position:sticky;top:0;z-index:20}
+:root{--line:rgba(255,255,255,.12);--muted:#aab4d6;--cyan:#36e6ff}
+*{box-sizing:border-box}
+body.learn-page{margin:0;background:#0a1024;color:#f6f8ff;font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden;height:100dvh}
+.learn-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line);background:rgba(7,11,24,.95);flex-shrink:0;height:52px;z-index:20}
 .learn-top a{color:var(--cyan);font-weight:800;font-size:14px;text-decoration:none}
-.learn-top h1{margin:0;font-size:16px;font-weight:900}
-.btn{border:0;border-radius:999px;padding:10px 16px;cursor:pointer;font-weight:900;color:#061020;background:linear-gradient(135deg,var(--cyan),#7df0ff);display:inline-flex;align-items:center;gap:8px}
+.learn-top h1{margin:0;font-size:15px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+.btn{border:0;border-radius:999px;padding:10px 16px;cursor:pointer;font-weight:900;color:#061020;background:linear-gradient(135deg,var(--cyan),#7df0ff);display:inline-flex;align-items:center;gap:8px;font-size:14px}
 .btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line);box-shadow:none}
-.learn-page .lp-shell{min-height:calc(100vh - 52px);height:auto;max-height:none;border-radius:0}
-.learn-page .lp-sidebar{position:sticky;top:52px;height:calc(100vh - 52px)}
-.learn-page .lp-scroll{max-height:none}
-.lp-objective{margin:0 0 16px;padding:14px 16px;border-radius:14px;background:rgba(80,240,160,.08);border:1px solid rgba(80,240,160,.2)}
-.lp-objective h4{margin:0 0 6px;color:#50f0a0;font-size:13px}
-.lp-objective p{margin:0;color:var(--muted);font-size:14px;line-height:1.55}
-.lp-exercise{margin-top:18px;padding:16px;border-radius:16px;background:rgba(255,202,107,.08);border:1px solid rgba(255,202,107,.22)}
-.lp-exercise h4{margin:0 0 8px;color:#ffca6b;font-size:14px}
+.learn-page .lp-topbar .btn.secondary{display:none}
 </style>
-<link rel="stylesheet" href="learn.css?v=5" />
-<script src="curriculum.js?v=5"></script>
+<link rel="stylesheet" href="learn.css?v=6" />
+<script src="curriculum.js?v=6"></script>
 </head>
 <body class="learn-page">
 <header class="learn-top">
-  <a href="index.html#learn-hub">← Kiteline Academy</a>
+  <a href="index.html#learn-hub">← Academy</a>
   <h1 id="learnPageTitle">Learning</h1>
-  <a href="index.html#courses" class="btn secondary" style="padding:8px 14px;font-size:13px">All courses</a>
+  <a href="index.html#learn-hub" class="btn secondary" style="padding:8px 12px;font-size:12px">Hub</a>
 </header>
 <div class="lp-shell" id="learnShell">
-  <aside class="lp-sidebar" id="lpSidebar"><h3>Lessons</h3></aside>
+  <aside class="lp-sidebar" id="lpSidebar"><h3>Chapters</h3></aside>
   <div class="lp-main">
     <div class="lp-topbar">
       <div><h2 id="lpTitle">Course</h2><p class="lp-meta" id="lpMeta"></p></div>
-      <button class="btn secondary" type="button" onclick="KA_LEARN.closeLessonPlayer()">Close</button>
     </div>
-    <div class="lp-scroll">
+    <div class="lp-scroll" id="lpScroll">
       <div class="lp-body" id="lpBody"><p style="color:var(--muted)">Loading lesson…</p></div>
       <div class="lp-tryit" id="lpTryIt" style="display:none"></div>
       <div class="lp-exercise" id="lpExercise" style="display:none"></div>
@@ -46,14 +39,14 @@
       <div class="lp-sources" id="lpSources" style="display:none"></div>
       <div id="lpDownloads" style="display:none"></div>
     </div>
-    <div class="lp-footer">
+    <div class="lp-footer" role="navigation" aria-label="Lesson navigation">
       <button class="btn secondary" type="button" id="lpPrev">← Previous</button>
       <button class="btn" type="button" id="lpComplete">Mark complete</button>
       <button class="btn secondary" type="button" id="lpNext">Next →</button>
     </div>
   </div>
 </div>
-<script src="learn.js?v=5"></script>
+<script src="learn.js?v=6"></script>
 <script>
 (function(){
   function titleFromHash(){

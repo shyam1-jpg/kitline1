@@ -420,6 +420,8 @@
     }
 
     renderPlayerSidebar();
+    const scrollEl = $('lpScroll') || (global.document && global.document.querySelector('.lp-scroll'));
+    if (scrollEl) scrollEl.scrollTop = 0;
 
     const done = courseProgress(player.courseId).completed.indexOf(lesson.id) >= 0;
     if (lpComplete) lpComplete.textContent = done ? 'Completed ✓' : 'Mark complete';
@@ -456,10 +458,8 @@
     if (!course) return;
     if (index < 0 || index >= course.lessons.length) return;
     if (!canAccessLesson(player.courseId, index)) {
-      toast('Enrol to unlock this lesson');
-      if (typeof global.requestEnrolment === 'function') {
-        global.requestEnrolment(course.title);
-      }
+      toast('This module preview only — lesson 1 is available. Full chapters are on free starter courses.');
+      /* learn flow: no checkout prompts */
       return;
     }
     player.lessonIndex = index;
@@ -476,8 +476,8 @@
     }
     const idx = typeof lessonIndex === 'number' ? lessonIndex : 0;
     if (!canAccessLesson(courseId, idx)) {
-      toast('Enrol to unlock this lesson');
-      if (typeof global.requestEnrolment === 'function') global.requestEnrolment(course.title);
+      toast('This module preview only — lesson 1 is available. Full chapters are on free starter courses.');
+      /* learn flow: no checkout prompts */
       return;
     }
     if (!isLearnPage()) {
@@ -581,7 +581,7 @@
         return '<div class="row"><span>' + c.title + '<br><small>' + completedCount(c.id) + '/' + (c.lessons ? c.lessons.length : 0) + ' lessons · ' + pct + '%</small></span><button type="button" class="btn secondary" data-dash-open="' + c.id + '">Continue</button></div>';
       }).join('');
     } else {
-      html += '<p style="color:var(--muted)">No courses yet. Browse the catalogue or request enrolment.</p>';
+      html += '<p style="color:var(--muted)">Pick a free starter course below — all lessons are ready to learn.</p>';
     }
     if (myEl) {
       myEl.innerHTML = html;
@@ -661,7 +661,7 @@
       if (canAccessLesson(courseId, idx)) {
         renderLessonPlayer();
       } else {
-        toast('Enrol to unlock this lesson');
+        toast('This module preview only — lesson 1 is available. Full chapters are on free starter courses.');
         renderLessonPlayer();
       }
       return;

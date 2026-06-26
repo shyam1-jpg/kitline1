@@ -201,10 +201,10 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 .build-list{margin:10px 0 0;padding-left:20px;color:var(--cyan);line-height:1.8;font-size:14px}
 @media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.form-grid{grid-template-columns:1fr}.hero,.playground,.about-grid,.free-trial-box{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid,.featured-strip,.pricing-grid,.testimonial-grid,.resources-grid,.foot-grid,.learn-track-grid,.learn-how-steps{grid-template-columns:1fr}.audience-grid,.roadmap-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.projects-grid,.learn-courses-grid,.ai-tools-grid{grid-template-columns:1fr}}
 </style>
-<link rel="stylesheet" href="learn.css?v=5" />
+<link rel="stylesheet" href="learn.css?v=6" />
 <script src="i18n.js?v=2"></script>
-<script src="curriculum.js?v=5"></script>
-<script src="learn.js?v=5"></script>
+<script src="curriculum.js?v=6"></script>
+<script src="learn.js?v=6"></script>
 </head>
 <body>
 <div class="beta-banner">✨ <b>Kiteline Academy is open for early learners.</b> Try free lessons today — no card required. <a href="#free-trial">Start free</a></div>
@@ -280,7 +280,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 </section>
 
 <section id="learn-hub">
-  <div class="head"><div><h2>Learning Hub</h2><p>Pick your stage — free starters get full access to AI World and Web Basics. Progress saves when you sign in.</p></div>
+  <div class="head"><div><h2>Learning Hub</h2><p>Five free starter courses with every chapter ready — AI, HTML, CSS, JavaScript and Python. Sign in to save progress.</p></div>
     <button class="btn" type="button" onclick="KA_LEARN.openLessonPlayer('ai-world-starter',0)">Start AI World course</button></div>
   <div class="learn-how-steps">
     <div class="learn-how-step"><b>1</b><span>Read a short lesson (5–15 min each)</span></div>
@@ -328,13 +328,13 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
   <div class="feature-grid">
     <div class="feature"><strong>📚</strong><h3>Course library</h3><p>HTML, CSS, JavaScript, Python, SQL, AI, Excel, React and cloud skills.</p></div>
     <div class="feature"><strong>🧪</strong><h3>Code lab</h3><p>Students can practise code examples directly inside the learning page.</p></div>
-    <div class="feature"><strong>🛒</strong><h3>Enrolment & checkout</h3><p>Create a free account, then pay securely with Stripe when checkout is enabled — or request enrolment by email.</p></div>
+    <div class="feature"><strong>📈</strong><h3>Progress tracking</h3><p>Mark lessons complete, pick up where you left off, and earn starter certificates — no payment needed on free courses.</p></div>
     <div class="feature"><strong>🎓</strong><h3>Certificates</h3><p>Progress tracking, quizzes and certificate generation after completion.</p></div>
   </div>
 </section>
 
 <section id="courses">
-  <div class="head"><div><h2>Featured courses</h2><p>Starter courses with level, duration, lesson count and certificate status. Two full free courses are live now; others show syllabus previews until enrolment opens.</p></div></div>
+  <div class="head"><div><h2>Featured courses</h2><p>Free starters include full lesson chapters and Try it Yourself exercises. Advanced paths show a syllabus preview while we add content.</p></div></div>
   <div class="featured-strip" id="featuredCourses"></div>
   <div class="searchbar">
     <input id="q" placeholder="Search: Python, AI, React, SQL, Excel..." oninput="renderCourses()" />
@@ -623,7 +623,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
         <div><h2 id="lpTitle">Course</h2><p class="lp-meta" id="lpMeta"></p></div>
         <button class="btn secondary" type="button" onclick="KA_LEARN.closeLessonPlayer()">Close</button>
       </div>
-      <div class="lp-scroll">
+      <div class="lp-scroll" id="lpScroll">
         <div class="lp-body" id="lpBody"></div>
         <div class="lp-tryit" id="lpTryIt" style="display:none"></div>
         <div class="lp-quiz" id="lpQuiz" style="display:none"></div>
