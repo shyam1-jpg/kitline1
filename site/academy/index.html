@@ -201,10 +201,10 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 .build-list{margin:10px 0 0;padding-left:20px;color:var(--cyan);line-height:1.8;font-size:14px}
 @media(max-width:980px){.navlinks{display:none}.nav-auth .nav-user{display:none}.form-grid{grid-template-columns:1fr}.hero,.playground,.about-grid,.free-trial-box{grid-template-columns:1fr}.grid,.feature-grid,.paths,.contact-grid,.featured-strip,.pricing-grid,.testimonial-grid,.resources-grid,.foot-grid,.learn-track-grid,.learn-how-steps{grid-template-columns:1fr}.audience-grid,.roadmap-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.searchbar{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.projects-grid,.learn-courses-grid,.ai-tools-grid{grid-template-columns:1fr}}
 </style>
-<link rel="stylesheet" href="learn.css?v=3" />
+<link rel="stylesheet" href="learn.css?v=5" />
 <script src="i18n.js?v=2"></script>
-<script src="curriculum.js?v=3"></script>
-<script src="learn.js?v=3"></script>
+<script src="curriculum.js?v=5"></script>
+<script src="learn.js?v=5"></script>
 </head>
 <body>
 <div class="beta-banner">✨ <b>Kiteline Academy is open for early learners.</b> Try free lessons today — no card required. <a href="#free-trial">Start free</a></div>
@@ -225,7 +225,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 
 <main class="hero" id="home">
   <div>
-    <div class="kicker">Learn from phone, tablet or computer · 8 languages · Certificate included</div>
+    <div class="kicker">Learn from phone, tablet or computer · 8 interface languages · 2 free starter courses</div>
     <h1>Learn AI, coding and digital skills <span class="grad">from zero.</span></h1>
     <p class="lead">Choose a beginner-friendly course, practise in the Code Lab, download resources, track your progress and earn a Kiteline Academy certificate.</p>
     <div class="actions">
@@ -235,9 +235,9 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
     </div>
     <div class="mobile-note">📱 Mobile-friendly — learn from your phone, tablet or computer</div>
     <div class="stats">
-      <div class="stat"><b>30+</b><span>courses available</span></div>
-      <div class="stat"><b>15</b><span>free lessons (AI + web)</span></div>
-      <div class="stat"><b>✓</b><span>certificate included</span></div>
+      <div class="stat"><b>10</b><span>starter courses (2 free now)</span></div>
+      <div class="stat"><b>15</b><span>free lessons live today</span></div>
+      <div class="stat"><b>✓</b><span>completion certificate</span></div>
       <div class="stat"><b>24–48h</b><span>support reply time</span></div>
     </div>
   </div>
@@ -246,9 +246,9 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
     <div class="dashboard" style="min-height:0;padding:12px">
       <aside class="side" style="padding:10px"><button class="active" type="button">Courses</button><button type="button">Progress</button><button type="button">Downloads</button><button type="button">Certificate</button></aside>
       <div class="panel active" style="display:block;min-height:220px;padding:16px">
-        <div class="row"><span>AI Tools for Beginners<br><small>8 of 24 lessons complete</small></span><span>42%</span></div>
-        <div class="row"><span>HTML, CSS & Website Building<br><small>Enrolled · Certificate available</small></span><span>✅</span></div>
-        <div class="row"><span>Python Cheat Sheet.pdf<br><small>Download resource</small></span><span>⬇</span></div>
+        <div class="row"><span>AI World — Free Starter<br><small>3 of 10 lessons complete</small></span><span>30%</span></div>
+        <div class="row"><span>Web Basics — Free Starter<br><small>Enrolled · sample preview</small></span><span>✅</span></div>
+        <div class="row"><span>Lesson worksheets<br><small>After enrolment</small></span><span>⬇</span></div>
       </div>
     </div>
   </div>
@@ -274,6 +274,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
       <h3>Certificate of Completion</h3>
       <div class="line"></div>
       <div class="detail"><b style="color:#0f172a;font-size:18px">Your Name</b><br>Course Name<br>Completion Date</div>
+      <p style="font-size:12px;color:#64748b;margin:16px 0 0;line-height:1.5">Kiteline Academy certificates show course completion. They are not formal accredited qualifications unless clearly stated.</p>
     </div>
   </div>
 </section>
@@ -327,13 +328,13 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
   <div class="feature-grid">
     <div class="feature"><strong>📚</strong><h3>Course library</h3><p>HTML, CSS, JavaScript, Python, SQL, AI, Excel, React and cloud skills.</p></div>
     <div class="feature"><strong>🧪</strong><h3>Code lab</h3><p>Students can practise code examples directly inside the learning page.</p></div>
-    <div class="feature"><strong>🛒</strong><h3>Enrolment</h3><p>Request enrolment by email during early access. Secure Stripe checkout when enabled on your account.</p></div>
+    <div class="feature"><strong>🛒</strong><h3>Enrolment & checkout</h3><p>Create a free account, then pay securely with Stripe when checkout is enabled — or request enrolment by email.</p></div>
     <div class="feature"><strong>🎓</strong><h3>Certificates</h3><p>Progress tracking, quizzes and certificate generation after completion.</p></div>
   </div>
 </section>
 
 <section id="courses">
-  <div class="head"><div><h2>Featured courses</h2><p>Eight popular courses with level, duration, lessons, price and certificate. Every course includes a free sample lesson.</p></div></div>
+  <div class="head"><div><h2>Featured courses</h2><p>Starter courses with level, duration, lesson count and certificate status. Two full free courses are live now; others show syllabus previews until enrolment opens.</p></div></div>
   <div class="featured-strip" id="featuredCourses"></div>
   <div class="searchbar">
     <input id="q" placeholder="Search: Python, AI, React, SQL, Excel..." oninput="renderCourses()" />
@@ -348,12 +349,12 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 <section id="pricing">
   <div class="head"><div><h2>Pricing</h2><p>Start free, upgrade when you are ready. Cancel monthly plans anytime.</p></div></div>
   <div class="pricing-grid">
-    <div class="plan"><h3>Free</h3><div class="amount">£0</div><ul><li>AI World — 10 lessons</li><li>Web Basics — 5 lessons</li><li>Code Lab + progress tracking</li><li>No card required</li></ul><button class="btn secondary" type="button" onclick="KA_LEARN.openLessonPlayer('ai-world-starter',0)">Start free course</button></div>
-    <div class="plan"><h3>Starter</h3><div class="amount">£9.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>Beginner courses</li><li>Progress tracking</li><li>Email support</li></ul><button class="btn secondary" type="button" onclick="requestEnrolment('Starter — £9.99/month')">Request enrolment</button></div>
-    <div class="plan popular"><h3>Pro Student</h3><div class="amount">£19.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>All courses & paths</li><li>Code Lab & downloads</li><li>Certificates</li><li>Priority support</li></ul><button class="btn" type="button" onclick="requestEnrolment('Pro Student — £19.99/month')">Join Pro</button></div>
-    <div class="plan"><h3>Lifetime Bundle</h3><div class="amount">£99</div><ul><li>All beginner courses</li><li>One-time payment</li><li>Lifetime access</li><li>Certificate included</li></ul><button class="btn gold" type="button" onclick="requestEnrolment('Lifetime Bundle — £99 one-time')">Request enrolment</button></div>
+    <div class="plan"><h3>Free</h3><div class="amount">£0</div><ul><li>AI World — 10 lessons</li><li>Web Basics — 5 lessons</li><li>Code Lab + progress tracking</li><li>No card required</li></ul><button class="btn secondary" type="button" onclick="openAuth('register')">Create free account</button></div>
+    <div class="plan"><h3>Starter</h3><div class="amount">£9.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>Beginner courses</li><li>Progress tracking</li><li>Email support</li><li>Cancel anytime</li></ul><button class="btn secondary" type="button" onclick="openCheckout('Starter — £9.99/month',9.99,'subscription')">Start Starter</button></div>
+    <div class="plan popular"><h3>Pro Student</h3><div class="amount">£19.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>All courses & paths</li><li>Code Lab & downloads</li><li>Certificates</li><li>Priority support</li></ul><button class="btn" type="button" onclick="openCheckout('Pro Student — £19.99/month',19.99,'subscription')">Join Pro</button></div>
+    <div class="plan"><h3>Lifetime Bundle</h3><div class="amount">£99</div><ul><li>All beginner courses</li><li>One-time payment</li><li>Lifetime access</li><li>Certificate included</li></ul><button class="btn gold" type="button" onclick="openCheckout('Lifetime Bundle — £99 one-time',99,'lifetime')">Buy lifetime</button></div>
   </div>
-  <p class="notice" style="margin-top:18px">Request enrolment by email during early access. When Stripe checkout is enabled on your account, you can pay securely by card. Email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> — we reply within 24–48 hours.</p>
+  <p class="notice" style="margin-top:18px">Prices include VAT where applicable. Monthly plans renew until cancelled in your student dashboard. Digital content access begins immediately after payment. See <a href="refunds.html" style="color:var(--cyan)">refund policy</a> and <a href="terms.html" style="color:var(--cyan)">terms</a>. Operator: Kiteline Academy · Support: <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a></p>
 </section>
 
 <section id="paths">
@@ -393,18 +394,20 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 <section id="dashboard">
   <div class="head"><div><h2>Student dashboard</h2><p>Your courses, lesson progress, downloads, security settings and certificates — all in one place after you sign in.</p></div></div>
   <div class="dashboard">
-    <aside class="side"><button class="active" onclick="tab('my',this)">My Courses</button><button onclick="tab('lessons',this)">Lessons</button><button onclick="tab('downloads',this)">Downloads</button><button onclick="tab('security',this)">Security</button><button onclick="tab('certificate',this)">Certificate</button></aside>
+      <aside class="side"><button class="active" onclick="tab('my',this)">My Courses</button><button onclick="tab('lessons',this)">Lessons</button><button onclick="tab('downloads',this)">Downloads</button><button onclick="tab('billing',this)">Billing</button><button onclick="tab('security',this)">Security</button><button onclick="tab('certificate',this)">Certificate</button></aside>
     <div>
       <div class="panel active" id="my"><h3>My Courses</h3><div id="myCourses"></div></div>
       <div class="panel" id="lessons"><h3>Lesson Progress</h3><div id="lessonRows"></div></div>
       <div class="panel" id="downloads"><h3>Downloads</h3><div class="row"><span>Python Cheat Sheet<br><small>PDF resource</small></span><button class="btn secondary" type="button" onclick="promptDownload('Python Cheat Sheet')">Download</button></div><div class="row"><span>HTML/CSS Starter Pack<br><small>PDF + project files</small></span><button class="btn secondary" type="button" onclick="promptDownload('HTML/CSS Starter Pack')">Download</button></div></div>
       <div class="panel" id="security"><h3>Account security</h3><p style="color:var(--muted);line-height:1.6">Optional two-factor authentication with Google Authenticator, Authy or Microsoft Authenticator.</p><div id="securityPanel"><p style="color:var(--muted)">Sign in to manage security settings.</p></div></div>
+      <div class="panel" id="billing"><h3>Billing & subscription</h3><p style="color:var(--muted);line-height:1.6">Manage paid plans, view invoices and cancel monthly subscriptions.</p><div id="billingPanel"><p style="color:var(--muted)">Sign in to view billing. Cancel anytime before your next billing date — see <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div></div>
       <div class="panel" id="certificate"><h3>Certificate</h3><p style="color:var(--muted)">Complete all lessons in your course to unlock your Kiteline Academy certificate.</p>
         <div class="cert-preview" aria-label="Certificate sample">
           <div class="brand-mark">Kiteline Academy</div>
           <h3>Certificate of Completion</h3>
           <div class="line"></div>
           <div class="detail"><b style="color:#0f172a;font-size:18px">Student Name</b><br>has successfully completed<br><b style="color:#0f172a">Course Name</b><br>Completion date: 21 June 2026</div>
+          <p style="font-size:12px;color:#64748b;margin:16px 0 0;line-height:1.5">Kiteline Academy certificates show course completion. They are not formal accredited qualifications unless clearly stated.</p>
         </div>
         <button class="btn gold" style="margin-top:18px" onclick="makeCert()">Check my certificate</button><div id="certBox" class="notice" style="display:none"></div></div>
     </div>
@@ -415,8 +418,9 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
   <div class="head"><div><h2>About Kiteline Academy</h2><p>Practical digital skills for real people — beginners, workers, students and small business owners.</p></div></div>
   <div class="about-grid">
     <div>
-      <p style="color:var(--muted);line-height:1.75;font-size:16px">Kiteline Academy is built to help you learn AI tools, coding and business technology step by step — without jargon overload.</p>
-      <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px">Founded by <b style="color:#fff">Shyam Prasad</b>, Kiteline Academy focuses on simple, practical learning for people who want to use AI and technology to improve their work, business and future.</p>
+      <p style="color:var(--muted);line-height:1.75;font-size:16px">I built Kiteline Academy because many people want to learn AI and coding but feel left behind by jargon-heavy courses. This platform is beginner-friendly: short lessons, real practice, and honest progress tracking.</p>
+      <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px">Founded by <b style="color:#fff">Shyam Prasad</b>, Kiteline Academy helps students, workers and small business owners use AI tools, build basic websites, and grow digital confidence step by step — from phone, tablet or computer.</p>
+      <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px">We are still growing the full course library. What is live today is real: two complete free starter courses, a working lesson player, student accounts, and certificates for completed courses.</p>
       <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px"><b style="color:#fff">Kiteline Academy</b> is a separate online learning product from Kiteline kitchen software.</p>
     </div>
     <div class="about-photo"><div class="initials">SP</div><b style="color:#fff;font-size:18px">Shyam Prasad</b><p style="color:var(--muted);margin:8px 0 0">Founder · Kiteline Academy</p></div>
@@ -424,11 +428,11 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
 </section>
 
 <section id="testimonials">
-  <div class="head"><div><h2>Student reviews</h2><p>Beta learner feedback from early Kiteline Academy students.</p></div></div>
+  <div class="head"><div><h2>Early feedback</h2><p>Example feedback from early testing — not verified customer reviews yet.</p></div></div>
   <div class="testimonial-grid">
-    <div class="testimonial"><p>“The AI course explained things simply. I finally understand how to use ChatGPT for my work.”</p><b>— Beginner student, UK</b></div>
-    <div class="testimonial"><p>“I liked the Code Lab — I could see my HTML page update instantly. Very clear for beginners.”</p><b>— Career switcher</b></div>
-    <div class="testimonial"><p>“Good structure, clear prices and a certificate at the end. Feels like a real online school.”</p><b>— Small business owner</b></div>
+    <div class="testimonial"><p>“The AI course explained things simply. I finally understand how to use ChatGPT for my work.”</p><b>— Example: beginner learner, UK</b></div>
+    <div class="testimonial"><p>“I liked the Code Lab — I could see my HTML page update instantly. Very clear for beginners.”</p><b>— Example: career switcher</b></div>
+    <div class="testimonial"><p>“Good structure, clear prices and a certificate at the end. Feels like a real online school.”</p><b>— Example: small business owner</b></div>
   </div>
 </section>
 
@@ -437,10 +441,15 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
   <div class="faq-list">
     <div class="faq-item"><b>Do I need coding experience?</b><p>No. Beginner courses start from zero. We explain every step in plain language.</p></div>
     <div class="faq-item"><b>Can I learn from mobile?</b><p>Yes. Lessons and the student dashboard are mobile-friendly. Code Lab works best on a laptop or tablet.</p></div>
-    <div class="faq-item"><b>Do I get a certificate?</b><p>Yes. After completing lessons and quizzes, you receive a Kiteline Academy certificate of completion.</p></div>
-    <div class="faq-item"><b>How do payments work?</b><p>Request enrolment by email during early access. When Stripe checkout is enabled, you can pay securely by card. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
-    <div class="faq-item"><b>Can I cancel?</b><p>Yes. Monthly plans can be cancelled anytime before your next billing date. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
+    <div class="faq-item"><b>Do I get a certificate?</b><p>Yes — after completing all lessons and quizzes in a course. Certificates show completion only; they are not formal accredited qualifications unless clearly stated.</p></div>
+    <div class="faq-item"><b>How do payments work?</b><p>Create a free account first. Paid plans use secure Stripe checkout when enabled. You can also email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> for help. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
+    <div class="faq-item"><b>Can I cancel my subscription?</b><p>Yes. Monthly Starter and Pro plans can be cancelled anytime before your next billing date from your student dashboard Billing tab. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
+    <div class="faq-item"><b>What is your refund policy?</b><p>Digital content access starts immediately. UK consumers may lose the 14-day cancellation right once streaming begins — you confirm this at checkout. See <a href="refunds.html" style="color:var(--cyan)">refunds.html</a> for full details.</p></div>
+    <div class="faq-item"><b>Is there a minimum age?</b><p>Accounts are for learners aged 13+. Under-18s should have a parent or guardian’s permission.</p></div>
+    <div class="faq-item"><b>I forgot my password or cannot sign in</b><p>Use <b>Forgot password?</b> on the sign-in form. If email does not arrive, click <b>Resend verification</b> — we also show a verify link on screen. Check spam/junk.</p></div>
+    <div class="faq-item"><b>How do I delete my account?</b><p>Email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> from your registered address and we will delete your account and personal data within 30 days.</p></div>
     <div class="faq-item"><b>Are payments secure?</b><p>Yes. Card payments are processed through Stripe. We never store your full card number.</p></div>
+    <div class="faq-item"><b>Do you use analytics cookies?</b><p>We use essential session and language cookies only. If we add analytics or marketing cookies later, we will show a cookie choice banner. See <a href="cookies.html" style="color:var(--cyan)">cookie policy</a>.</p></div>
     <div class="faq-item"><b>Where are your policies?</b><p>Read our <a href="terms.html" style="color:var(--cyan)">terms</a>, <a href="privacy.html" style="color:var(--cyan)">privacy policy</a>, <a href="refunds.html" style="color:var(--cyan)">refund policy</a> and <a href="cookies.html" style="color:var(--cyan)">cookie policy</a>.</p></div>
   </div>
 </section>
@@ -456,26 +465,12 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
         <input id="cfEmail" type="email" required placeholder="Email address">
         <select id="cfInterest"><option value="">Course interest</option><option>AI Tools for Beginners</option><option>HTML, CSS & Website Building</option><option>Python for Beginners</option><option>Pro Student plan</option><option>Lifetime Bundle</option><option>Other</option></select>
         <textarea id="cfMessage" rows="4" required placeholder="Your message — enrolment help, billing, etc."></textarea>
+        <label class="check-row"><input id="cfConsent" type="checkbox" required><span>I consent to Kiteline Academy contacting me about my message. See <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy policy</a>.</span></label>
         <button class="btn" type="submit">Send message</button>
+        <p id="cfSuccess" style="display:none;color:#50f0a0;font-size:14px;margin:0">Thanks — your email app should open. We reply within 24–48 hours.</p>
       </form>
     </div>
     <div class="contact-card"><b>Newsletter</b><p>Get course launches, free lessons and academy updates.</p><div class="newsletter"><input id="newsEmail" type="email" placeholder="Email address"><button class="btn secondary" type="button" onclick="submitNewsletter()">Subscribe</button></div><p style="margin-top:12px;font-size:13px;color:var(--muted)"><b style="color:#fff">Kiteline Academy</b> · UK online academy</p></div>
-  </div>
-</section>
-
-<section id="admin" class="staff-only">
-  <div class="head"><div><h2>Staff area</h2><p>Student export and internal tools — not visible to public visitors.</p></div></div>
-  <div class="card" style="margin-bottom:18px">
-    <input id="adminKey" type="password" placeholder="Admin secret key" style="width:100%;max-width:420px;margin-bottom:12px">
-    <button class="btn secondary" type="button" onclick="loadAdminStudents()">Load students</button>
-    <button class="btn" type="button" onclick="exportAdminCsv()">Export CSV</button>
-    <div id="adminStudents" style="margin-top:16px;color:var(--muted);font-size:14px"></div>
-  </div>
-  <div class="card">
-    <h3 style="margin-top:0">Course builder</h3>
-    <div class="searchbar"><input id="newTitle" value="AI Automation with JavaScript"><input id="newCat" value="AI Coding"><input id="newPrice" value="149"></div>
-    <textarea id="newDesc" style="width:100%;height:90px">Build small AI-powered automations using JavaScript, APIs, prompts and workflow thinking.</textarea><br><br>
-    <button class="btn" onclick="addCourse()">Add Course</button>
   </div>
 </section>
 
@@ -556,12 +551,33 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
     <button class="close" type="button" onclick="closeLinkModal()">×</button>
     <h2 id="linkModalTitle">Your link</h2>
     <p id="linkModalMsg" style="color:var(--muted);line-height:1.6"></p>
-    <div class="link-box">
+    <div class="link-box" id="linkModalBox" style="display:none">
       <a id="linkModalBtn" class="btn" href="#">Open link</a>
       <code id="linkModalUrl"></code>
       <button type="button" class="btn secondary" style="width:100%" onclick="copyLinkModal()">Copy link</button>
       <p style="color:var(--muted);font-size:12px;margin:10px 0 0">Check spam/junk if you expected an email. Link expires soon.</p>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="checkoutModal">
+  <div class="box" style="width:min(640px,100%);max-height:90vh;overflow:auto">
+    <button class="close" type="button" onclick="closeCheckout()">×</button>
+    <h2 id="checkoutTitle">Checkout</h2>
+    <p id="checkoutPrice" style="color:var(--muted);margin:8px 0 16px"></p>
+    <div class="notice" style="margin-top:0;font-size:13px;line-height:1.6">
+      <b style="color:#fff">Before you pay</b><br>
+      Operator: Kiteline Academy (Shyam Prasad)<br>
+      Support: <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a><br>
+      Digital content: immediate online access after payment<br>
+      Subscription length: monthly until cancelled (Starter/Pro) or lifetime one-time (Bundle)<br>
+      Cancellation: cancel monthly plans anytime before next billing date in your dashboard<br>
+      Refunds: see <a href="refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a>
+    </div>
+    <label class="check-row"><input id="checkoutTerms" type="checkbox"><span>I agree to the <a href="terms.html" target="_blank" rel="noopener" style="color:var(--cyan)">terms</a>, <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy</a> and <a href="refunds.html" target="_blank" rel="noopener" style="color:var(--cyan)">refund policy</a>.</span></label>
+    <label class="check-row"><input id="checkoutDigital" type="checkbox"><span>I understand this is digital content. I request immediate access and accept that I may lose my 14-day cancellation right once access begins (UK consumer law).</span></label>
+    <button class="btn" style="width:100%;margin-top:8px" type="button" id="checkoutPayBtn" onclick="completeCheckout()">Continue to payment</button>
+    <button class="btn secondary" style="width:100%;margin-top:8px" type="button" onclick="requestEnrolmentFromCheckout()">Request enrolment by email instead</button>
   </div>
 </div>
 
@@ -612,6 +628,7 @@ footer{border-top:1px solid var(--line);margin-top:55px;background:rgba(0,0,0,.2
         <div class="lp-tryit" id="lpTryIt" style="display:none"></div>
         <div class="lp-quiz" id="lpQuiz" style="display:none"></div>
         <div class="lp-sources" id="lpSources" style="display:none"></div>
+        <div class="lp-downloads" id="lpDownloads" style="display:none"></div>
       </div>
       <div class="lp-footer">
         <button class="btn secondary" type="button" id="lpPrev">← Previous</button>
@@ -651,7 +668,7 @@ function courseExtra(c){
 }
 const baseCourses = [["HTML, CSS & Website Building", "Web Development", "Beginner", 29, "Learn HTML and CSS from zero — build responsive pages, layouts and your first published website."], ["CSS Professional Styling", "Web Development", "Beginner", 59, "Master layouts, responsive design, typography, animations, flexbox and grid."], ["JavaScript from Zero to Pro", "Programming", "Beginner", 89, "Learn variables, functions, DOM, events, APIs, async JavaScript and real projects."], ["Python for Beginners", "Programming", "Beginner", 49, "Start Python from basics through files, APIs, data, automation and mini apps."], ["SQL & Database Design", "Databases", "Beginner", 79, "Learn SQL queries, joins, indexes, relational design and reporting."], ["MySQL Developer Course", "Databases", "Intermediate", 89, "Design MySQL databases, write powerful queries, build stored procedures and connect apps."], ["React Frontend Developer", "Web Development", "Intermediate", 129, "Build modern interfaces with components, hooks, state, routing and API integration."], ["Node.js Backend Developer", "Backend", "Intermediate", 129, "Create APIs, authentication, services, dashboards and production-ready backend logic."], ["PHP Web Development", "Backend", "Beginner", 89, "Build dynamic server-side websites using PHP, forms, sessions and database connections."], ["Java Programming", "Programming", "Beginner", 99, "Learn object-oriented programming, classes, collections and Java application structure."], ["C Programming", "Programming", "Beginner", 89, "Understand memory, pointers, functions, arrays and foundational system programming."], ["C++ Programming", "Programming", "Intermediate", 119, "Master object-oriented C++, STL, memory control and performance-based development."], ["C# Developer Course", "Programming", "Intermediate", 119, "Build applications using C#, .NET concepts, OOP, data structures and clean code."], ["Bootstrap UI Design", "Web Design", "Beginner", 59, "Create fast responsive websites using Bootstrap components, grids and utilities."], ["jQuery Practical Course", "Web Development", "Beginner", 49, "Use jQuery for DOM changes, effects, AJAX and legacy project support."], ["W3.CSS Website Design", "Web Design", "Beginner", 39, "Build simple responsive websites with lightweight W3.CSS design patterns."], ["XML & Data Exchange", "Data", "Beginner", 39, "Understand XML structure, schemas, parsing and data exchange concepts."], ["Excel for Business", "Business Tech", "Beginner", 69, "Learn formulas, charts, tables, dashboards, pivot tables and business reporting."], ["Advanced Excel Automation", "Business Tech", "Intermediate", 99, "Use advanced formulas, Power Query style thinking, dashboards and automation workflows."], ["Dojo JavaScript Toolkit", "Web Development", "Intermediate", 59, "Learn the Dojo toolkit for legacy and enterprise web interfaces."], ["AI Tools for Beginners", "AI", "Beginner", 19, "Use today\u2019s AI tools for writing, research, planning, images, coding and productivity."], ["Prompt Engineering Masterclass", "AI", "Beginner", 99, "Write strong prompts for business, code, research, content, automation and learning."], ["Generative AI for Business", "AI", "Intermediate", 149, "Create AI workflows for business operations, content, sales, support and productivity."], ["AI Website Builder Course", "AI", "Beginner", 129, "Use AI to plan, design and build websites faster with clean structure and prompts."], ["AI Coding Assistant Mastery", "AI Coding", "Intermediate", 149, "Use AI tools to debug, build apps, explain code and create production-ready plans."], ["Machine Learning Basics", "AI", "Intermediate", 149, "Understand supervised learning, datasets, models, evaluation and practical ML workflow."], ["Data Analysis with Python", "Data", "Intermediate", 129, "Analyse data using Python, CSV, charts, reports and automation scripts."], ["Cybersecurity Foundations", "Security", "Beginner", 99, "Learn passwords, web security, threats, phishing, secure login and data protection basics."], ["Cloud Basics", "Cloud", "Beginner", 89, "Understand hosting, domains, servers, databases, storage, deployment and cloud security."], ["Full Stack Developer Path", "Career Path", "Advanced", 399, "A complete path from HTML and CSS to React, Node.js, SQL and deployment."]];
 let courses = baseCourses.map((c,i)=>courseExtra({id:i+1,title:c[0],cat:c[1],level:c[2],price:c[3],desc:c[4],pop:baseCourses.length-i,featured:FEATURED_TITLES.includes(c[0])}));
-let selectedCat='All', buying=null, activeCourse=null;
+let selectedCat='All', buying=null, checkoutPlan=null, activeCourse=null;
 const cats=['All',...new Set(courses.map(c=>c.cat))];
 const sampleLessons=['Welcome & overview','Install tools & setup','Core concepts','Hands-on practice','Mini project','Quiz & certificate'];
 const API_BASE = '/api/academy';
@@ -682,8 +699,6 @@ async function loadAcademyConfig(){
     const r=await fetch(API_BASE+'/config',{credentials:'include'});
     academyConfig=await r.json();
     setupCaptchaWidgets();
-    const stripeOn=!!academyConfig.stripe;
-    if($('buyBtn')&&stripeOn&&new URLSearchParams(location.search).get('staff')==='1')$('buyBtn').style.display='inline-flex';
   }catch(e){}
 }
 function courseCardHtml(c,i,compact){
@@ -699,10 +714,45 @@ function bindCourseCards(root){
   root.querySelectorAll('[data-free]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();const c=allCourses().find(x=>x.id===Number(btn.dataset.free));if(c){const map={ai:'ai-world-starter',html:'html-starter',chatgpt:'ai-world-starter',website:'html-starter'};KA_LEARN.openLessonPlayer(map[c.free||'ai']||'ai-world-starter',0)}});
 }
 function renderFeatured(){
-  const featured=FEATURED_TITLES.map(t=>allCourses().find(c=>c.title===t)).filter(Boolean);
   const el=$('featuredCourses'); if(!el)return;
+  if(window.KA_CURRICULUM&&KA_CURRICULUM.listCourses){
+    const ids=['ai-world-starter','html-starter','css-starter','js-starter','python-starter','excel-starter','sql-starter','react-starter'];
+    const featured=ids.map(id=>KA_CURRICULUM.getCourse(id)).filter(Boolean);
+    el.innerHTML=featured.map((c,i)=>curriculumCardHtml(c,i)).join('');
+    bindCurriculumCards(el);
+    return;
+  }
+  const featured=FEATURED_TITLES.map(t=>allCourses().find(c=>c.title===t)).filter(Boolean);
   el.innerHTML=featured.map((c,i)=>courseCardHtml(c,i)).join('');
   bindCourseCards(el);
+}
+function curriculumCardHtml(c,i){
+  const grad=`linear-gradient(135deg,${i%3?'#676bff':'#36e6ff'},${i%2?'#a855f7':'#0f766e'})`;
+  const tier=c.tier==='free'?'<span class="tag">Free</span>':'<span class="tag level">Starter</span>';
+  const price=c.tier==='free'?'Free':'Paid plan';
+  return `<article class="card course" data-cid="${c.id}" tabindex="0"><div class="thumb" style="background:${grad}"></div><div class="tags"><span class="tag">${c.track||'Course'}</span>${tier}<span class="cert-badge">Certificate</span></div><h3>${c.title}</h3><p>${c.desc||''}</p><div class="course-meta"><span>Duration: <b>${c.duration||'Self-paced'}</b></span><span>Lessons: <b>${c.lessonCount||c.lessons?.length||0}</b></span><span>Teacher: <b>${c.teacher||'Shyam Prasad'}</b></span><span>Price: <b>${price}</b></span></div><div class="course-actions"><button type="button" class="btn secondary" data-cstart="${c.id}">Start free lesson</button><button type="button" class="btn" data-copen="${c.id}">View outline</button></div></article>`;
+}
+function bindCurriculumCards(root){
+  root.querySelectorAll('[data-cstart]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();KA_LEARN.openLessonPlayer(btn.dataset.cstart,0)});
+  root.querySelectorAll('[data-copen]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();openCurriculumCourse(btn.dataset.copen)});
+  root.querySelectorAll('[data-cid]').forEach(card=>{
+    card.onclick=e=>{if(e.target.closest('button'))return;openCurriculumCourse(card.dataset.cid)};
+    card.onkeydown=e=>{if(e.key==='Enter')openCurriculumCourse(card.dataset.cid)};
+  });
+}
+function openCurriculumCourse(id){
+  const c=window.KA_CURRICULUM&&KA_CURRICULUM.getCourse(id);
+  if(!c)return;
+  activeCourse={title:c.title,price:c.tier==='free'?0:19.99,curriculumId:c.id};
+  $('courseModalTitle').textContent=c.title;
+  $('courseModalMeta').textContent=[c.track,c.tier,c.duration,(c.lessonCount||c.lessons?.length||0)+' lessons','Teacher: '+(c.teacher||'Shyam Prasad'),c.tier==='free'?'Free':'Paid'].filter(Boolean).join(' · ');
+  $('courseModalDesc').textContent=c.desc||'';
+  $('courseModalLearn').innerHTML=(c.outcomes||[]).map(x=>'<li>'+x+'</li>').join('');
+  $('courseModalBuild').innerHTML='<li>Course mini project</li><li>Quizzes and certificate on completion</li>';
+  $('courseModalLessons').innerHTML=(c.lessons||[]).slice(0,12).map((l,j)=>'<li>'+(j+1)+'. '+l.title+(l.type==='locked'?' (enrol to unlock)':'')+'</li>').join('')+(c.lessons&&c.lessons.length>12?'<li>…</li>':'');
+  $('courseModalFree').onclick=()=>{closeCourse();KA_LEARN.openLessonPlayer(c.id,0)};
+  $('courseModalBuy').onclick=()=>{closeCourse();if(c.tier==='free'){KA_LEARN.openLessonPlayer(c.id,0);return}requestEnrolment(c.title)};
+  $('courseModal').classList.add('open');
 }
 function openFreeLesson(key,courseName){
   if(window.KA_LEARN)KA_LEARN.openFreeLessonLegacy(key);
@@ -718,10 +768,12 @@ function requestEnrolment(label){
 }
 function submitContactForm(e){
   e.preventDefault();
+  if(!$('cfConsent').checked){toast('Please tick the consent checkbox');return}
   const name=$('cfName').value.trim(), email=$('cfEmail').value.trim(), interest=$('cfInterest').value, msg=$('cfMessage').value.trim();
   const subj=encodeURIComponent('Kiteline Academy — '+(interest||'Contact'));
-  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nInterest: '+interest+'\n\n'+msg);
+  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nInterest: '+interest+'\nConsent: yes\n\n'+msg);
   location.href='mailto:contact@kiteline.uk?subject='+subj+'&body='+body;
+  $('cfSuccess').style.display='block';
   toast('Opening email to contact@kiteline.uk');
 }
 function submitNewsletter(){
@@ -735,10 +787,43 @@ function requestEnrolmentFromBuy(){
   requestEnrolment(buying.title+' — £'+buying.price);
   closeBuy();
 }
-function initStaffMode(){
-  if(new URLSearchParams(location.search).get('staff')==='1'){
-    document.querySelectorAll('.staff-only').forEach(el=>el.classList.remove('staff-only'));
+function openCheckout(title,price,type){
+  checkoutPlan={title,price,type:type||'subscription'};
+  if(!isSignedIn()){toast('Create a free account first');openAuth('register');return}
+  $('checkoutTitle').textContent=title;
+  $('checkoutPrice').textContent='Total: £'+price.toFixed(2)+(type==='subscription'?' per month · cancel anytime':' one-time');
+  $('checkoutTerms').checked=false;
+  $('checkoutDigital').checked=false;
+  $('checkoutModal').classList.add('open');
+}
+function closeCheckout(){$('checkoutModal').classList.remove('open');checkoutPlan=null}
+function requestEnrolmentFromCheckout(){
+  if(!checkoutPlan)return;
+  requestEnrolment(checkoutPlan.title);
+  closeCheckout();
+}
+async function completeCheckout(){
+  if(!checkoutPlan){toast('No plan selected');return}
+  if(!$('checkoutTerms').checked||!$('checkoutDigital').checked){toast('Please confirm terms and digital content notice');return}
+  if(!isSignedIn()){toast('Sign in first');openAuth('signin');return}
+  if(!academyConfig.stripe){
+    requestEnrolmentFromCheckout();
+    return;
   }
+  try{
+    const data=await api('/checkout',{courseTitle:checkoutPlan.title,price:checkoutPlan.price});
+    if(data.url){location.href=data.url;return}
+    toast('Checkout failed');
+  }catch(e){
+    if(e.message&&/not configured/i.test(e.message))requestEnrolmentFromCheckout();
+    else toast(e.message);
+  }
+}
+function renderBilling(){
+  const el=$('billingPanel'); if(!el)return;
+  const u=getUser();
+  if(!u||!isSignedIn()){el.innerHTML='<p style="color:var(--muted)">Sign in to view billing and cancel subscriptions.</p>';return}
+  el.innerHTML='<p style="color:var(--muted);margin:0 0 12px">Signed in as <b style="color:#fff">'+u.email+'</b></p><p style="color:var(--muted);line-height:1.6">To cancel a monthly plan or request an invoice, email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> from your registered address. Include your name and plan (Starter or Pro).</p><button class="btn secondary" type="button" onclick="requestEnrolment(\'Cancel subscription — \'+encodeURIComponent(getUser().email))">Request subscription cancel</button>';
 }
 function setupCaptchaWidgets(){
   const c=academyConfig.captcha||{};
@@ -795,7 +880,7 @@ async function restoreSession(){
 }
 async function logoutServer(){
   try{await api('/logout',{})}catch(e){}
-  clearSession();toast(kaT('signOut'));renderStudent();
+  clearSession();toast(kaT('signOut'));renderStudent();renderBilling();
 }
 function initLangUi(){
   const pick=$('langPick');
@@ -838,14 +923,16 @@ function authTab(mode){
 function openAuth(mode){authTab(mode||'signin');$('auth').classList.add('open');applyKaLang(kaLang);renderCaptchaWidgets()}
 function closeAuth(){$('auth').classList.remove('open')}
 function showLinkModal(title,message,url){
+  if(!url||typeof url!=='string'||!url.trim()){toast(message||'Check your email and spam folder');return}
   $('linkModalTitle').textContent=title||'Your link';
   $('linkModalMsg').textContent=message||'Use this link if email did not arrive.';
   $('linkModalBtn').href=url;
   $('linkModalBtn').textContent=title&&title.includes('Reset')?'Reset my password':'Verify my email';
   $('linkModalUrl').textContent=url;
+  $('linkModalBox').style.display='block';
   $('linkModal').classList.add('open');
 }
-function closeLinkModal(){$('linkModal').classList.remove('open')}
+function closeLinkModal(){$('linkModal').classList.remove('open');if($('linkModalBox'))$('linkModalBox').style.display='none'}
 function copyLinkModal(){
   const url=$('linkModalUrl').textContent;
   if(!url)return;
@@ -887,7 +974,7 @@ async function registerAccount(){
     serverEnrollments=[];
     closeAuth();toast(kaT('accountCreated')+' — '+data.user.name);
     if(window.KA_LEARN)await KA_LEARN.loadProgress();
-    renderStudent();
+    renderStudent();renderBilling();
   }catch(e){
     if(e.message&&e.message.includes('Verify your email'))openAuth('signin');
     toast(e.message)
@@ -918,7 +1005,7 @@ async function loginAccount(){
     setUser(data.user);
     closeAuth();toast(kaT('welcome')+' — '+data.user.name);
     if(window.KA_LEARN)await KA_LEARN.loadProgress();
-    renderStudent();
+    renderStudent();renderBilling();
   }catch(e){
     if(e.message&&/verify your email/i.test(e.message))openAuth('signin');
     toast(e.message);
@@ -931,7 +1018,7 @@ async function verify2faLogin(){
     const data=await api('/2fa/verify-login',{pendingToken:pending2fa,code});
     pending2fa='';
     setUser(data.user);
-    closeAuth();toast('Signed in with 2FA');renderStudent();
+    closeAuth();toast('Signed in with 2FA');renderStudent();renderBilling();
   }catch(e){toast(e.message)}
 }
 async function forgotPassword(){
@@ -950,14 +1037,14 @@ async function handleAuthQuery(){
   const q=new URLSearchParams(location.search);
   const verify=q.get('verify'), reset=q.get('reset'), checkout=q.get('checkout');
   if(verify){
-    try{const data=await api('/verify-email',{token:verify});setUser(data.user);toast(data.message);history.replaceState({},'','/academy/');renderStudent()}catch(e){toast(e.message)}
+    try{const data=await api('/verify-email',{token:verify});setUser(data.user);toast(data.message);history.replaceState({},'','/academy/');renderStudent();renderBilling()}catch(e){toast(e.message)}
   }
   if(reset){
     const pw=prompt('Enter new password (10+ chars, upper, lower, number, symbol):');
     if(!pw)return;
     try{const data=await api('/reset-password',{token:reset,password:pw});setUser(data.user);toast(data.message);history.replaceState({},'','/academy/')}catch(e){toast(e.message)}
   }
-  if(checkout==='success'){toast('Payment received — refreshing your courses…');history.replaceState({},'','/academy/');await restoreSession();renderStudent()}
+  if(checkout==='success'){toast('Payment received — refreshing your courses…');history.replaceState({},'','/academy/');await restoreSession();renderStudent();renderBilling()}
   if(checkout==='cancel'){toast('Checkout cancelled');history.replaceState({},'','/academy/')}
 }
 function renderSecurity(){
@@ -987,27 +1074,6 @@ async function disable2fa(){
   try{
     await api('/2fa/disable',{password:$('disable2faPass').value,code:$('disable2faCode').value});
     toast('2FA disabled'); await restoreSession(); renderSecurity();
-  }catch(e){toast(e.message)}
-}
-function adminHeaders(){
-  const key=$('adminKey').value.trim();
-  return key?{'x-academy-admin':key}:{};
-}
-async function loadAdminStudents(){
-  try{
-    const r=await fetch(API_BASE+'/admin/students',{credentials:'include',headers:adminHeaders()});
-    const data=await r.json();
-    if(!r.ok)throw new Error(data.error||'Failed');
-    $('adminStudents').innerHTML='<b style="color:#fff">'+data.students.length+' students</b> · storage: '+data.storage+'<br><br>'+data.students.slice(0,20).map(s=>s.email+' · '+s.country+' · '+s.at).join('<br>')+(data.students.length>20?'<br>…':'');
-  }catch(e){toast(e.message)}
-}
-async function exportAdminCsv(){
-  try{
-    const r=await fetch(API_BASE+'/admin/export',{credentials:'include',headers:adminHeaders()});
-    if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||'Export failed')}
-    const blob=await r.blob();
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kitline-academy-students.csv';a.click();
-    toast('CSV downloaded');
   }catch(e){toast(e.message)}
 }
 function pickCat(cat){selectedCat=cat;renderFilters();renderCourses(true)}
@@ -1091,27 +1157,20 @@ function makeCert(){
   $('certBox').style.display='block';
   $('certBox').innerHTML=total>=sampleLessons.length?`<b>Certificate ready</b><br>${name} — Kiteline Academy Certificate of Completion.`:`Complete all ${sampleLessons.length} lessons in your course first. Progress: ${total}/${sampleLessons.length}.`;
 }
-function addCourse(){
-  let saved=JSON.parse(localStorage.getItem('kit_courses')||'[]');
-  const item={id:Date.now(),title:$('newTitle').value,cat:$('newCat').value,level:'Intermediate',price:Number($('newPrice').value||0),desc:$('newDesc').value,pop:0};
-  saved.push(item);localStorage.setItem('kit_courses',JSON.stringify(saved));
-  if(!cats.includes(item.cat)){cats.push(item.cat);cats.sort((a,b)=>a==='All'?-1:b==='All'?1:a.localeCompare(b))}
-  renderFilters();renderCourses(true);toast('Course added: '+item.title);
-}
 function promptDownload(name){toast('Download: '+name+' — available after enrolment. Email contact@kiteline.uk if you need help.')}
 function runCode(){const doc=$('preview').contentDocument;doc.open();doc.write($('codeInput').value);doc.close()}
 $('q').oninput=()=>renderCourses(false);
 $('level').onchange=()=>renderCourses(true);
 $('sort').onchange=()=>renderCourses(false);
-renderFilters();renderFeatured();renderCourses(false);runCode();initLangUi();initStaffMode();
+renderFilters();renderFeatured();renderCourses(false);runCode();initLangUi();
 if(window.KA_LEARN)KA_LEARN.init();
 loadAcademyConfig().then(()=>handleAuthQuery()).then(()=>restoreSession()).then(async()=>{
   if(window.KA_LEARN){
     await KA_LEARN.loadProgress();
     KA_LEARN.renderLearnHub();
-    if(location.hash.indexOf('learn/')>=0)KA_LEARN.handleHashRoute();
+    if(location.hash)KA_LEARN.handleHashRoute();
   }
-  renderStudent();renderSecurity();
+  renderStudent();renderSecurity();renderBilling();
 });
 </script>
 </body>

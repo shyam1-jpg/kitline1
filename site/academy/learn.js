@@ -1,4 +1,4 @@
-/* Kiteline Academy — learning module (hub, player, progress) */
+/* Kiteline Academy - learning module (hub, player, progress) */
 (function (global) {
   'use strict';
 
@@ -7,8 +7,75 @@
   const CERT_COURSE_ID = 'ai-world-starter';
 
   let progress = { courses: {} };
-  let enrolledIds = ['ai-world-starter', 'html-starter'];
+  let enrolledIds = ['ai-world-starter', 'html-starter', 'css-starter', 'js-starter', 'python-starter'];
   let player = { courseId: null, lessonIndex: 0 };
+  function isLearnPage() {
+    return !!(global.document && global.document.body && global.document.body.classList.contains('learn-page'));
+  }
+
+  function wrapHtmlDoc(code) {
+    const t = (code || '').trim();
+    if (!t) return '<!DOCTYPE html><html><body></body></html>';
+    if (/^\s*<!DOCTYPE/i.test(t) || /^\s*<html/i.test(t)) return t;
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>' + t + '</body></html>';
+  }
+
+  function mountCodeEditor(lesson) {
+    const lpTryIt = $('lpTryIt');
+    if (!lpTryIt) return;
+    const ed = lesson.editor;
+    if (!ed || !ed.starter) {
+      if (lesson.tryIt) {
+        lpTryIt.style.display = 'block';
+        lpTryIt.innerHTML = '<h4>Try it</h4><p>' + lesson.tryIt + '</p>';
+      } else {
+        lpTryIt.style.display = 'none';
+        lpTryIt.innerHTML = '';
+      }
+      return;
+    }
+    const lang = ed.lang || 'html';
+    lpTryIt.style.display = 'block';
+    lpTryIt.innerHTML = '<div class="lp-editor-wrap"><h4>Try it Yourself</h4>' +
+      (lesson.tryIt ? '<p class="lp-try-desc">' + lesson.tryIt + '</p>' : '') +
+      '<div class="lp-editor-grid">' +
+      '<div class="lp-editor-pane"><label for="lpCodeInput">Code</label><textarea id="lpCodeInput" spellcheck="false"></textarea></div>' +
+      (lang === 'html'
+        ? '<div class="lp-editor-pane"><label>Result</label><iframe id="lpCodeFrame" title="Preview" sandbox="allow-scripts allow-same-origin"></iframe></div>'
+        : '<div class="lp-editor-pane"><label>Output</label><pre id="lpCodeOut" class="lp-code-out"></pre></div>') +
+      '</div><div class="lp-editor-actions"><button type="button" class="btn" id="lpRunCode">Run code</button>' +
+      '<button type="button" class="btn secondary" id="lpResetCode">Reset</button></div></div>';
+    const input = $('lpCodeInput');
+    if (input) input.value = ed.starter;
+    function run() {
+      const code = input ? input.value : '';
+      if (lang === 'html') {
+        const frame = $('lpCodeFrame');
+        if (frame) frame.srcdoc = wrapHtmlDoc(code);
+      } else {
+        const out = $('lpCodeOut');
+        if (out) out.textContent = 'Copy this into python.org/shell or your local Python:\n\n' + code;
+      }
+    }
+    const runBtn = $('lpRunCode');
+    const resetBtn = $('lpResetCode');
+    if (runBtn) runBtn.onclick = run;
+    if (resetBtn) resetBtn.onclick = function () { if (input) input.value = ed.starter; run(); };
+    run();
+  }
+
+  function mountExercise(lesson) {
+    const box = $('lpExercise');
+    if (!box) return;
+    if (lesson.exercise) {
+      box.style.display = 'block';
+      box.innerHTML = '<h4>Exercise</h4><p>' + lesson.exercise + '</p>';
+    } else {
+      box.style.display = 'none';
+      box.innerHTML = '';
+    }
+  }
+
 
   function $(id) {
     return global.document && global.document.getElementById(id);
@@ -80,6 +147,14 @@
   function getCourse(courseId) {
     const CC = curriculum();
     return CC && CC.getCourse ? CC.getCourse(courseId) : null;
+  }
+
+  function lessonIndexById(course, lessonId) {
+    if (!course || !course.lessons || !lessonId) return -1;
+    for (let i = 0; i < course.lessons.length; i++) {
+      if (course.lessons[i].id === lessonId) return i;
+    }
+    return -1;
   }
 
   function canAccessLesson(courseId, lessonIndex) {
@@ -176,12 +251,55 @@
     return null;
   }
 
-  function renderPlayerLesson() {
+  function quizQuestions(lesson) {
+    if (!lesson || !lesson.quiz) return [];
+    if (Array.isArray(lesson.quiz)) return lesson.quiz;
+    if (lesson.quiz.questions && Array.isArray(lesson.quiz.questions)) return lesson.quiz.questions;
+    return [];
+  }
+
+  function setLessonHash(courseId, lesson) {
+    if (!global.location || !lesson) return;
+    try {
+      global.location.hash = 'learn/' + courseId + '/' + lesson.id;
+    } catch (e) { /* ignore */ }
+  }
+
+  function renderLessonNotFound(message) {
+    const modal = $('lessonPlayer');
+    if (modal) modal.classList.add('open');
+    if (global.document && global.document.body) global.document.body.style.overflow = 'hidden';
+    const lpTitle = $('lpTitle');
+    const lpMeta = $('lpMeta');
+    const lpBody = $('lpBody');
+    const lpTryIt = $('lpTryIt');
+    const lpSources = $('lpSources');
+    const lpQuiz = $('lpQuiz');
+    if (lpTitle) lpTitle.textContent = 'Kiteline Academy';
+    if (lpMeta) lpMeta.textContent = '';
+    if (lpBody) {
+      lpBody.innerHTML = '<h3 class="lp-lesson-heading">' + (message || 'Lesson not found') + '</h3>' +
+        '<p>The course or lesson could not be loaded. Return to the <a href="#learn-hub">Learning Hub</a>.</p>';
+    }
+    if (lpTryIt) { lpTryIt.style.display = 'none'; lpTryIt.innerHTML = ''; }
+    if (lpSources) { lpSources.style.display = 'none'; lpSources.innerHTML = ''; }
+    if (lpQuiz) { lpQuiz.style.display = 'none'; lpQuiz.innerHTML = ''; }
+    const sidebar = $('lpSidebar');
+    if (sidebar) sidebar.innerHTML = '';
+  }
+
+  function renderLessonPlayer() {
     const course = getCourse(player.courseId);
-    if (!course) return;
+    if (!course) {
+      renderLessonNotFound('Lesson not found');
+      return;
+    }
     const idx = player.lessonIndex;
     const lesson = course.lessons[idx];
-    if (!lesson) return;
+    if (!lesson) {
+      renderLessonNotFound('Lesson not found');
+      return;
+    }
 
     const lpTitle = $('lpTitle');
     const lpMeta = $('lpMeta');
@@ -195,21 +313,20 @@
 
     if (lpTitle) lpTitle.textContent = course.title;
     if (lpMeta) {
-      lpMeta.textContent = 'Lesson ' + (idx + 1) + ' of ' + course.lessons.length + ' · ' + (lesson.duration || '') + (lesson.type ? ' · ' + lesson.type : '');
+      const teacher = course.teacher ? ' · ' + course.teacher : '';
+      lpMeta.textContent = 'Lesson ' + (idx + 1) + ' of ' + course.lessons.length + ' · ' + (lesson.duration || '') + (lesson.type ? ' · ' + lesson.type : '') + teacher;
     }
     if (lpBody) {
-      lpBody.innerHTML = '<h3 class="lp-lesson-heading">' + lesson.title + '</h3>' + (lesson.content || '');
+      let html = '<h3 class="lp-lesson-heading">' + lesson.title + '</h3>';
+      if (lesson.objective) {
+        html += '<div class="lp-objective"><h4>Objective</h4><p>' + lesson.objective + '</p></div>';
+      }
+      html += lesson.content || '';
+      lpBody.innerHTML = html;
     }
 
-    if (lpTryIt) {
-      if (lesson.tryIt) {
-        lpTryIt.style.display = 'block';
-        lpTryIt.innerHTML = '<h4>Try it</h4><p>' + lesson.tryIt + '</p>';
-      } else {
-        lpTryIt.style.display = 'none';
-        lpTryIt.innerHTML = '';
-      }
-    }
+    mountCodeEditor(lesson);
+    mountExercise(lesson);
 
     if (lpSources) {
       const tools = lesson.tools || [];
@@ -246,11 +363,12 @@
       }
     }
 
+    const questions = quizQuestions(lesson);
     if (lpQuiz) {
-      if (lesson.quiz && lesson.quiz.questions && lesson.quiz.questions.length) {
+      if (questions.length) {
         lpQuiz.style.display = 'block';
         let qhtml = '<h4>Quick quiz</h4>';
-        lesson.quiz.questions.forEach(function (q, qi) {
+        questions.forEach(function (q, qi) {
           qhtml += '<div class="lp-quiz-q" data-q="' + qi + '"><b>' + (qi + 1) + '. ' + q.q + '</b>';
           (q.options || []).forEach(function (opt, oi) {
             qhtml += '<label class="lp-quiz-opt"><input type="radio" name="lpq' + qi + '" value="' + oi + '"> ' + opt + '</label>';
@@ -263,11 +381,11 @@
         if (submit) {
           submit.onclick = function () {
             let correct = 0;
-            lesson.quiz.questions.forEach(function (q, qi) {
+            questions.forEach(function (q, qi) {
               const picked = lpQuiz.querySelector('input[name="lpq' + qi + '"]:checked');
               if (picked && Number(picked.value) === q.correct) correct++;
             });
-            const total = lesson.quiz.questions.length;
+            const total = questions.length;
             const cp = courseProgress(player.courseId);
             cp.quizScores[lesson.id] = { correct: correct, total: total, at: new Date().toISOString() };
             saveProgress(player.courseId);
@@ -277,6 +395,27 @@
       } else {
         lpQuiz.style.display = 'none';
         lpQuiz.innerHTML = '';
+      }
+    }
+
+    // Downloads panel — show PDFs for html-css-full course
+    var lpDownloads = $('lpDownloads');
+    if (lpDownloads) {
+      if (course.id === 'html-css-full') {
+        var lessonNum = String(idx + 1).padStart(2, '0');
+        var lessonSlug = lesson.id + '-' + lesson.title.replace(/[^a-zA-Z0-9]+/g, '-');
+        var lessonPdf = 'downloads/Lesson-' + lessonNum + '-' + lessonSlug + '.pdf';
+        var dlHtml = '<h4>&#8595; Downloads</h4>'
+          + '<div class="lp-downloads">'
+          + '<a class="lp-dl-btn" href="' + lessonPdf + '" download>&#128196; This lesson PDF</a>'
+          + '<a class="lp-dl-btn" href="downloads/HTML-CSS-Worksheets.pdf" download>&#9999; Worksheets (all lessons)</a>'
+          + '<a class="lp-dl-btn" href="downloads/HTML-CSS-Cheat-Sheet.pdf" download>&#128203; HTML &amp; CSS cheat sheet</a>'
+          + '</div>';
+        lpDownloads.style.display = 'block';
+        lpDownloads.innerHTML = dlHtml;
+      } else {
+        lpDownloads.style.display = 'none';
+        lpDownloads.innerHTML = '';
       }
     }
 
@@ -324,16 +463,15 @@
       return;
     }
     player.lessonIndex = index;
-    try {
-      global.location.hash = 'lesson/' + player.courseId + '/' + index;
-    } catch (e) { /* ignore */ }
-    renderPlayerLesson();
+    setLessonHash(player.courseId, course.lessons[index]);
+    renderLessonPlayer();
   }
 
   function openLessonPlayer(courseId, lessonIndex) {
     const course = getCourse(courseId);
     if (!course) {
-      toast('Course not found');
+      player.courseId = courseId;
+      renderLessonNotFound('Lesson not found');
       return;
     }
     const idx = typeof lessonIndex === 'number' ? lessonIndex : 0;
@@ -342,23 +480,29 @@
       if (typeof global.requestEnrolment === 'function') global.requestEnrolment(course.title);
       return;
     }
+    if (!isLearnPage()) {
+      const lesson = course.lessons[idx];
+      const lid = lesson && lesson.id ? lesson.id : idx;
+      global.location.href = 'learn.html#learn/' + courseId + '/' + lid;
+      return;
+    }
     player.courseId = courseId;
     player.lessonIndex = idx;
-    const modal = $('lessonPlayer');
-    if (modal) modal.classList.add('open');
-    if (global.document && global.document.body) global.document.body.style.overflow = 'hidden';
-    renderPlayerLesson();
-    try {
-      global.location.hash = 'lesson/' + courseId + '/' + idx;
-    } catch (e) { /* ignore */ }
+    renderLessonPlayer();
+    setLessonHash(courseId, course.lessons[idx]);
   }
 
   function closeLessonPlayer() {
+    if (isLearnPage()) {
+      global.location.href = 'index.html#learn-hub';
+      return;
+    }
     const modal = $('lessonPlayer');
     if (modal) modal.classList.remove('open');
     if (global.document && global.document.body) global.document.body.style.overflow = '';
     player.courseId = null;
-    if (global.location && global.location.hash && global.location.hash.indexOf('lesson/') === 1) {
+    const hash = (global.location && global.location.hash) || '';
+    if (hash.indexOf('lesson/') === 1 || hash.indexOf('learn/') === 1) {
       try {
         global.history.replaceState(null, '', global.location.pathname + global.location.search + '#learn-hub');
       } catch (e) { /* ignore */ }
@@ -453,7 +597,7 @@
         const done = cp.completed.indexOf(lesson.id) >= 0;
         const access = canAccessLesson(focus.id, i);
         const action = done
-          ? '✅'
+          ? '✓'
           : (access
             ? '<button type="button" class="btn secondary" data-lesson-row="' + focus.id + '" data-lesson-idx="' + i + '">Open</button>'
             : '🔒');
@@ -467,7 +611,7 @@
     }
 
     if (typeof global.renderStudent === 'function') {
-      /* index may still call renderStudent wrapper; we own dashboard when KA_LEARN is active */
+      try { global.renderStudent(); } catch (e) { /* optional hook */ }
     }
     checkCertificate();
   }
@@ -494,11 +638,41 @@
 
   function handleHashRoute() {
     const hash = (global.location && global.location.hash) || '';
-    const m = hash.match(/^#lesson\/([^/]+)\/(\d+)$/);
-    if (m) {
-      openLessonPlayer(m[1], Number(m[2]));
+
+    const learnMatch = hash.match(/^#learn\/([^/]+)\/([^/]+)$/);
+    if (learnMatch) {
+      const courseId = learnMatch[1];
+      const course = getCourse(courseId);
+      if (!course) {
+        renderLessonNotFound('Lesson not found');
+        return;
+      }
+      const idx = lessonIndexById(course, learnMatch[2]);
+      if (idx < 0) {
+        renderLessonNotFound('Lesson not found');
+        return;
+      }
+      player.courseId = courseId;
+      player.lessonIndex = idx;
+      if (!isLearnPage()) {
+        global.location.href = 'learn.html' + (global.location.hash || '');
+        return;
+      }
+      if (canAccessLesson(courseId, idx)) {
+        renderLessonPlayer();
+      } else {
+        toast('Enrol to unlock this lesson');
+        renderLessonPlayer();
+      }
       return;
     }
+
+    const legacyMatch = hash.match(/^#lesson\/([^/]+)\/(\d+)$/);
+    if (legacyMatch) {
+      openLessonPlayer(legacyMatch[1], Number(legacyMatch[2]));
+      return;
+    }
+
     if (hash === '#learn-hub' || hash === '#ai-tools') {
       renderLearnHub();
     }
@@ -513,7 +687,7 @@
     if (cp.completed.indexOf(lesson.id) < 0) cp.completed.push(lesson.id);
     saveProgress(player.courseId);
     toast('Lesson marked complete');
-    renderPlayerLesson();
+    renderLessonPlayer();
     renderLearnHub();
     if (player.courseId === CERT_COURSE_ID) checkCertificate();
   }
@@ -532,6 +706,11 @@
     handleHashRoute();
   }
 
+  function openLearnPage(courseId, lessonId) {
+    const url = 'learn.html#learn/' + courseId + '/' + (lessonId || '');
+    global.location.href = url;
+  }
+
   global.KA_LEARN = {
     init: init,
     loadProgress: loadProgress,
@@ -541,7 +720,9 @@
     renderDashboardCourses: renderDashboardCourses,
     checkCertificate: checkCertificate,
     openFreeLessonLegacy: openFreeLessonLegacy,
+    openLearnPage: openLearnPage,
     handleHashRoute: handleHashRoute,
+    renderLessonPlayer: renderLessonPlayer,
     percentComplete: percentComplete,
     completedCount: completedCount,
     canAccessLesson: canAccessLesson,

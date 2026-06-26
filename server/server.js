@@ -1337,6 +1337,9 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/academy' || url.pathname === '/academy/') {
       return serveFile(res, path.join(ROOT, 'site', 'academy', 'index.html'));
     }
+    if (url.pathname === '/academy/learn' || url.pathname.startsWith('/academy/learn/')) {
+      return serveFile(res, path.join(ROOT, 'site', 'academy', 'learn.html'));
+    }
 
     // Static files (css, js, marketing pages). Try root first.
     let target = safeJoin(ROOT, url.pathname);
