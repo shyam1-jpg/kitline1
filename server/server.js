@@ -40,7 +40,7 @@ const recipeAiAccess = require('./recipe-ai-access');
 const tenants = require('./tenants');
 const academyStore = require('./academy/store');
 const academyHandlers = require('./academy/handlers');
-const aiConnector = require('./ai-connector');
+const vedantaOrdering = require('./vedanta-ordering');
 
 function ensureBreachAlerts(state) {
   if (!state || !Array.isArray(state.sensors)) return [];
@@ -503,7 +503,7 @@ function serveFile(res, filePath) {
     const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
     if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
       headers['Cache-Control'] = 'public, max-age=86400';
-    } else if ((filePath.includes('vedanta-rota') || filePath.includes('academy')) && (ext === '.html' || ext === '.js')) {
+    } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy')) && (ext === '.html' || ext === '.js')) {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     }
     const buf = fs.readFileSync(filePath);
@@ -532,6 +532,12 @@ async function handleApi(req, res, url) {
   const apiSend = (code, obj, extra) => send(res, code, obj, extra, req);
   const ip = security.clientIp(req);
   const route = url.pathname.replace(/^\/api/, '');
+
+  if (url.pathname.startsWith('/api/vedanta-ordering')) {
+    vedantaOrdering.handleApi(req, res, url);
+    return;
+  }
+
   const body = (req.method === 'POST' || req.method === 'PUT') ? await readBody(req) : {};
 
   // GET /api/vedanta/reports/status — where data is stored + email schedule
@@ -1331,6 +1337,11 @@ const server = http.createServer(async (req, res) => {
     // Vedanta Staff Rota (static site under site/vedanta-rota/)
     if (url.pathname === '/vedanta-rota' || url.pathname === '/vedanta-rota/') {
       return serveFile(res, path.join(ROOT, 'site', 'vedanta-rota', 'index.html'));
+    }
+
+    // Vedanta Ordering System (PWA under site/vedanta-ordering/)
+    if (url.pathname === '/vedanta-ordering' || url.pathname === '/vedanta-ordering/') {
+      return serveFile(res, path.join(ROOT, 'site', 'vedanta-ordering', 'index.html'));
     }
 
     // Kitline Academy (static site under site/academy/)

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vedanta Ordering System</title>
+  <link rel="icon" href="/vedanta-ordering/static/vedanta-logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="/vedanta-ordering/static/vedanta-logo.png">
+  <link rel="manifest" href="/vedanta-ordering/manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  <link rel="stylesheet" href="/vedanta-ordering/static/styles.css">
+</head>
+<body>
+  <!-- Login screen -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="brand login-brand">
+        <img class="brand-logo" src="/vedanta-ordering/static/vedanta-logo.png" alt="The Vedanta" width="72" height="72">
+        <div>
+          <h1>Vedanta Ordering System</h1>
+          <p class="subtitle">Kitchen &middot; Restaurant &middot; Front of House</p>
+        </div>
+      </div>
+      <form id="loginForm" class="login-form">
+        <div class="form-row">
+          <label for="loginId">Login ID</label>
+          <input type="text" id="loginId" autocomplete="username" placeholder="e.g. kitchen" required>
+        </div>
+        <div class="form-row">
+          <label for="loginPin">PIN</label>
+          <input type="password" id="loginPin" autocomplete="current-password" placeholder="4-digit PIN" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        <p id="loginError" class="status-msg err hidden"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main app (hidden until logged in) -->
+  <div id="appShell" class="hidden">
+    <header class="top-bar">
+      <div class="brand">
+        <img class="brand-logo" src="/vedanta-ordering/static/vedanta-logo.png" alt="The Vedanta" width="56" height="56">
+        <div>
+          <h1>Vedanta Ordering System</h1>
+          <p class="subtitle">Stock check &rarr; Order request &rarr; Place with supplier</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span id="userInfo" class="user-info"></span>
+        <button type="button" id="logoutBtn" class="btn btn-ghost">Logout</button>
+        <button type="button" id="alarmToggle" class="btn btn-ghost" title="Toggle order alarm">
+          &#128276; Alarm on
+        </button>
+        <span id="pendingBadge" class="pending-badge hidden">0 new</span>
+      </div>
+    </header>
+
+    <nav class="phase-nav">
+      <button type="button" class="phase-tab active" data-phase="1">
+        <span class="phase-num">1</span>
+        <span class="phase-label">Stock Count</span>
+        <span class="phase-desc">Photo + count before ordering</span>
+      </button>
+      <button type="button" class="phase-tab" data-phase="2">
+        <span class="phase-num">2</span>
+        <span class="phase-label">Create Order</span>
+        <span class="phase-desc">Build supplier order</span>
+      </button>
+      <button type="button" class="phase-tab" data-phase="3">
+        <span class="phase-num">3</span>
+        <span class="phase-label">Place Order</span>
+        <span class="phase-desc">Receive alert &amp; send</span>
+      </button>
+      <button type="button" class="phase-tab admin-tab hidden" data-phase="admin">
+        <span class="phase-num">A</span>
+        <span class="phase-label">Admin</span>
+        <span class="phase-desc">Manage department logins</span>
+      </button>
+    </nav>
+
+    <main>
+      <!-- PHASE 1 -->
+      <section id="phase1" class="phase-panel active">
+        <div class="panel-header">
+          <h2>Phase 1 &mdash; Stock Count</h2>
+          <p>Take a photo and count every item <strong>before</strong> any order can be placed.</p>
+        </div>
+
+        <div class="card">
+          <h3>Start stock check</h3>
+          <p class="hint">Logged in as <strong id="stockUserLabel"></strong></p>
+          <div class="form-row">
+            <label>Stock photo (required)</label>
+            <div class="photo-area">
+              <input type="file" id="stockPhoto" accept="image/*" capture="environment">
+              <div id="photoPreview" class="photo-preview hidden">
+                <img id="photoPreviewImg" alt="Stock photo preview">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Notes (optional)</label>
+            <textarea id="stockNotes" rows="2" placeholder="Walk-in fridge, dry store, etc."></textarea>
+          </div>
+          <button type="button" id="startStockCheck" class="btn btn-primary">Start stock check</button>
+          <p id="stockCheckStatus" class="status-msg"></p>
+        </div>
+
+        <div id="stockCountSection" class="card hidden">
+          <h3>Count items <span id="activeCheckId" class="tag"></span></h3>
+          <p class="hint">Enter the quantity you have on hand for each product.</p>
+          <div id="stockCountList" class="stock-count-list"></div>
+          <button type="button" id="completeStockCheck" class="btn btn-success">Complete stock check</button>
+        </div>
+
+        <div class="card">
+          <h3>Recent stock checks</h3>
+          <div id="recentStockChecks" class="history-list"></div>
+        </div>
+      </section>
+
+      <!-- PHASE 2 -->
+      <section id="phase2" class="phase-panel">
+        <div class="panel-header">
+          <h2>Phase 2 &mdash; Create Order</h2>
+          <p>Select supplier and items. Orders are blocked until Phase 1 stock check is complete.</p>
+        </div>
+
+        <div id="noStockCheckWarning" class="alert alert-warning">
+          No completed stock check yet. Go to Phase 1 first &mdash; take a photo and count stock.
+        </div>
+
+        <div id="orderFormSection" class="card hidden">
+          <p class="hint">Ordering as <strong id="orderUserLabel"></strong></p>
+          <div class="form-row">
+            <label>Supplier</label>
+            <select id="orderSupplier">
+              <option value="">Choose supplier&hellip;</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Using stock check</label>
+            <select id="orderStockCheck"></select>
+          </div>
+          <div class="form-row">
+            <label>Notes (optional)</label>
+            <textarea id="orderNotes" rows="2"></textarea>
+          </div>
+
+          <h3>Order items</h3>
+          <p class="hint">Only Vedanta-compliant products with a stock count can be ordered.</p>
+          <div id="orderItemsList" class="order-items-list"></div>
+
+          <button type="button" id="submitOrder" class="btn btn-primary">Send order to Phase 3</button>
+          <p id="orderStatus" class="status-msg"></p>
+        </div>
+      </section>
+
+      <!-- PHASE 3 -->
+      <section id="phase3" class="phase-panel">
+        <div class="panel-header">
+          <h2>Phase 3 &mdash; Place Order</h2>
+          <p>Incoming orders appear here with an alarm. Take the order and send to supplier.</p>
+        </div>
+
+        <div id="ordersQueue" class="orders-queue"></div>
+        <p id="noOrdersMsg" class="empty-state">No pending orders. Waiting for Phase 2&hellip;</p>
+      </section>
+
+      <!-- ADMIN -->
+      <section id="phaseadmin" class="phase-panel">
+        <div class="panel-header">
+          <h2>Admin &mdash; User Management</h2>
+          <p>Create login IDs for each department. PINs are stored securely.</p>
+        </div>
+
+        <div class="card admin-panel">
+          <h3>Create department login</h3>
+          <div class="admin-form-grid">
+            <div class="form-row">
+              <label>Login ID</label>
+              <input type="text" id="newLoginId" placeholder="e.g. housekeeping">
+            </div>
+            <div class="form-row">
+              <label>PIN</label>
+              <input type="password" id="newPin" placeholder="min 4 digits">
+            </div>
+            <div class="form-row">
+              <label>Display name</label>
+              <input type="text" id="newDisplayName" placeholder="e.g. Housekeeping Lead">
+            </div>
+            <div class="form-row">
+              <label>Department</label>
+              <select id="newDepartment">
+                <option value="Kitchen">Kitchen</option>
+                <option value="Restaurant">Restaurant</option>
+                <option value="Front of House">Front of House</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Role</label>
+              <select id="newRole">
+                <option value="department">Department</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" id="createUserBtn" class="btn btn-primary">Create user</button>
+          <p id="adminStatus" class="status-msg"></p>
+        </div>
+
+        <div class="card admin-panel">
+          <h3>Existing users</h3>
+          <div id="usersList" class="users-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="orderModal" class="modal hidden">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="closeModal">&times;</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <audio id="orderAlarm" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGWi77+efTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606euoVRQKRp/g8r5sIQUrgc7y2Yk2CBlou+/nn00QDFCn4/C2YxwGOJHX8sx5LAUkd8fw3ZBAC" type="audio/wav">
+  </audio>
+
+  <script src="/vedanta-ordering/static/app.js"></script>
+</body>
+</html>
