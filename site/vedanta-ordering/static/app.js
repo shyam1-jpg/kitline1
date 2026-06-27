@@ -97,7 +97,7 @@ async function loadEthos() {
 
 async function checkAuth() {
   try {
-    const me = await api("/api/auth/me");
+    const me = await api("/auth/me");
     if (me.authenticated) {
       currentUser = me;
       showApp();
@@ -118,7 +118,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const login_id = document.getElementById("loginId").value.trim();
   const pin = document.getElementById("loginPin").value.trim();
   try {
-    currentUser = await api("/api/auth/login", {
+    currentUser = await api("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login_id, pin }),
@@ -132,7 +132,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   try {
-    await api("/api/auth/logout", { method: "POST" });
+    await api("/auth/logout", { method: "POST" });
   } catch {
     /* ignore */
   }
@@ -186,7 +186,7 @@ document.getElementById("startStockCheck").addEventListener("click", async () =>
   if (photo) form.append("photo", photo);
 
   try {
-    const result = await api("/api/stock-checks", { method: "POST", body: form });
+    const result = await api("/stock-checks", { method: "POST", body: form });
     activeStockCheckId = result.id;
     document.getElementById("activeCheckId").textContent = "#" + result.id;
     document.getElementById("stockCountSection").classList.remove("hidden");
@@ -239,7 +239,7 @@ async function saveStockItem(input) {
   if (!activeStockCheckId || input.value === "") return;
   const productId = Number(input.dataset.productId);
   try {
-    await api(`/api/stock-checks/${activeStockCheckId}/items`, {
+    await api(`/stock-checks/${activeStockCheckId}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ product_id: productId, quantity_counted: parseFloat(input.value) }),
@@ -254,7 +254,7 @@ document.getElementById("completeStockCheck").addEventListener("click", async ()
   const statusEl = document.getElementById("stockCheckStatus");
   if (!activeStockCheckId) return;
   try {
-    await api(`/api/stock-checks/${activeStockCheckId}/complete`, { method: "POST" });
+    await api(`/stock-checks/${activeStockCheckId}/complete`, { method: "POST" });
     setStatus(statusEl, "Stock check complete — Phase 2 can now place orders", true);
     activeStockCheckId = null;
     document.getElementById("stockCountSection").classList.add("hidden");
@@ -266,7 +266,7 @@ document.getElementById("completeStockCheck").addEventListener("click", async ()
 });
 
 async function loadStockChecks() {
-  stockChecks = await api("/api/stock-checks");
+  stockChecks = await api("/stock-checks");
   const completed = stockChecks.filter((c) => c.completed);
 
   const recent = document.getElementById("recentStockChecks");
@@ -301,11 +301,11 @@ async function loadStockChecks() {
 }
 
 async function loadProducts() {
-  products = await api("/api/products");
+  products = await api("/products");
 }
 
 async function loadSuppliers() {
-  suppliers = await api("/api/suppliers");
+  suppliers = await api("/suppliers");
   const select = document.getElementById("orderSupplier");
   select.innerHTML =
     '<option value="">Choose supplier…</option>' +
@@ -333,7 +333,7 @@ async function renderOrderItems() {
 
   let checkItems = {};
   try {
-    const check = await api(`/api/stock-checks/${checkId}`);
+    const check = await api(`/stock-checks/${checkId}`);
     check.items.forEach((i) => {
       checkItems[i.product_id] = i.quantity_counted;
     });
@@ -396,7 +396,7 @@ document.getElementById("submitOrder").addEventListener("click", async () => {
   }
 
   try {
-    const result = await api("/api/orders", {
+    const result = await api("/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ supplier_id: supplierId, stock_check_id: stockCheckId, notes, items }),
@@ -410,8 +410,8 @@ document.getElementById("submitOrder").addEventListener("click", async () => {
 });
 
 async function loadOrders() {
-  const orders = await api("/api/orders?status=pending");
-  const acked = await api("/api/orders?status=acknowledged");
+  const orders = await api("/orders?status=pending");
+  const acked = await api("/orders?status=acknowledged");
   const all = [...orders, ...acked].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const queue = document.getElementById("ordersQueue");
@@ -427,7 +427,7 @@ async function loadOrders() {
   queue.innerHTML = "";
 
   for (const order of all) {
-    const detail = await api(`/api/orders/${order.id}`);
+    const detail = await api(`/orders/${order.id}`);
     const card = document.createElement("div");
     card.className = "order-card" + (order.status === "acknowledged" ? " acknowledged" : "");
     card.innerHTML = `
@@ -464,7 +464,7 @@ async function loadOrders() {
 
 async function acknowledgeOrder(id) {
   try {
-    await api(`/api/orders/${id}/acknowledge`, { method: "POST" });
+    await api(`/orders/${id}/acknowledge`, { method: "POST" });
     loadOrders();
   } catch (err) {
     alert(err.message);
@@ -474,7 +474,7 @@ async function acknowledgeOrder(id) {
 async function placeOrder(id) {
   if (!confirm("Mark this order as placed with the supplier?")) return;
   try {
-    await api(`/api/orders/${id}/place`, { method: "POST" });
+    await api(`/orders/${id}/place`, { method: "POST" });
     loadOrders();
   } catch (err) {
     alert(err.message);
@@ -484,7 +484,7 @@ async function placeOrder(id) {
 async function pollPendingOrders() {
   if (!currentUser) return;
   try {
-    const { count } = await api("/api/orders/pending-count");
+    const { count } = await api("/orders/pending-count");
     const badge = document.getElementById("pendingBadge");
     if (count > 0) {
       badge.textContent = count + " new";
@@ -502,7 +502,7 @@ async function pollPendingOrders() {
 
 async function loadAdminUsers() {
   if (currentUser?.role !== "admin") return;
-  const users = await api("/api/admin/users");
+  const users = await api("/admin/users");
   const list = document.getElementById("usersList");
   list.innerHTML = users
     .map(
@@ -525,7 +525,7 @@ async function loadAdminUsers() {
       const pin = prompt("Enter new PIN (min 4 characters):");
       if (!pin) return;
       try {
-        await api(`/api/admin/users/${btn.dataset.id}`, {
+        await api(`/admin/users/${btn.dataset.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pin }),
@@ -541,7 +541,7 @@ async function loadAdminUsers() {
     btn.addEventListener("click", async () => {
       const active = btn.dataset.active !== "1";
       try {
-        await api(`/api/admin/users/${btn.dataset.id}`, {
+        await api(`/admin/users/${btn.dataset.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ active }),
@@ -564,7 +564,7 @@ document.getElementById("createUserBtn").addEventListener("click", async () => {
     role: document.getElementById("newRole").value,
   };
   try {
-    await api("/api/admin/users", {
+    await api("/admin/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
