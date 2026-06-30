@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-30-owner-login';
+const APP_BUILD = '2026-06-30-workspace-fix';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -123,6 +123,7 @@ function bootstrapProductionDb() {
     emailVerified: true,
     createdAt: (db.users[ownerEmail] && db.users[ownerEmail].createdAt) || new Date().toISOString(),
   };
+  ensureOwnerWorkspace(db, ownerEmail);
   security.clearLoginFailures(db.users[ownerEmail]);
   writeDb(db);
   console.log('  Owner login ready: ' + ownerEmail + ' (password from OWNER_PASSWORD env)');
@@ -136,6 +137,18 @@ function bootstrapDemoKitchen() {
   const demo = tenants.getDemoState(db);
   const n = demo && Array.isArray(demo.recipes) ? demo.recipes.length : 0;
   if (n >= 100) console.log('  Demo tenant ready — ' + n + ' recipes (owner login only)');
+}
+
+function ensureOwnerWorkspace(db, email) {
+  tenants.prepareDb(db);
+  const em = (email || '').toLowerCase().trim();
+  const user = db.users[em];
+  if (!user) return false;
+  if (tenants.isOwner(em)) {
+    if (!user.tenantId) user.tenantId = tenants.DEMO_TENANT_ID;
+    tenants.bootstrapDemoKitchen(db);
+  }
+  return !!tenants.getStateForUser(db, em);
 }
 function newToken() { return crypto.randomBytes(32).toString('hex'); }
 
@@ -545,6 +558,7 @@ function demoOwnerLoginHtml(db) {
       createdAt: new Date().toISOString(),
     };
   }
+  ensureOwnerWorkspace(db, email);
   billing.ensureTrial(db.users[email]);
   billing.syncOrgAccess(db, email);
   const token = security.issueToken(db, email);
@@ -973,6 +987,7 @@ async function handleApi(req, res, url) {
     security.clearLoginFailures(user);
     billing.ensureTrial(user);
     billing.syncOrgAccess(db, email);
+    if (DEMO_MODE && tenants.isOwner(email)) ensureOwnerWorkspace(db, email);
     const token = security.issueToken(db, email);
     security.audit(db, 'login_success', { ip, email });
     writeDb(db);
@@ -1066,6 +1081,9 @@ async function handleApi(req, res, url) {
 
   // Per-company workspace (tenant-scoped; demo tenant is owner-only)
   if (route === '/state' && req.method === 'GET') {
+    if (!tenants.getStateForUser(db, me.email) && tenants.isOwner(me.email)) {
+      ensureOwnerWorkspace(db, me.email);
+    }
     const state = tenants.getStateForUser(db, me.email);
     if (!state) return apiSend(409, { error: 'No workspace for this account — contact support.' });
     if (tenants.ensureStarterPack(state, db.users[me.email], me.email)) writeDb(db);

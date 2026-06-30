@@ -237,7 +237,7 @@
     },
 
     authed() {
-      if (S.remote && window.Api) return !!window.Api.token();
+      if (window.Api && window.Api.token()) return true;
       return !!S.session();
     },
 
@@ -300,37 +300,43 @@
         }
       }
 
-      if (S.remote && window.Api.token()) {
-        const authPath = this.authHashPath();
-        if (authPath === 'register' || authPath === 'forgot-password' || authPath.startsWith('reset-password')) {
+      if (window.Api) {
+        await this.ensureRemote();
+        if (window.Api.token()) {
+          const authPath = this.authHashPath();
+          if (authPath === 'register' || authPath === 'forgot-password' || authPath.startsWith('reset-password')) {
+            this.renderAuthScreen();
+            return;
+          }
+          try {
+            const session = await window.Api.session();
+            if (session && session.access === false) {
+              window.Api.setToken(null);
+              this.renderTrialExpired();
+              return;
+            }
+            this.trial = session && session.trial;
+            if (session && session.user && session.user.lang && window.I18n) {
+              window.I18n.setLang(session.user.lang);
+            }
+            await S.hydrateFromServer();
+            this.applyInviteSite();
+            await this.maybeAiOAuth();
+            this.render();
+            return;
+          } catch (e) {
+            window.Api.setToken(null);
+            this.renderAuthScreen();
+            return;
+          }
+        }
+        if (S.remote) {
           this.renderAuthScreen();
           return;
         }
-        try {
-          const session = await window.Api.session();
-          if (session && session.access === false) {
-            window.Api.setToken(null);
-            this.renderTrialExpired();
-            return;
-          }
-          this.trial = session && session.trial;
-          if (session && session.user && session.user.lang && window.I18n) {
-            window.I18n.setLang(session.user.lang);
-          }
-          await S.hydrateFromServer();
-          this.applyInviteSite();
-          await this.maybeAiOAuth();
-          this.render();
-        } catch (e) {
-          window.Api.setToken(null);
-          this.renderAuthScreen();
-        }
-      } else if (S.remote) {
-        this.renderAuthScreen();
-      } else {
-        // offline / file:// mode
-        if (!S.session()) this.renderLogin(); else this.render();
       }
+      // offline / file:// mode
+      if (!S.session()) this.renderLogin(); else this.render();
       } finally {
         clearBoot();
       }

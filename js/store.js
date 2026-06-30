@@ -578,7 +578,7 @@
         } else {
           await window.Api.putState(this.db); // upload local seed on first run
         }
-      } catch (e) { this.remote = false; }
+      } catch (e) { /* keep remote — token may still be valid */ }
     },
     // Pull only the live IoT data (sensors + alerts) from the server, without
     // disturbing local UI state. Returns true if anything changed.
