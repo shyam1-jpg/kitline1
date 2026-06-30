@@ -325,7 +325,9 @@
             this.render();
             return;
           } catch (e) {
-            window.Api.setToken(null);
+            const authFail = e.status === 401 || (e.data && e.data.code === 'session_expired');
+            if (authFail) window.Api.setToken(null);
+            else console.error('Kiteline boot error:', e);
             this.renderAuthScreen();
             return;
           }

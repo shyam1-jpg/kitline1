@@ -66,9 +66,9 @@
   }
 
   const SENSOR_TYPES = [
-    { v: 'fridge', label: 'Fridge / chilled', target: 4, min: 1, max: 5, standard: '0?5ùC chilled (EC 852/2004)' },
-    { v: 'freezer', label: 'Freezer', target: -18, min: -22, max: -16, standard: '?-18ùC frozen storage' },
-    { v: 'hot', label: 'Hot hold', target: 70, min: 63, max: 90, standard: '?63ùC hot hold (UK)' },
+    { v: 'fridge', label: 'Fridge / chilled', target: 4, min: 1, max: 5, standard: '0?5?C chilled (EC 852/2004)' },
+    { v: 'freezer', label: 'Freezer', target: -18, min: -22, max: -16, standard: '?-18?C frozen storage' },
+    { v: 'hot', label: 'Hot hold', target: 70, min: 63, max: 90, standard: '?63?C hot hold (UK)' },
   ];
   function sensorTypeDefaults(type) { return SENSOR_TYPES.find(t => t.v === type) || SENSOR_TYPES[0]; }
 
@@ -91,9 +91,9 @@
           <div><label class="label">Probe serial / label</label><input id="sserial" class="input" placeholder="e.g. KL-SN011-2025" value="${escapeHtml(s.serial || '')}"></div>
         </div>
         <div class="grid grid-cols-3 gap-3">
-          <div><label class="label">Target ùC</label><input id="sg" type="number" step="0.1" class="input" value="${s.target != null ? s.target : 4}"></div>
-          <div><label class="label">Min ùC</label><input id="smin" type="number" step="0.1" class="input" value="${s.min != null ? s.min : 1}"></div>
-          <div><label class="label">Max ùC</label><input id="smax" type="number" step="0.1" class="input" value="${s.max != null ? s.max : 5}"></div>
+          <div><label class="label">Target ?C</label><input id="sg" type="number" step="0.1" class="input" value="${s.target != null ? s.target : 4}"></div>
+          <div><label class="label">Min ?C</label><input id="smin" type="number" step="0.1" class="input" value="${s.min != null ? s.min : 1}"></div>
+          <div><label class="label">Max ?C</label><input id="smax" type="number" step="0.1" class="input" value="${s.max != null ? s.max : 5}"></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="label">Gateway ID</label><input id="sgw" class="input" placeholder="e.g. GW-GROVE" value="${escapeHtml(s.gateway || '')}"></div>
@@ -201,10 +201,10 @@
       const out = [];
       sensors.forEach(s => {
         const st = sensorStatus(s);
-        if (st === 'breach') out.push({ icon:'alert', tone:'red', text:`<b>${escapeHtml(s.name)}</b> is out of safe range at ${s.temp.toFixed(1)}ùC ? act now to prevent stock loss.` });
+        if (st === 'breach') out.push({ icon:'alert', tone:'red', text:`<b>${escapeHtml(s.name)}</b> is out of safe range at ${s.temp.toFixed(1)}?C ? act now to prevent stock loss.` });
         else if (st === 'warn') out.push({ icon:'temp', tone:'amber', text:`<b>${escapeHtml(s.name)}</b> is drifting toward its limit. Check the door seal and load.` });
         const trend = s.history.slice(-6);
-        if (trend.length >= 6 && trend[5] - trend[0] > 1.2 && st !== 'breach') out.push({ icon:'temp', tone:'amber', text:`Predicted risk: <b>${escapeHtml(s.name)}</b> is warming ${(trend[5]-trend[0]).toFixed(1)}ùC/30min ? likely to breach within the hour.` });
+        if (trend.length >= 6 && trend[5] - trend[0] > 1.2 && st !== 'breach') out.push({ icon:'temp', tone:'amber', text:`Predicted risk: <b>${escapeHtml(s.name)}</b> is warming ${(trend[5]-trend[0]).toFixed(1)}?C/30min ? likely to breach within the hour.` });
         if (s.battery < 25) out.push({ icon:'battery', tone:'amber', text:`<b>${escapeHtml(s.name)}</b> sensor battery low (${s.battery}%) ? schedule a replacement.` });
       });
       const wk = S.db.waste.filter(w=>w.site===site);
@@ -286,7 +286,7 @@
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-9 rounded-lg bg-ink-100 flex items-center justify-center text-ink-500">${icon('temp','w-4 h-4')}</div>
                   <div><div class="font-semibold text-sm">${s.name}</div>
-                  <div class="text-xs text-ink-400 capitalize">${s.type} ù target ${s.target}ùC</div></div>
+                  <div class="text-xs text-ink-400 capitalize">${s.type} ? target ${s.target}?C</div></div>
                 </div>
                 <div class="flex items-center gap-4">
                   ${spark(s.history)}
@@ -305,7 +305,7 @@
                 <div class="flex gap-2.5 items-start">
                   <span class="pulse-dot mt-1.5" style="background:${a.severity==='critical'?'#dc2626':a.severity==='warning'?'#d97706':'#3b82f6'}"></span>
                   <div><div class="text-sm font-semibold">${a.title}</div>
-                  <div class="text-xs text-ink-400">${fmt.ago(a.at)} ù ${a.status}</div></div>
+                  <div class="text-xs text-ink-400">${fmt.ago(a.at)} ? ${a.status}</div></div>
                 </div>`).join('') || '<p class="text-sm text-ink-400">No alerts.</p>'}
             </div>
           </div>
@@ -348,7 +348,7 @@
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <div class="font-bold truncate">${escapeHtml(s.name)}</div>
-            <div class="text-xs text-ink-400 capitalize">${s.type} ù target ${s.target}ùC (${s.min}?${s.max})</div>
+            <div class="text-xs text-ink-400 capitalize">${s.type} ? target ${s.target}?C (${s.min}?${s.max})</div>
             ${meta ? `<div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-ink-500">${meta}</div>` : ''}
           </div>
           ${statusBadge(st)}
@@ -357,7 +357,7 @@
           <div class="text-4xl font-extrabold ${st==='breach'?'text-red-600':st==='warn'?'text-amber-600':'text-ink-900'}">${fmt.temp(s.temp)}</div>
           <div class="mb-1 flex-1">${spark(s.history)}</div>
         </div>
-        <div class="text-xs text-ink-500 bg-ink-50 rounded-lg px-3 py-2 mb-3">${escapeHtml(s.standard || '')}${s.notes ? ` ù <span class="text-ink-400">${escapeHtml(s.notes)}</span>` : ''}</div>
+        <div class="text-xs text-ink-500 bg-ink-50 rounded-lg px-3 py-2 mb-3">${escapeHtml(s.standard || '')}${s.notes ? ` ? <span class="text-ink-400">${escapeHtml(s.notes)}</span>` : ''}</div>
         <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-ink-500 mb-3">
           <span>Device ID: <b class="text-ink-700 font-mono">${escapeHtml(s.id)}</b></span>
           <span>Serial: <b class="text-ink-700">${escapeHtml(s.serial || '?')}</b></span>
@@ -365,7 +365,7 @@
           <span>Probe: ${escapeHtml(s.probe || '?')}</span>
           <span>Interval: ${escapeHtml(s.interval || '5 min')}</span>
           <span>Calibrated: ${s.calibrated || '?'}</span>
-          <span class="col-span-2 flex items-center gap-2">${icon('battery','w-3.5 h-3.5')} ${s.battery}% ù ${icon('signal','w-3.5 h-3.5')} ${s.signal}% ù ${fmt.ago(s.updated)}</span>
+          <span class="col-span-2 flex items-center gap-2">${icon('battery','w-3.5 h-3.5')} ${s.battery}% ? ${icon('signal','w-3.5 h-3.5')} ${s.signal}% ? ${fmt.ago(s.updated)}</span>
         </div>
         <div class="flex gap-2 mb-2"><button type="button" class="btn btn-ghost btn-sm" data-edit-sensor="${s.id}">${icon('settings','ico')} Edit / device ID</button></div>
         <div><canvas id="chart_${s.id}" height="90"></canvas></div>
@@ -377,14 +377,14 @@
         <td><div class="font-semibold">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${escapeHtml(s.location || '')}</div></td>
         <td class="capitalize text-ink-500">${s.type}</td>
         <td class="font-bold ${st==='breach'?'text-red-600':st==='warn'?'text-amber-600':''}">${fmt.temp(s.temp)}</td>
-        <td class="text-xs text-ink-400">${s.min}?${s.max}ùC</td>
+        <td class="text-xs text-ink-400">${s.min}?${s.max}?C</td>
         <td>${statusBadge(st)}</td>
         <td class="text-xs text-ink-400">${escapeHtml(s.serial || '?')}</td>
         <td class="text-xs text-ink-400">${fmt.ago(s.updated)}</td>
       </tr>`;
     }).join('');
     const html = `
-      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site ù 24/7 auto-logging ù EC 852/2004 compliant audit trail', `
+      ${sectionHeader('Temperature Monitoring','10 live LoRaWAN probes per site ? 24/7 auto-logging ? EC 852/2004 compliant audit trail', `
         <button class="btn btn-ghost btn-sm" data-act="manual">${icon('plus','ico')} Manual reading</button>
         <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add sensor</button>`)}
       <div class="grid sm:grid-cols-4 gap-4 mb-5">
@@ -456,7 +456,7 @@
         modal('Manual Temperature Reading', `
           <div class="space-y-3">
             <div><label class="label">Sensor / equipment</label><select id="ms" class="select">${opts}</select></div>
-            <div><label class="label">Temperature ùC</label><input id="mt" type="number" step="0.1" class="input" placeholder="4.0"></div>
+            <div><label class="label">Temperature ?C</label><input id="mt" type="number" step="0.1" class="input" placeholder="4.0"></div>
             <button class="btn btn-primary w-full" id="msave">Log reading</button>
           </div>`);
         document.getElementById('msave').onclick = () => {
@@ -532,9 +532,9 @@
               ${c.priority==='High'?'<span class="badge badge-amber">High priority</span>':''}
             </div>
             <div class="font-bold">${escapeHtml(c.title)}</div>
-            <div class="text-xs text-ink-400">${c.recurrence} ù due <b>${escapeHtml(c.due)}</b> ù ${escapeHtml(S.member(c.assignee).name)}</div>
+            <div class="text-xs text-ink-400">${c.recurrence} ? due <b>${escapeHtml(c.due)}</b> ? ${escapeHtml(S.member(c.assignee).name)}</div>
             ${c.lastCompleted?`<div class="text-xs text-ink-400 mt-0.5">Last completed ${fmt.ago(c.lastCompleted)}</div>`:''}
-            ${c.ccpRef?`<div class="text-xs text-ink-500 mt-1">Ref: <b>${escapeHtml(c.ccpRef)}</b>${ccpN?` ù ${ccpN} CCP task(s)`:''}</div>`:''}
+            ${c.ccpRef?`<div class="text-xs text-ink-500 mt-1">Ref: <b>${escapeHtml(c.ccpRef)}</b>${ccpN?` ? ${ccpN} CCP task(s)`:''}</div>`:''}
           </div>
           <span class="badge ${pct===100?'badge-green':'badge-amber'} flex-none">${pct}%</span>
         </div>
@@ -550,7 +550,7 @@
     };
     const cats = [...new Set(lists.map(c=>c.category||'Other'))];
     const html = `
-      ${sectionHeader('SafeServe ? HACCP & Checklists','Digital HACCP plans ù CCP monitoring ù opening/closing checks ù full EHO audit trail', `
+      ${sectionHeader('SafeServe ? HACCP & Checklists','Digital HACCP plans ? CCP monitoring ? opening/closing checks ? full EHO audit trail', `
         <button class="btn btn-primary btn-sm" data-act="newlist">${icon('plus','ico')} New checklist</button>`)}
       <div class="card card-pad mb-5 bg-gradient-to-r from-brand-50 to-white border-brand-100">
         <div class="flex flex-wrap items-start gap-6">
@@ -613,7 +613,7 @@
   /* ---------------- DIGITAL RECORDS ---------------- */
   function records() {
     const list = S.db.records.filter(r=>r.site===S.db.currentSite).sort((a,b)=>new Date(b.at)-new Date(a.at));
-    const detailStr = (r)=> Object.entries(r.detail).map(([k,v])=>`${k}: <b>${escapeHtml(v)}</b>`).join(' ù ');
+    const detailStr = (r)=> Object.entries(r.detail).map(([k,v])=>`${k}: <b>${escapeHtml(v)}</b>`).join(' ? ');
     const types = ['Delivery','Cooking','Cooling','Reheating','Sanitization'];
     const rows = list.map(r=>`<tr>
       <td><span class="badge badge-blue">${r.type}</span></td>
@@ -632,10 +632,10 @@
 
     function form(type) {
       const fields = {
-        Delivery:`<input id="f1" class="input" placeholder="Supplier"><input id="f2" class="input" placeholder="Item"><input id="f3" type="number" step="0.1" class="input" placeholder="Temp ùC">`,
-        Cooking:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp ùC"><input id="f3" type="number" class="input" placeholder="Target ùC" value="75">`,
-        Cooling:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Start ùC"><input id="f3" type="number" step="0.1" class="input" placeholder="End ùC">`,
-        Reheating:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp ùC"><input id="f3" type="number" class="input" placeholder="Target ùC" value="75">`,
+        Delivery:`<input id="f1" class="input" placeholder="Supplier"><input id="f2" class="input" placeholder="Item"><input id="f3" type="number" step="0.1" class="input" placeholder="Temp ?C">`,
+        Cooking:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp ?C"><input id="f3" type="number" class="input" placeholder="Target ?C" value="75">`,
+        Cooling:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Start ?C"><input id="f3" type="number" step="0.1" class="input" placeholder="End ?C">`,
+        Reheating:`<input id="f1" class="input" placeholder="Item"><input id="f2" type="number" step="0.1" class="input" placeholder="Core temp ?C"><input id="f3" type="number" class="input" placeholder="Target ?C" value="75">`,
         Sanitization:`<input id="f1" class="input" placeholder="Area"><input id="f2" class="input" placeholder="Chemical"><input id="f3" type="number" class="input" placeholder="Contact mins" value="5">`,
       }[type];
       modal('New '+type+' Record', `<div class="space-y-3">${fields}<button class="btn btn-primary w-full" id="rsave">Save record</button></div>`);
@@ -668,7 +668,7 @@
     const orgSensors = S.db.sensors;
     const orgBreaches = orgSensors.filter(x=>sensorStatus(x)==='breach').length;
     const orgTeam = S.db.team.length;
-    const typeIcon = (t) => ({ Hotel:'??', Restaurant:'???', Pub:'??', Cafù:'?', Kitchen:'??', 'Ghost Kitchen':'??', Education:'??', Seafood:'??', 'Food Court':'??', Steakhouse:'??' }[t] || '??');
+    const typeIcon = (t) => ({ Hotel:'H', Restaurant:'R', Pub:'P', Cafe:'C', Kitchen:'K', 'Ghost Kitchen':'G', Education:'E', Seafood:'S', 'Food Court':'F', Steakhouse:'T' }[t] || 'S');
     const cards = allSites.map(s=>{
       const sens=S.db.sensors.filter(x=>x.siteId===s.id);
       const breaches=sens.filter(x=>sensorStatus(x)==='breach').length;
@@ -697,8 +697,8 @@
           <div class="bg-ink-50 rounded-lg py-2"><div class="text-lg font-extrabold">${cls}</div><div class="text-ink-400">Checklists</div></div>
         </div>
         <div class="text-xs text-ink-500 space-y-1 mb-4">
-          <div><b>Manager:</b> ${escapeHtml(s.manager||'?')} ù ${escapeHtml(s.phone||'')}</div>
-          <div><b>Covers:</b> ${s.covers||'?'} ù <b>Opened:</b> ${s.opened||'?'} ù <b>Last EHO visit:</b> ${s.lastInspection||'?'}</div>
+          <div><b>Manager:</b> ${escapeHtml(s.manager||'?')} ? ${escapeHtml(s.phone||'')}</div>
+          <div><b>Covers:</b> ${s.covers||'?'} ? <b>Opened:</b> ${s.opened||'?'} ? <b>Last EHO visit:</b> ${s.lastInspection||'?'}</div>
           <div><b>Email:</b> ${escapeHtml(s.email||'?')}</div>
         </div>
         <button class="btn btn-ghost w-full btn-sm mb-2" data-staffqr="${s.id}">${icon('qr','ico')} Staff QR (scan to install)</button>
@@ -722,7 +722,7 @@
     }).join('');
     const types = [...new Set(allSites.map(s=>s.type||'Other'))];
     const html = `
-      ${sectionHeader('Multi-Site Management','All kitchens ù one command centre ù switch site from the top bar or here', `
+      ${sectionHeader('Multi-Site Management','All kitchens ? one command centre ? switch site from the top bar or here', `
         <button class="btn btn-primary btn-sm" data-act="addsite">${icon('plus','ico')} Add site</button>`)}
       <div class="grid sm:grid-cols-4 gap-4 mb-5">
         <div class="kpi"><div class="text-xs text-ink-500">Total sites</div><div class="v">${allSites.length}</div></div>
@@ -786,7 +786,7 @@
       <div class="card card-pad fade-in" id="report">
         <div class="flex items-center justify-between border-b border-ink-100 pb-4 mb-4">
           <div><div class="font-extrabold text-xl">Food Safety Compliance Report</div>
-          <div class="text-sm text-ink-400">${sName} ù Generated ${fmt.date(S.now())}</div></div>
+          <div class="text-sm text-ink-400">${sName} ? Generated ${fmt.date(S.now())}</div></div>
           <span class="badge ${compliance===100?'badge-green':'badge-amber'} text-sm">${compliance}% compliant</span>
         </div>
         <div class="grid sm:grid-cols-4 gap-4 mb-5">
@@ -797,7 +797,7 @@
         </div>
         <h4 class="font-bold mb-2">Critical Control Points</h4>
         <table class="table mb-5"><thead><tr><th>Equipment</th><th>Target</th><th>Current</th><th>Status</th></tr></thead><tbody>
-          ${sens.map(s=>`<tr><td>${escapeHtml(s.name)}</td><td>${s.target}ùC</td><td>${fmt.temp(s.temp)}</td><td>${statusBadge(sensorStatus(s))}</td></tr>`).join('')}
+          ${sens.map(s=>`<tr><td>${escapeHtml(s.name)}</td><td>${s.target}?C</td><td>${fmt.temp(s.temp)}</td><td>${statusBadge(sensorStatus(s))}</td></tr>`).join('')}
         </tbody></table>
         <h4 class="font-bold mb-2">Record Summary</h4>
         <table class="table"><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>
@@ -844,7 +844,7 @@
           <div class="flex-1 min-w-[200px]">
             <h3 class="font-bold mb-1">Add Kiteline on staff phones</h3>
             <p class="text-sm text-ink-500 mb-2">Staff scan this QR to open Kiteline, create an account, and add the app to their device. Post it in the kitchen or share at handover.</p>
-            <p class="text-xs text-ink-400 mb-3"><b>${escapeHtml(curSite.name)}</b> ù <span class="break-all">${escapeHtml(staffUrl)}</span></p>
+            <p class="text-xs text-ink-400 mb-3"><b>${escapeHtml(curSite.name)}</b> ? <span class="break-all">${escapeHtml(staffUrl)}</span></p>
             <div class="flex flex-wrap gap-2">
               <button class="btn btn-primary btn-sm" data-act="staffqr">${icon('qr','ico')} Full screen / print</button>
               <button class="btn btn-ghost btn-sm" data-act="copystaffurl">Copy link</button>
@@ -861,7 +861,7 @@
           <div class="space-y-3">
             ${S.db.activity.slice(0,12).map(a=>`<div class="flex gap-2.5">
               <div class="w-7 h-7 rounded-full bg-ink-100 text-ink-500 flex items-center justify-center text-xs font-bold flex-none">${S.member(a.user).initials}</div>
-              <div><div class="text-sm">${escapeHtml(a.action)}</div><div class="text-xs text-ink-400">${S.member(a.user).name} ù ${fmt.ago(a.at)}</div></div>
+              <div><div class="text-sm">${escapeHtml(a.action)}</div><div class="text-xs text-ink-400">${S.member(a.user).name} ? ${fmt.ago(a.at)}</div></div>
             </div>`).join('')}
           </div>
         </div>
@@ -916,13 +916,13 @@
     }
     const cards = menus.map(m=>`<div class="card card-pad fade-in">
       <div class="flex items-start justify-between mb-3">
-        <div><div class="font-bold">${escapeHtml(m.name)}</div><div class="text-xs text-ink-400">${escapeHtml(S.site(m.site).name)} ù ${m.languages.length} languages</div></div>
+        <div><div class="font-bold">${escapeHtml(m.name)}</div><div class="text-xs text-ink-400">${escapeHtml(S.site(m.site).name)} ? ${m.languages.length} languages</div></div>
         <button class="btn btn-ghost btn-sm" data-qr="${m.id}">${icon('qr','ico')} QR</button>
       </div>
       <div class="flex flex-wrap gap-1 mb-3">${m.languages.map(l=>`<span class="badge badge-gray">${l}</span>`).join('')}</div>
       <div class="space-y-2">
         ${m.dishes.map(d=>{ const al = dishAllergens(d); return `<div class="p-2.5 rounded-xl border border-ink-100">
-          <div class="font-semibold text-sm">${escapeHtml(d.name)}${d.recipeId ? ' <span class="text-[10px] text-brand-600 font-normal">ù linked recipe</span>' : ''}</div>
+          <div class="font-semibold text-sm">${escapeHtml(d.name)}${d.recipeId ? ' <span class="text-[10px] text-brand-600 font-normal">? linked recipe</span>' : ''}</div>
           <div class="text-xs text-ink-400 mb-1">${escapeHtml(d.desc)}</div>
           <div class="flex flex-wrap gap-1">${al.map(a=>`<span class="badge badge-amber">${a}</span>`).join('')||'<span class="badge badge-green">No allergens</span>'}</div>
         </div>`; }).join('')}
@@ -1001,7 +1001,7 @@
             return;
           }
           document.getElementById('dn').value = r.name;
-          const desc = [r.category, r.servings ? r.servings + ' servings' : ''].filter(Boolean).join(' ù ');
+          const desc = [r.category, r.servings ? r.servings + ' servings' : ''].filter(Boolean).join(' ? ');
           document.getElementById('dd').value = desc;
           autoAllergens = mod ? mod.analyzeRecipe(r, r.servings || 1).allergens : (r.allergens || []);
           document.getElementById('autoAlBox').innerHTML = autoAllergens.length
@@ -1037,7 +1037,7 @@
       <td>${l.allergens.length?l.allergens.map(a=>`<span class="badge badge-amber">${a}</span>`).join(' '):'<span class="text-ink-300">?</span>'}</td>
       <td class="text-right"><button class="btn btn-ghost btn-sm" data-print="${l.id}">${icon('print','ico')} Print</button></td></tr>`).join('');
     const html = `
-      ${sectionHeader('LabelSmart ? Food Labels','Prep labels for Brother QL 62 mm, 50ù30 mm, or A4 ? set size before printing', `
+      ${sectionHeader('LabelSmart ? Food Labels','Prep labels for Brother QL 62 mm, 50?30 mm, or A4 ? set size before printing', `
         <button class="btn btn-primary btn-sm" data-act="new">${icon('plus','ico')} Create label</button>`)}
       <div class="card overflow-hidden">
         <table class="table"><thead><tr><th>Product</th><th>Prepped</th><th>Use by</th><th>Allergens</th><th></th></tr></thead>
@@ -1070,7 +1070,7 @@
             <label class="label">Label size (match your printer roll)</label>
             <select id="labelSize" class="select">
               <option value="62" ${cur==='62'?'selected':''}>62 mm roll ? Brother QL-800 / QL-810W</option>
-              <option value="5030" ${cur==='5030'?'selected':''}>50 ù 30 mm die-cut</option>
+              <option value="5030" ${cur==='5030'?'selected':''}>50 ? 30 mm die-cut</option>
               <option value="a4" ${cur==='a4'?'selected':''}>A4 sheet (office printer)</option>
             </select>
             <p class="text-xs text-ink-400 mt-2">Install Brother QL drivers, then choose your QL printer in the print dialog. Paper: 62 mm continuous.</p>
@@ -1173,7 +1173,7 @@
       }
       document.querySelector('[data-act="log"]').onclick=()=>{
         modal('Log Waste',`<div class="space-y-3"><input id="i" class="input" placeholder="Item">
-          <div class="grid grid-cols-2 gap-3"><input id="k" type="number" step="0.1" class="input" placeholder="Weight (kg)"><input id="c" type="number" step="0.1" class="input" placeholder="Cost (ù)"></div>
+          <div class="grid grid-cols-2 gap-3"><input id="k" type="number" step="0.1" class="input" placeholder="Weight (kg)"><input id="c" type="number" step="0.1" class="input" placeholder="Cost (?)"></div>
           <div class="grid grid-cols-2 gap-3"><select id="r" class="select"><option>Overproduction</option><option>Spoilage</option><option>Trimming</option><option>Customer return</option><option>Expired</option></select>
           <select id="st" class="select"><option>Prep</option><option>Storage</option><option>Service</option></select></div>
           <button class="btn btn-primary w-full" id="s">Log waste</button></div>`);
@@ -1219,7 +1219,7 @@
     return `<div class="step-row" data-idx="${idx}">
       <div class="step-row__head">
         <strong>Step ${idx + 1}</strong>
-        <button type="button" class="btn btn-ghost btn-sm step-rm" title="Remove">ù</button>
+        <button type="button" class="btn btn-ghost btn-sm step-rm" title="Remove">?</button>
       </div>
       <textarea class="textarea step-text" rows="2" placeholder="Describe this step?">${escapeHtml(step.text || '')}</textarea>
       <div class="step-row__media grid sm:grid-cols-2 gap-2">
@@ -1312,7 +1312,7 @@
       const name = (m[3] || m[2] || '').trim();
       return { name, baseQty, notes: baseQty };
     }
-    if (/^to taste$/i.test(line) || /^?$/.test(line)) return { name: line, baseQty: '?', notes: 'To taste' };
+    if (/^to taste$/i.test(line) || /^-$/.test(line)) return { name: line, baseQty: '-', notes: 'To taste' };
     return { name: line, baseQty: '?', notes: '?' };
   }
   function scaleQtyString(qty, factor) {
@@ -1384,7 +1384,7 @@
         <input class="input ing-qty" placeholder="Qty" value="${escapeHtml(row.qty)}">
         <select class="select ing-unit">${unitOpts}</select>
         <input class="input ing-notes" placeholder="Kitchen notes" value="${escapeHtml(row.notes)}">
-        <button type="button" class="btn btn-ghost btn-sm ing-rm" title="Remove">ù</button>
+        <button type="button" class="btn btn-ghost btn-sm ing-rm" title="Remove">?</button>
       </div>
       <div class="ing-row__live text-xs text-ink-500">${al ? `<span class="al-icon-row">${al}</span> ` : ''}${escapeHtml(nut)}${preview && !preview._estimated ? ' <span class="text-ink-400">(no guide data)</span>' : ''}</div>
     </div>`;
@@ -1474,7 +1474,7 @@
     const photoSrc = recipeHeroSrc(r);
     const photo = photoSrc ? `<img src="${photoSrc}" alt="" class="recipe-card__photo">` : '';
     const methodBlock = recipeMethodBlock(r);
-    const prepInfo = `Prep ${r.prepMins || 0} min ù Cook ${r.cookMins || 0} min ù Food cost ${fmt.money(r.cost || 0, S.db.org.currency)}`;
+    const prepInfo = `Prep ${r.prepMins || 0} min ? Cook ${r.cookMins || 0} min ? Food cost ${fmt.money(r.cost || 0, S.db.org.currency)}`;
     return `<div class="recipe-print" id="recipePrintCard" data-base-yield="${base}" data-yield-unit="${escapeHtml(unit)}">
       <div class="recipe-card__topbar">
         <div class="recipe-card__brand">
@@ -1522,7 +1522,7 @@
           <h2 class="recipe-card__section-title">${r.stepByStep ? 'Step-by-step method' : 'Method'}</h2>
           ${methodBlock}
           <div class="recipe-card__chef-notes"><strong>Chef notes</strong>${chefNotes}</div>
-          <div class="recipe-card__foot"><span>Kiteline recipe card</span><span>${site} ù ${fmt.date(S.now())}</span></div>
+          <div class="recipe-card__foot"><span>Kiteline recipe card</span><span>${site} ? ${fmt.date(S.now())}</span></div>
         </div>
       </div>
     </div>`;
@@ -1564,7 +1564,7 @@
       flags.glutenFree ? 'GF' : '',
       flags.dairy ? 'Dairy' : '',
       flags.lowSalt ? 'Low salt' : '',
-    ].filter(Boolean).join(' ù ') : '';
+    ].filter(Boolean).join(' ? ') : '';
     const kcalLine = analysis.perServing && analysis.perServing.kcal
       ? `<div style="font-size:11px"><b>Per portion:</b> ${analysis.perServing.kcal} kcal</div>` : '';
     const cls = recipeLabelSizeClass(sizeKey || '62');
@@ -1577,7 +1577,7 @@
       ${dietLine ? `<div style="font-size:11px"><b>Diet:</b> ${escapeHtml(dietLine)}</div>` : ''}
       <div style="font-size:11px"><b>Allergens:</b> ${escapeHtml(allergens)}</div>
       ${kcalLine}
-      <div style="font-size:10px;margin-top:5px;color:#64748b">Kiteline ù ${fmt.date(S.now())}</div>
+      <div style="font-size:10px;margin-top:5px;color:#64748b">Kiteline ? ${fmt.date(S.now())}</div>
     </div>`;
   }
   function printRecipeCard(r) {
@@ -1589,7 +1589,7 @@
           <label class="label">Label printer roll</label>
           <select id="recipeLabelSize" class="select">
             <option value="62" ${curLabel==='62'?'selected':''}>62 mm ? Brother QL-800 / QL-810W</option>
-            <option value="5030" ${curLabel==='5030'?'selected':''}>50 ù 30 mm die-cut</option>
+            <option value="5030" ${curLabel==='5030'?'selected':''}>50 ? 30 mm die-cut</option>
             <option value="a4" ${curLabel==='a4'?'selected':''}>A4 sheet</option>
           </select>
         </div>
@@ -1673,7 +1673,7 @@
           <div class="text-xs text-ink-400 mt-0.5"><span class="badge badge-blue">${escapeHtml(r.category)}</span></div></div>
           <div class="text-right text-xs text-ink-400">Serves ${r.servings}<br>${(r.prepMins||0)+(r.cookMins||0)} min</div>
         </div>
-        <div class="text-xs text-ink-500 mb-2 mt-2"><b>${ingCount}</b> ingredients ù <b>${r.stepByStep && (r.steps||[]).length ? r.steps.length : (r.method||[]).length}</b> steps ù food cost ${fmt.money(r.cost||0,S.db.org.currency)}</div>
+        <div class="text-xs text-ink-500 mb-2 mt-2"><b>${ingCount}</b> ingredients ? <b>${r.stepByStep && (r.steps||[]).length ? r.steps.length : (r.method||[]).length}</b> steps ? food cost ${fmt.money(r.cost||0,S.db.org.currency)}</div>
         <div class="mt-auto flex flex-wrap gap-2 pt-2">
           <button class="btn btn-ghost btn-sm flex-1" data-view="${r.id}">View</button>
           <button class="btn btn-ghost btn-sm" data-print="${r.id}">${icon('print','ico')}</button>
@@ -1969,7 +1969,7 @@
     const d = daysUntil(iso);
     if (d < 0) return `<span class="badge badge-red">Expired ${Math.abs(d)}d ago</span>`;
     if (d <= 30) return `<span class="badge badge-amber">Expires in ${d}d</span>`;
-    return `<span class="badge badge-green">Valid ù ${fmt.date(iso)}</span>`;
+    return `<span class="badge badge-green">Valid ? ${fmt.date(iso)}</span>`;
   }
   function stars(n) { return '<span class="text-amber-500">'+'?'.repeat(n)+'<span class="text-ink-200">'+'?'.repeat(5-n)+'</span></span>'; }
 
@@ -1977,7 +1977,7 @@
     const list = S.db.suppliers;
     const statusBadge = (s)=> s==='Approved'?'<span class="badge badge-green">Approved</span>':s==='Pending'?'<span class="badge badge-amber">Pending</span>':'<span class="badge badge-red">Suspended</span>';
     const rows = list.map(s=>`<tr>
-      <td><div class="font-semibold">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${escapeHtml(s.contact)} ù ${escapeHtml(s.phone||'')}</div></td>
+      <td><div class="font-semibold">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${escapeHtml(s.contact)} ? ${escapeHtml(s.phone||'')}</div></td>
       <td>${escapeHtml(s.category)}</td>
       <td>${statusBadge(s.status)}</td>
       <td>${stars(s.rating)}</td>
@@ -2082,7 +2082,7 @@
       return `<div class="card card-pad fade-in">
         <div class="flex items-start justify-between gap-3 mb-2">
           <div><div class="font-bold">${escapeHtml(i.title)}</div>
-          <div class="text-xs text-ink-400">${escapeHtml(i.type)} ù ${escapeHtml(S.site(i.site).name)} ù ${fmt.ago(i.at)} ù by ${escapeHtml(m.name)}</div></div>
+          <div class="text-xs text-ink-400">${escapeHtml(i.type)} ? ${escapeHtml(S.site(i.site).name)} ? ${fmt.ago(i.at)} ? by ${escapeHtml(m.name)}</div></div>
           <div class="flex flex-col items-end gap-1">${sevBadge(i.severity)}${stBadge(i.status)}</div>
         </div>
         <div class="text-sm text-ink-600 mt-2"><span class="font-semibold text-ink-700">Corrective action:</span> ${i.action?escapeHtml(i.action):'<span class="text-ink-400">None recorded yet</span>'}</div>
@@ -2149,7 +2149,7 @@
       <span class="wf-dot">${m.dot}</span>
       <div class="flex-1 min-w-0">
         <div class="text-sm font-semibold">${escapeHtml(w.label)}</div>
-        <div class="text-xs text-ink-400">${escapeHtml(w.category)} ù ${escapeHtml(who.name)} ù ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
+        <div class="text-xs text-ink-400">${escapeHtml(w.category)} ? ${escapeHtml(who.name)} ? ${fmt.ago(w.updatedAt || w.completedAt || w.startedAt || w.dueAt)}</div>
       </div>
       <span class="badge ${m.badge} flex-none text-[10px]">${m.label}</span>
     </div>`;
@@ -2183,7 +2183,7 @@
   function workflowListPage(routeId, title, subtitle, iconName, items, extraHtml) {
     const pag = wfPaginate(routeId, items);
     const html = `
-      ${sectionHeader(title, subtitle + ` ù ${items.length} total ù 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
+      ${sectionHeader(title, subtitle + ` ? ${items.length} total ? 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">${icon('chevron','ico')} Back to Home</a>`)}
       <div class="flex flex-wrap gap-2 mb-4 text-xs">
         <span class="badge badge-green">?? Completed</span>
         <span class="badge badge-amber">?? In Progress</span>
@@ -2198,7 +2198,7 @@
         </table>
       </div>
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}?${pag.end} of ${items.length} ù Page ${pag.pg + 1} of ${pag.total}</div>
+        <div class="text-sm text-ink-500">Showing ${items.length ? pag.start : 0}?${pag.end} of ${items.length} ? Page ${pag.pg + 1} of ${pag.total}</div>
         <div class="flex flex-wrap gap-1">${pag.pages}</div>
       </div>`;
     return { title, html, mount() {
@@ -2273,7 +2273,7 @@
       <td class="text-xs text-ink-400">${fmt.ago(r.updatedAt)}</td>
     </tr>`).join('');
     const html = `
-      ${sectionHeader('Staff Currently Working', `${staff.length} staff on active tasks ù 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">Back to Home</a>`)}
+      ${sectionHeader('Staff Currently Working', `${staff.length} staff on active tasks ? 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">Back to Home</a>`)}
       <div class="card overflow-hidden mb-4">
         <table class="table"><thead><tr><th>Staff</th><th>Active task</th><th>Category</th><th>Status</th><th>Updated</th></tr></thead>
         <tbody>${tbody || '<tr><td colspan="5" class="text-center py-8 text-ink-400">No staff on active tasks.</td></tr>'}</tbody></table>
@@ -2449,7 +2449,7 @@
     const siteTeam = (db.team || []).filter(t => t.siteId === site).length;
     const milestones = [
       { label: 'Sign in to Kiteline', done: true, route: '' },
-      { label: 'Select kitchen ? ' + (siteObj.legalName ? siteObj.legalName + ' ù ' + siteObj.name : siteObj.name), done: !!site, route: 'sites' },
+      { label: 'Select kitchen ? ' + (siteObj.legalName ? siteObj.legalName + ' ? ' + siteObj.name : siteObj.name), done: !!site, route: 'sites' },
       { label: 'Open recipes library', done: recipeCount >= 10, route: 'recipes' },
       { label: 'Complete opening / HACCP checks', done: hasChecklistDone, route: 'haccp' },
       { label: 'Set PIN in Settings (security)', done: window.Security && window.Security.hasPin(), route: 'settings' },
@@ -2483,7 +2483,7 @@
       const urgent = daysLeft <= 3;
       trialBannerHtml = `<div class="card card-pad mb-5 flex flex-wrap items-center gap-3 border ${urgent ? 'border-amber-300 bg-amber-50' : 'border-brand-200 bg-brand-50'}">
         ${icon('shield','w-5 h-5 text-brand-700')}
-        <div class="text-sm flex-1 min-w-[200px]"><b>Free trial</b> ? ${daysLeft} day${daysLeft === 1 ? '' : 's'} left ù up to ${db.org.maxUsers || 5} users.</div>
+        <div class="text-sm flex-1 min-w-[200px]"><b>Free trial</b> ? ${daysLeft} day${daysLeft === 1 ? '' : 's'} left ? up to ${db.org.maxUsers || 5} users.</div>
         <a href="#settings" class="btn btn-primary btn-sm">Choose a plan</a>
       </div>`;
     }
@@ -2496,7 +2496,7 @@
             <span class="text-xs font-bold uppercase tracking-wider text-brand-600">Live kitchen operations</span>
           </div>
           <h1 class="text-2xl font-extrabold">${greet}, ${escapeHtml(firstName)}</h1>
-          <p class="text-ink-500 text-sm">${escapeHtml(siteName)} ù Retreat centre kitchen ù ${fmt.date(S.now())}</p>
+          <p class="text-ink-500 text-sm">${escapeHtml(siteName)} ? Retreat centre kitchen ? ${fmt.date(S.now())}</p>
         </div>
         <div class="flex flex-wrap gap-2 text-xs">
           <span class="badge badge-green">?? Completed</span>
@@ -2556,10 +2556,10 @@
 
       <h2 class="font-bold text-sm uppercase tracking-wide text-ink-400 mb-3">Operations status ? 10 pages each</h2>
       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
-        <a href="#wfdel" class="block hover:opacity-90">${statusPanel('Deliveries today', deliveriesToday.length ? 100 : 60, `${deliveriesToday.length} received ù ${deliveriesExpected.length} in pipeline`, deliveriesToday.length ? 'ok' : 'warn')}</a>
-        <a href="#wfprod" class="block hover:opacity-90">${statusPanel('Food production', prepPct, `${prepLive.filter(w=>w.status==='in_progress').length} in progress ù ${serviceReady ? (serviceReady.status==='scheduled'?'service pending':'ready') : 'on track'}`, prepPct>=70?'ok':prepPct>=40?'warn':'bad')}</a>
+        <a href="#wfdel" class="block hover:opacity-90">${statusPanel('Deliveries today', deliveriesToday.length ? 100 : 60, `${deliveriesToday.length} received ? ${deliveriesExpected.length} in pipeline`, deliveriesToday.length ? 'ok' : 'warn')}</a>
+        <a href="#wfprod" class="block hover:opacity-90">${statusPanel('Food production', prepPct, `${prepLive.filter(w=>w.status==='in_progress').length} in progress ? ${serviceReady ? (serviceReady.status==='scheduled'?'service pending':'ready') : 'on track'}`, prepPct>=70?'ok':prepPct>=40?'warn':'bad')}</a>
         <a href="#wfclean" class="block hover:opacity-90">${statusPanel('Cleaning status', cleaningPct, `${cleaningDone}/${cleaningTasks.length} tasks done`, cleaningPct>=80?'ok':'warn')}</a>
-        <a href="#wfhaccp" class="block hover:opacity-90">${statusPanel('HACCP compliance', haccpPct, `${haccpDone}/${haccpTasks.length} checks ù ${tempCompliance}% temps OK`, haccpPct>=85?'ok':haccpPct>=60?'warn':'bad')}</a>
+        <a href="#wfhaccp" class="block hover:opacity-90">${statusPanel('HACCP compliance', haccpPct, `${haccpDone}/${haccpTasks.length} checks ? ${tempCompliance}% temps OK`, haccpPct>=85?'ok':haccpPct>=60?'warn':'bad')}</a>
       </div>
 
       <div class="card card-pad mb-6" style="background:linear-gradient(135deg,#0f766e08,#fff)">
@@ -2641,7 +2641,7 @@
       const cls = classify(d);
       const clsColor = {Star:'badge-green',Plowhorse:'badge-amber',Puzzle:'badge-blue',Dog:'badge-red'}[cls]||'badge-gray';
       return `<tr>
-        <td><div class="font-semibold">${escapeHtml(d.name)}</div><div class="text-xs text-ink-400">${escapeHtml(d.category)} ù ${d.sold} sold</div></td>
+        <td><div class="font-semibold">${escapeHtml(d.name)}</div><div class="text-xs text-ink-400">${escapeHtml(d.category)} ? ${d.sold} sold</div></td>
         <td>${money(d.portionCost)}</td>
         <td>${money(d.price)}</td>
         <td>${d.fcPct.toFixed(0)}%</td>
@@ -2655,7 +2655,7 @@
     // menu engineering quadrants
     const quad = (key,title,desc,color)=>{
       const items = dishes.filter(d=>classify(d)===key);
-      const list = items.length ? items.map(d=>`<div class="flex justify-between text-sm py-0.5"><span>${escapeHtml(d.name)}</span><span class="text-ink-400">${d.gp.toFixed(0)}% ù ${d.sold}</span></div>`).join('') : '<div class="text-sm text-ink-300">None</div>';
+      const list = items.length ? items.map(d=>`<div class="flex justify-between text-sm py-0.5"><span>${escapeHtml(d.name)}</span><span class="text-ink-400">${d.gp.toFixed(0)}% ? ${d.sold}</span></div>`).join('') : '<div class="text-sm text-ink-300">None</div>';
       return `<div class="card card-pad" style="border-top:3px solid ${color}">
         <div class="flex items-center justify-between mb-1"><h4 class="font-bold">${title}</h4><span class="badge" style="background:${color}1a;color:${color};border:none">${items.length}</span></div>
         <p class="text-xs text-ink-400 mb-2">${desc}</p>${list}</div>`;
@@ -2673,10 +2673,10 @@
 
       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Menu engineering matrix</h3>
       <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        ${quad('Star','? Stars','High profit ù high popularity ? promote & protect','#059669')}
+        ${quad('Star','? Stars','High profit ? high popularity ? promote & protect','#059669')}
         ${quad('Plowhorse','?? Plowhorses','Popular but low margin ? re-engineer cost','#d97706')}
         ${quad('Puzzle','?? Puzzles','High margin but low sales ? reposition/upsell','#2563eb')}
-        ${quad('Dog','?? Dogs','Low profit ù low sales ? consider removing','#dc2626')}
+        ${quad('Dog','?? Dogs','Low profit ? low sales ? consider removing','#dc2626')}
       </div>
 
       <h3 class="font-bold mb-3 text-ink-500 text-sm uppercase tracking-wide">Dish profitability</h3>
@@ -2694,12 +2694,12 @@
         const r = db.recipes.find(x=>x.id===b.dataset.edit); if(!r) return;
         const portionCost = (r.cost||0)/(r.servings||1);
         modal('Edit pricing ? '+escapeHtml(r.name), `<div class="space-y-3">
-          <div class="text-sm text-ink-500">Portion cost: <b>${money(portionCost)}</b> (batch ${money(r.cost||0)} ù ${r.servings||1} servings)</div>
+          <div class="text-sm text-ink-500">Portion cost: <b>${money(portionCost)}</b> (batch ${money(r.cost||0)} ? ${r.servings||1} servings)</div>
           <div><label class="label">Menu price (${cur})</label><input id="fc_p" type="number" step="0.05" class="input" value="${(r.price!=null&&r.price>0?r.price:derivePrice(r,portionCost)).toFixed(2)}"></div>
           <div><label class="label">Units sold / week</label><input id="fc_s" type="number" class="input" value="${r.sold!=null?r.sold:deriveSold(r)}"></div>
           <div id="fc_prev" class="text-sm font-semibold"></div>
           <button class="btn btn-primary w-full" id="fc_save">Save pricing</button></div>`);
-        const prev = ()=>{ const p=parseFloat(document.getElementById('fc_p').value)||0; const gp=p>0?((p-portionCost)/p*100):0; document.getElementById('fc_prev').innerHTML = `Gross profit: <span class="${gp>=TARGET_GP?'text-brand-700':'text-red-600'}">${gp.toFixed(1)}%</span> ù Food cost ${(p>0?portionCost/p*100:0).toFixed(1)}%`; };
+        const prev = ()=>{ const p=parseFloat(document.getElementById('fc_p').value)||0; const gp=p>0?((p-portionCost)/p*100):0; document.getElementById('fc_prev').innerHTML = `Gross profit: <span class="${gp>=TARGET_GP?'text-brand-700':'text-red-600'}">${gp.toFixed(1)}%</span> ? Food cost ${(p>0?portionCost/p*100:0).toFixed(1)}%`; };
         document.getElementById('fc_p').oninput = prev; prev();
         document.getElementById('fc_save').onclick = ()=>{
           r.price = parseFloat(document.getElementById('fc_p').value)||0;
@@ -2719,19 +2719,19 @@
     const acceptRate = all.length ? Math.round(accepted/all.length*100) : 100;
     const catBadge=(c)=>{ const m={Chilled:'badge-blue',Frozen:'badge-blue',Produce:'badge-green',Dairy:'badge-gray',Ambient:'badge-gray',Bakery:'badge-amber'}; return `<span class="badge ${m[c]||'badge-gray'}">${escapeHtml(c)}</span>`; };
     const okBadge=(v)=> v==='Pass'?'<span class="badge badge-green">Pass</span>':v==='Fail'?'<span class="badge badge-red">Fail</span>':'<span class="text-ink-300">?</span>';
-    const tempCell=(d)=>{ if(d.temp==null) return '<span class="text-ink-300">n/a</span>'; const bad=d.target!=null && d.temp>d.target; return `<span class="font-semibold ${bad?'text-red-600':''}">${d.temp}ùC</span>`; };
+    const tempCell=(d)=>{ if(d.temp==null) return '<span class="text-ink-300">n/a</span>'; const bad=d.target!=null && d.temp>d.target; return `<span class="font-semibold ${bad?'text-red-600':''}">${d.temp}?C</span>`; };
     const rows = all.map(d=>`<tr data-status="${d.accepted?'Accepted':'Rejected'}">
       <td><div class="font-semibold">${escapeHtml(d.supplier)}</div><div class="text-xs text-ink-400">${escapeHtml(d.items||'')}</div></td>
       <td>${catBadge(d.category)}</td>
       <td>${tempCell(d)}</td>
-      <td class="text-ink-400">${d.target!=null?(d.category==='Frozen'?'? '+d.target:'? '+d.target)+'ùC':'?'}</td>
+      <td class="text-ink-400">${d.target!=null?(d.category==='Frozen'?'? '+d.target:'? '+d.target)+'?C':'?'}</td>
       <td>${d.packaging==='Good'?'<span class="badge badge-green">Good</span>':'<span class="badge badge-red">Damaged</span>'}</td>
       <td>${okBadge(d.dateCheck)}</td>
       <td>${d.accepted?'<span class="badge badge-green">Accepted</span>':'<span class="badge badge-red">Rejected</span>'}</td>
       <td class="text-xs ${d.accepted?'text-ink-300':'text-ink-700'}">${d.reason?escapeHtml(d.reason):''}</td>
       <td>${escapeHtml(S.member(d.by).name)}</td><td>${fmt.ago(d.at)}</td></tr>`).join('');
     const html = `
-      ${sectionHeader('Deliveries ? Goods In','Temperature & quality checks on every delivery (chilled ?5ùC, frozen ?-18ùC)', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log delivery</button>`)}
+      ${sectionHeader('Deliveries ? Goods In','Temperature & quality checks on every delivery (chilled ?5?C, frozen ?-18?C)', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log delivery</button>`)}
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         ${kpiCard('Deliveries (site)', all.length, 'truck')}
         ${kpiCard('Accepted', accepted, 'check')}
@@ -2754,7 +2754,7 @@
           <input id="d_i" class="input" placeholder="Items (e.g. chilled chicken, dairy)">
           <div class="grid grid-cols-2 gap-3">
             <select id="d_c" class="select">${['Chilled','Frozen','Produce','Dairy','Ambient','Bakery'].map(x=>`<option>${x}</option>`).join('')}</select>
-            <div><label class="label">Delivery temp ùC</label><input id="d_t" type="number" step="0.1" class="input" value="3"></div>
+            <div><label class="label">Delivery temp ?C</label><input id="d_t" type="number" step="0.1" class="input" value="3"></div>
           </div>
           <div class="grid grid-cols-3 gap-3">
             <select id="d_p" class="select"><option>Good</option><option>Damaged</option></select>
@@ -2765,7 +2765,7 @@
           <div id="d_rwrap" class="hidden"><label class="label">Rejection reason</label><textarea id="d_r" class="input" rows="2" placeholder="Why was it rejected / partially rejected?"></textarea></div>
           <button class="btn btn-primary w-full" id="d_save">Save delivery</button></div>`);
         const targetFor=(c)=> c==='Frozen'?-18 : (c==='Ambient'||c==='Bakery')?null : (c==='Produce'?8:5);
-        const grade=()=>{ const c=document.getElementById('d_c').value, t=+document.getElementById('d_t').value, tg=targetFor(c); const pk=document.getElementById('d_p').value, dc=document.getElementById('d_d').value; const tempOk = tg==null?true:(t<=tg); const ok = tempOk && pk==='Good' && dc==='Pass'; document.getElementById('d_grade').innerHTML = `Recommendation: <span class="${ok?'text-brand-700':'text-red-600'}">${ok?'Accept':'Reject / check'}</span>${tg!=null?` ù target ?${tg}ùC`:' ù ambient (no temp)'}`; document.getElementById('d_rwrap').classList.toggle('hidden', ok); return ok; };
+        const grade=()=>{ const c=document.getElementById('d_c').value, t=+document.getElementById('d_t').value, tg=targetFor(c); const pk=document.getElementById('d_p').value, dc=document.getElementById('d_d').value; const tempOk = tg==null?true:(t<=tg); const ok = tempOk && pk==='Good' && dc==='Pass'; document.getElementById('d_grade').innerHTML = `Recommendation: <span class="${ok?'text-brand-700':'text-red-600'}">${ok?'Accept':'Reject / check'}</span>${tg!=null?` ? target ?${tg}?C`:' ? ambient (no temp)'}`; document.getElementById('d_rwrap').classList.toggle('hidden', ok); return ok; };
         ['d_c','d_t','d_p','d_v','d_d'].forEach(id=>{ const el=document.getElementById(id); el.oninput=grade; el.onchange=grade; }); grade();
         document.getElementById('d_save').onclick=()=>{
           const supplier=document.getElementById('d_s').value.trim(); if(!supplier)return toast('Enter a supplier','warn');
@@ -2884,7 +2884,7 @@
     const list = S.db.assets;
     const stBadge = (s)=> s==='Operational'?'<span class="badge badge-green">Operational</span>':s==='Needs attention'?'<span class="badge badge-amber">Needs attention</span>':'<span class="badge badge-red">Out of service</span>';
     const rows = list.map(a=>`<tr>
-      <td><div class="font-semibold">${escapeHtml(a.name)}</div><div class="text-xs text-ink-400">${escapeHtml(a.serial)} ù ${escapeHtml(a.supplier||'')}</div></td>
+      <td><div class="font-semibold">${escapeHtml(a.name)}</div><div class="text-xs text-ink-400">${escapeHtml(a.serial)} ? ${escapeHtml(a.supplier||'')}</div></td>
       <td>${escapeHtml(a.type)}</td><td>${escapeHtml(S.site(a.site).name)}</td>
       <td>${fmt.date(a.lastService)}</td><td>${serviceBadge(a.nextService)}</td><td>${stBadge(a.status)}</td>
       <td class="text-right"><button class="btn btn-ghost btn-sm" data-edit="${a.id}">Edit</button></td>
@@ -2933,7 +2933,7 @@
     const rows = list.map(b=>`<tr>
       <td><div class="font-semibold">${escapeHtml(b.product)}</div><div class="text-xs text-ink-400">${escapeHtml(b.batchNo)}</div></td>
       <td>${escapeHtml(b.qty)}</td><td>${fmt.date(b.made)}</td>
-      <td>${b.cookTemp}ùC</td><td>${passBadge(b.coolResult)}</td><td>${fmt.date(b.useBy)}</td>
+      <td>${b.cookTemp}?C</td><td>${passBadge(b.coolResult)}</td><td>${fmt.date(b.useBy)}</td>
       <td>${escapeHtml(S.member(b.by).name)}</td></tr>`).join('');
     const html = `
       ${sectionHeader('Batch Production','Cook ? cool ? use-by traceability for prepared batches', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} New batch</button>`)}
@@ -2948,7 +2948,7 @@
         modal('New Batch',`<div class="space-y-3">
           <input id="b_p" class="input" placeholder="Product">
           <div class="grid grid-cols-2 gap-3"><input id="b_no" class="input" placeholder="Batch no"><input id="b_q" class="input" placeholder="Quantity (e.g. 8 trays)"></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Cook core temp (ùC)</label><input id="b_ct" type="number" step="0.1" class="input" value="75"></div><select id="b_cr" class="select"><option>Pass</option><option>Fail</option></select></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Cook core temp (?C)</label><input id="b_ct" type="number" step="0.1" class="input" value="75"></div><select id="b_cr" class="select"><option>Pass</option><option>Fail</option></select></div>
           <div><label class="label">Use-by date</label><input id="b_ub" type="date" class="input" value="${new Date(Date.now()+2*864e5).toISOString().slice(0,10)}"></div>
           <button class="btn btn-primary w-full" id="b_save">Add batch</button></div>`);
         document.getElementById('b_save').onclick=()=>{
@@ -2965,25 +2965,25 @@
     const list = S.db.cooling.filter(c=>c.site===S.db.currentSite);
     const rows = list.map(c=>`<tr>
       <td class="font-semibold">${escapeHtml(c.item)}</td>
-      <td>${c.startTemp}ùC<div class="text-xs text-ink-400">${fmt.ago(c.startAt)}</div></td>
-      <td>${c.s1Temp}ùC <span class="text-xs text-ink-400">/ ${c.s1Mins}min</span></td>
-      <td>${c.s2Temp}ùC <span class="text-xs text-ink-400">/ ${c.s2Mins}min</span></td>
+      <td>${c.startTemp}?C<div class="text-xs text-ink-400">${fmt.ago(c.startAt)}</div></td>
+      <td>${c.s1Temp}?C <span class="text-xs text-ink-400">/ ${c.s1Mins}min</span></td>
+      <td>${c.s2Temp}?C <span class="text-xs text-ink-400">/ ${c.s2Mins}min</span></td>
       <td>${passBadge(c.result)}</td><td>${escapeHtml(S.member(c.by).name)}</td></tr>`).join('');
     const html = `
-      ${sectionHeader('Cooling Verification','Two-stage cooling: 60?21ùC within 2h, then ?5ùC within 4h', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log cooling</button>`)}
+      ${sectionHeader('Cooling Verification','Two-stage cooling: 60?21?C within 2h, then ?5?C within 4h', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log cooling</button>`)}
       <div class="grid sm:grid-cols-3 gap-4 mb-5">
         ${kpiCard('Logs (site)', list.length, 'snow')}
         ${kpiCard('Passes', list.filter(c=>c.result==='Pass').length, 'check')}
         ${kpiCard('Fails', list.filter(c=>c.result==='Fail').length, 'alert')}
       </div>
-      <div class="card overflow-hidden"><table class="table"><thead><tr><th>Item</th><th>Start</th><th>Stage 1 (?21ùC/2h)</th><th>Stage 2 (?5ùC/4h)</th><th>Result</th><th>By</th></tr></thead><tbody>${rows||'<tr><td colspan=6 class="text-ink-400 p-4">No cooling logs for this site.</td></tr>'}</tbody></table></div>`;
+      <div class="card overflow-hidden"><table class="table"><thead><tr><th>Item</th><th>Start</th><th>Stage 1 (?21?C/2h)</th><th>Stage 2 (?5?C/4h)</th><th>Result</th><th>By</th></tr></thead><tbody>${rows||'<tr><td colspan=6 class="text-ink-400 p-4">No cooling logs for this site.</td></tr>'}</tbody></table></div>`;
     return { title:'Cooling', html, mount() {
       document.querySelector('[data-act="add"]').onclick=()=>{
         modal('Log Cooling',`<div class="space-y-3">
           <input id="c_i" class="input" placeholder="Item">
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Start temp ùC</label><input id="c_st" type="number" step="0.1" class="input" value="60"></div></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 1 temp ùC</label><input id="c_s1t" type="number" step="0.1" class="input" value="21"></div><div><label class="label">Stage 1 mins</label><input id="c_s1m" type="number" class="input" value="120"></div></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 2 temp ùC</label><input id="c_s2t" type="number" step="0.1" class="input" value="5"></div><div><label class="label">Stage 2 mins</label><input id="c_s2m" type="number" class="input" value="240"></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Start temp ?C</label><input id="c_st" type="number" step="0.1" class="input" value="60"></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 1 temp ?C</label><input id="c_s1t" type="number" step="0.1" class="input" value="21"></div><div><label class="label">Stage 1 mins</label><input id="c_s1m" type="number" class="input" value="120"></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="label">Stage 2 temp ?C</label><input id="c_s2t" type="number" step="0.1" class="input" value="5"></div><div><label class="label">Stage 2 mins</label><input id="c_s2m" type="number" class="input" value="240"></div></div>
           <button class="btn btn-primary w-full" id="c_save">Save (auto-graded)</button></div>`);
         document.getElementById('c_save').onclick=()=>{
           const item=document.getElementById('c_i').value.trim(); if(!item)return toast('Enter an item','warn');
@@ -3038,18 +3038,18 @@
       <td class="font-semibold">${escapeHtml(h.unit)}</td>
       <td>${h.kind==='Hot'?'<span class="badge badge-red">Hot</span>':'<span class="badge badge-blue">Cold</span>'}</td>
       <td>${periodBadge(h.period)}</td>
-      <td class="font-semibold ${h.result==='Fail'?'text-red-600':''}">${h.temp}ùC</td>
-      <td class="text-ink-400">${h.kind==='Hot'?'? '+h.target:'? '+h.target}ùC</td>
+      <td class="font-semibold ${h.result==='Fail'?'text-red-600':''}">${h.temp}?C</td>
+      <td class="text-ink-400">${h.kind==='Hot'?'? '+h.target:'? '+h.target}?C</td>
       <td>${passBadge(h.result)}</td>
       <td class="text-xs ${h.result==='Fail'?'text-ink-700':'text-ink-300'}">${h.action?escapeHtml(h.action):(h.result==='Fail'?'?':'')}</td>
       <td>${escapeHtml(S.member(h.by).name)}</td><td>${fmt.ago(h.at)}</td></tr>`;
     const rows = all.map(row).join('');
     const html = `
-      ${sectionHeader('Hot & Cold Holding','Service temperature checks ? hot held ?63ùC, cold held ?8ùC', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log holding</button>`)}
+      ${sectionHeader('Hot & Cold Holding','Service temperature checks ? hot held ?63?C, cold held ?8?C', `<button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Log holding</button>`)}
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         ${kpiCard('Compliance', compliance+'%', 'check')}
-        ${kpiCard('Hot checks', hot.length+' ù '+hot.filter(h=>h.result==='Pass').length+' ok', 'temp')}
-        ${kpiCard('Cold checks', cold.length+' ù '+cold.filter(h=>h.result==='Pass').length+' ok', 'snow')}
+        ${kpiCard('Hot checks', hot.length+' ? '+hot.filter(h=>h.result==='Pass').length+' ok', 'temp')}
+        ${kpiCard('Cold checks', cold.length+' ? '+cold.filter(h=>h.result==='Pass').length+' ok', 'snow')}
         ${kpiCard('Out of range', all.filter(h=>h.result==='Fail').length, 'alert')}
       </div>
       <div class="flex flex-wrap gap-2 mb-3" id="hold-filters">
@@ -3071,12 +3071,12 @@
           <div class="grid grid-cols-3 gap-3">
             <select id="h_k" class="select"><option>Hot</option><option>Cold</option></select>
             <select id="h_p" class="select"><option>Breakfast</option><option selected>Lunch</option><option>Dinner</option></select>
-            <div><label class="label">Temp ùC</label><input id="h_t" type="number" step="0.1" class="input" value="70"></div>
+            <div><label class="label">Temp ?C</label><input id="h_t" type="number" step="0.1" class="input" value="70"></div>
           </div>
           <div id="h_grade" class="text-sm font-semibold"></div>
           <div id="h_actwrap" class="hidden"><label class="label">Corrective action (required on fail)</label><textarea id="h_act" class="input" rows="2" placeholder="What did you do to correct it?"></textarea></div>
           <button class="btn btn-primary w-full" id="h_save">Save (auto-graded)</button></div>`);
-        const grade=()=>{ const kind=document.getElementById('h_k').value, temp=+document.getElementById('h_t').value; const result=kind==='Hot'?(temp>=63?'Pass':'Fail'):(temp<=8?'Pass':'Fail'); document.getElementById('h_grade').innerHTML=`Auto-grade: <span class="${result==='Pass'?'text-brand-700':'text-red-600'}">${result}</span> (${kind} target ${kind==='Hot'?'?63':'?8'}ùC)`; document.getElementById('h_actwrap').classList.toggle('hidden', result!=='Fail'); return result; };
+        const grade=()=>{ const kind=document.getElementById('h_k').value, temp=+document.getElementById('h_t').value; const result=kind==='Hot'?(temp>=63?'Pass':'Fail'):(temp<=8?'Pass':'Fail'); document.getElementById('h_grade').innerHTML=`Auto-grade: <span class="${result==='Pass'?'text-brand-700':'text-red-600'}">${result}</span> (${kind} target ${kind==='Hot'?'?63':'?8'}?C)`; document.getElementById('h_actwrap').classList.toggle('hidden', result!=='Fail'); return result; };
         document.getElementById('h_k').onchange=grade; document.getElementById('h_t').oninput=grade; grade();
         document.getElementById('h_save').onclick=()=>{
           const unit=document.getElementById('h_u').value.trim(); if(!unit)return toast('Enter a unit','warn');
@@ -3106,14 +3106,14 @@
       return `<div class="card card-pad fade-in">
         <div class="flex items-start justify-between gap-3 mb-1">
           <div><div class="font-bold">${escapeHtml(t.title)}</div>
-          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} ù ${escapeHtml(S.site(t.site).name)} ù ${fmt.ago(t.createdAt)}${t.ref?' ù ref '+escapeHtml(t.ref):''}</div></div>
+          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} ? ${escapeHtml(S.site(t.site).name)} ? ${fmt.ago(t.createdAt)}${t.ref?' ? ref '+escapeHtml(t.ref):''}</div></div>
           <div class="flex flex-col items-end gap-1">${priBadge(t.priority)}${stBadge(t.status)}</div>
         </div>
-        <div class="text-xs text-ink-500 mb-2">${icon('mail','inline w-3.5 h-3.5')} ${escapeHtml(t.dept)} ù ${escapeHtml(t.email)}</div>
+        <div class="text-xs text-ink-500 mb-2">${icon('mail','inline w-3.5 h-3.5')} ${escapeHtml(t.dept)} ? ${escapeHtml(t.email)}</div>
         <div class="p-2.5 rounded-xl bg-ink-50 border border-ink-100 text-sm">
           <span class="font-semibold ${last.type==='dept'?'text-brand-700':'text-ink-700'}">${escapeHtml(last.by)}${last.type==='dept'?' (dept)':''}:</span>
           ${escapeHtml((last.body||'').slice(0,140))}${(last.body||'').length>140?'?':''}
-          <div class="text-[11px] text-ink-400 mt-1">${fmt.ago(last.at)} ù ${t.thread.length} message(s)</div>
+          <div class="text-[11px] text-ink-400 mt-1">${fmt.ago(last.at)} ? ${t.thread.length} message(s)</div>
         </div>
         <div class="flex gap-2 mt-3">
           <button class="btn btn-ghost btn-sm" data-open="${t.id}">${icon('records','ico')} Open thread</button>
@@ -3173,13 +3173,13 @@
         const t=S.db.maintenance.find(x=>x.id===id);
         const thread=t.thread.map(m=>`<div class="flex ${m.type==='dept'?'justify-start':'justify-end'}">
           <div class="max-w-[80%] p-2.5 rounded-xl text-sm ${m.type==='dept'?'bg-brand-50 border border-brand-100':'bg-ink-100'}">
-            <div class="text-[11px] font-semibold ${m.type==='dept'?'text-brand-700':'text-ink-600'}">${escapeHtml(m.by)}${m.type==='dept'?' ù maintenance':''}</div>
+            <div class="text-[11px] font-semibold ${m.type==='dept'?'text-brand-700':'text-ink-600'}">${escapeHtml(m.by)}${m.type==='dept'?' ? maintenance':''}</div>
             ${m.subject?`<div class="text-xs font-semibold">${escapeHtml(m.subject)}</div>`:''}
             <div>${escapeHtml(m.body)}</div>
             <div class="text-[10px] text-ink-400 mt-1">${fmt.ago(m.at)}</div>
           </div></div>`).join('');
         modal(t.title, `<div class="space-y-3">
-          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} ù ${escapeHtml(S.site(t.site).name)} ù to ${escapeHtml(t.email)}${t.ref?' ù ref '+escapeHtml(t.ref):''}</div>
+          <div class="text-xs text-ink-400">${escapeHtml(t.asset)} ? ${escapeHtml(S.site(t.site).name)} ? to ${escapeHtml(t.email)}${t.ref?' ? ref '+escapeHtml(t.ref):''}</div>
           <div class="space-y-2 max-h-72 overflow-auto p-1">${thread}</div>
           <div class="border-t border-ink-100 pt-3 space-y-2">
             <select id="v_status" class="select">${['Open','Acknowledged','In progress','Resolved'].map(x=>`<option ${x===t.status?'selected':''}>${x}</option>`).join('')}</select>
@@ -3296,7 +3296,7 @@
         </div>
         <div class="card card-pad lg:col-span-2" id="chatgptAiCard">
           <h3 class="font-bold mb-1">Connect ChatGPT</h3>
-          <p class="text-sm text-ink-500 mb-3">Link Kiteline to a <b>Custom GPT</b> using GPT Actions. Never share your Kiteline password with ChatGPT ù use an AI token or OAuth.</p>
+          <p class="text-sm text-ink-500 mb-3">Link Kiteline to a <b>Custom GPT</b> using GPT Actions. Never share your Kiteline password with ChatGPT ? use an AI token or OAuth.</p>
           <div class="rounded-xl border border-brand-200 bg-brand-50/40 p-4 mb-4">
             <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2">Schema URL (paste in ChatGPT Actions)</p>
             <code class="text-xs break-all block mb-2" id="chatgptSchemaUrl">https://kiteline.uk/api/ai/openapi.json</code>
@@ -3318,7 +3318,7 @@
               <button type="button" class="btn btn-primary btn-sm" id="chatgptCreateToken">Create AI token</button>
             </div>
             <div id="chatgptNewTokenBox" class="hidden rounded-xl border-2 border-amber-300 bg-amber-50 p-4 mb-4">
-              <p class="text-sm font-bold text-amber-900 mb-1">Copy this token now ù shown once only</p>
+              <p class="text-sm font-bold text-amber-900 mb-1">Copy this token now ? shown once only</p>
               <code class="text-xs break-all block mb-2" id="chatgptNewToken"></code>
               <button type="button" class="btn btn-primary btn-sm" id="chatgptCopyToken">Copy token</button>
               <p class="text-xs text-ink-500 mt-2">Paste into ChatGPT ? GPT Actions ? Authentication (API Key / Bearer). Do not paste in chat.</p>
@@ -3377,7 +3377,7 @@
             <div class="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">Sensors at this site</div>
             <div id="iotSensorList" class="text-sm text-ink-500">?</div>
           </div>
-          <p class="text-xs text-ink-400 mt-3">ESP32 sketch: <code>server/hardware/esp32-ingest.ino</code> ù Full guide: <code>IOT.md</code></p>
+          <p class="text-xs text-ink-400 mt-3">ESP32 sketch: <code>server/hardware/esp32-ingest.ino</code> ? Full guide: <code>IOT.md</code></p>
         </div>
         <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-1">Security &amp; account</h3>
@@ -3422,7 +3422,7 @@
         </div>
         <div class="card card-pad lg:col-span-2">
           <h3 class="font-bold mb-2">Legal</h3>
-          <p class="text-sm text-ink-500 mb-3">ù 2026 Kiteline ? All rights reserved.</p>
+          <p class="text-sm text-ink-500 mb-3">? 2026 Kiteline ? All rights reserved.</p>
           <div class="flex flex-wrap gap-3 text-sm">
             <a href="/contact.html" target="_blank" rel="noopener" class="text-brand-700 font-semibold">Contact</a>
             <a href="mailto:contact@kiteline.uk" class="text-brand-700 font-semibold">contact@kiteline.uk</a>
@@ -3497,7 +3497,7 @@
           const bits = [];
           bits.push(st.email && st.email.configured ? 'Email: SMTP ready' : 'Email: add SMTP to server/.env');
           bits.push(st.sms && st.sms.configured ? 'SMS: Twilio ready (' + st.sms.from + ')' : 'SMS: add Twilio to server/.env');
-          ns.textContent = bits.join(' ù ');
+          ns.textContent = bits.join(' ? ');
         }).catch(() => { ns.textContent = 'Run npm start for live notifications.'; });
       } else if (ns) ns.textContent = 'Run npm start for live notifications.';
       const iotStatus = document.getElementById('iotStatus');
@@ -3562,7 +3562,7 @@
       function renderPlanButtons(plans, active) {
         if (!billPlanBtns || !plans || !plans.length) return;
         billPlanBtns.innerHTML = plans.map(p => `
-          <button type="button" class="btn btn-primary btn-sm billing-plan-btn" data-plan="${escapeHtml(p.id)}">${escapeHtml(p.maxUsers)} users ù ${escapeHtml(p.display)}</button>
+          <button type="button" class="btn btn-primary btn-sm billing-plan-btn" data-plan="${escapeHtml(p.id)}">${escapeHtml(p.maxUsers)} users ? ${escapeHtml(p.display)}</button>
         `).join('');
         billPlanBtns.querySelectorAll('.billing-plan-btn').forEach(btn => {
           btn.onclick = () => startCheckout(btn.dataset.plan);
@@ -3600,7 +3600,7 @@
             return;
           }
           if (sub.status === 'active') {
-            billLine.textContent = 'Plan: ' + (sub.orgPlan || sub.plan || 'Active') + (sub.currentPeriodEnd ? ' ù renews ' + fmt.date(sub.currentPeriodEnd) : '');
+            billLine.textContent = 'Plan: ' + (sub.orgPlan || sub.plan || 'Active') + (sub.currentPeriodEnd ? ' ? renews ' + fmt.date(sub.currentPeriodEnd) : '');
             if (billTeamLine && st.maxUsers) {
               billTeamLine.textContent = 'Team seats: ' + (st.teamCount || S.db.team.length) + ' / ' + st.maxUsers + ' users on this plan.';
               billTeamLine.classList.remove('hidden');
@@ -3629,11 +3629,11 @@
           line.textContent = st.message || 'Pick Option A, B, or C below.';
         }
         if (usage && st.usage && st.limits && st.limits.text) {
-          usage.textContent = 'This month: ' + (st.usage.text || 0) + ' / ' + st.limits.text + ' text ù ' + (st.usage.image || 0) + ' / ' + st.limits.image + ' photos';
+          usage.textContent = 'This month: ' + (st.usage.text || 0) + ' / ' + st.limits.text + ' text ? ' + (st.usage.image || 0) + ' / ' + st.limits.image + ' photos';
         } else if (usage && st.mode === 'byok') {
           usage.textContent = st.keyHint ? 'Key on file: ' + st.keyHint : '';
         } else if (usage) usage.textContent = '';
-        if (price && st.addon) price.textContent = st.addon.display + ' per company ù includes monthly AI limits';
+        if (price && st.addon) price.textContent = st.addon.display + ' per company ? includes monthly AI limits';
         if (subBtn) {
           const kitelineOn = st.enabled && (st.kitelineAddon || st.mode === 'granted' || st.mode === 'kiteline');
           subBtn.disabled = !!kitelineOn;
@@ -3658,7 +3658,7 @@
           subEmail.classList.remove('hidden');
         }
         const price = document.getElementById('recipeAiPrice');
-        if (price && addon.display) price.textContent = addon.display + ' per company ù Option A';
+        if (price && addon.display) price.textContent = addon.display + ' per company ? Option A';
       };
       if (window.Api && S.remote) {
         fetch('/api/config').then(r => r.json()).then(paintRecipeAiSetup).catch(() => {});
@@ -3734,7 +3734,7 @@
         const list = document.getElementById('chatgptTokenList');
         if (!list) return;
         if (!tokens || !tokens.length) {
-          list.innerHTML = '<span class="text-ink-400">No active tokens ó create one for ChatGPT.</span>';
+          list.innerHTML = '<span class="text-ink-400">No active tokens ? create one for ChatGPT.</span>';
           return;
         }
         list.innerHTML = tokens.map((t) => `<div class="flex flex-wrap items-center justify-between gap-2 py-2 border-b border-ink-100">
@@ -3769,7 +3769,7 @@
           }).catch(() => {
             paintChatgptPerms({});
             const list = document.getElementById('chatgptTokenList');
-            if (list) list.textContent = 'Could not load tokens ó sign in on kiteline.uk';
+            if (list) list.textContent = 'Could not load tokens ? sign in on kiteline.uk';
           });
           const createBtn = document.getElementById('chatgptCreateToken');
           if (createBtn) createBtn.onclick = async () => {
@@ -3785,7 +3785,7 @@
                 tok.textContent = r.token;
                 box.classList.remove('hidden');
               }
-              toast('AI token created ó copy it now');
+              toast('AI token created ? copy it now');
               const data = await window.Api.aiTokens();
               paintChatgptTokens(data.tokens || []);
             } catch (e) { toast(e.message || 'Could not create token', 'error'); }
@@ -3867,7 +3867,7 @@
           } else {
             const bits = ['Password rules enforced', 'Login lockout after ' + st.maxLoginAttempts + ' tries'];
             if (!st.ingestKeySecure) bits.push('Add INGEST_KEY on Render (sensor security)');
-            secLine.textContent = bits.join(' ù ');
+            secLine.textContent = bits.join(' ? ');
           }
           if (secSession && st.sessionExpiresAt) secSession.textContent = 'This device session expires ' + fmt.date(st.sessionExpiresAt);
         }).catch(() => { secLine.textContent = 'Sign in on the server for account security options.'; });
