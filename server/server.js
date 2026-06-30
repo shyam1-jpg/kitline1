@@ -22,12 +22,13 @@ const INGEST_KEY = process.env.INGEST_KEY || 'kiteline-demo-key';
 if (isProd && INGEST_KEY === 'kiteline-demo-key') {
   console.warn('  SECURITY WARNING: Set a strong INGEST_KEY in production (not kiteline-demo-key).');
 }
-// Demo only when explicitly enabled, or local dev. Production (Render) is secure by default.
+// Demo on Render by default (Owner quick login). Set DEMO_MODE=false on Render for strict auth.
 const DEMO_MODE = process.env.DEMO_MODE === 'true'
+  || (process.env.RENDER === 'true' && process.env.DEMO_MODE !== 'false')
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-26-academy-staff';
+const APP_BUILD = '2026-06-30-login-fix';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -107,7 +108,7 @@ function bootstrapProductionDb() {
   const db = readDb();
   bootstrapEmailVerification(db);
   const ownerEmail = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
-  const ownerPass = process.env.OWNER_PASSWORD;
+  const ownerPass = (process.env.OWNER_PASSWORD || '').trim();
   db.passwordResets = db.passwordResets || {};
   if (!ownerPass) {
     if (!db.users[ownerEmail]) {

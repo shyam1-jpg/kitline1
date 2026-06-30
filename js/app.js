@@ -679,7 +679,6 @@
     },
 
     renderForgotPassword() {
-      const emailOn = !!(this.config && this.config.emailConfigured);
       document.getElementById('root').innerHTML = `
         <div class="min-h-screen grid lg:grid-cols-2">
           ${authSidePanel()}
@@ -687,16 +686,13 @@
             <div class="w-full max-w-sm">
               <div class="lg:hidden mb-6">${brandLogo('lg', true)}</div>
               <h2 class="text-2xl font-extrabold">Reset password</h2>
-              ${emailOn
-                ? '<p class="text-ink-500 mb-4">Enter the email you used to register. We will email you a reset link.</p>'
-                : `<div class="rounded-xl border border-amber-200 bg-amber-50 p-3 mb-4 text-sm text-amber-900">
-                    <b>No emails are sent yet</b> — Kiteline email is not set up on the server.
-                    After you tap the button below, your <b>reset link appears on this page</b> (not in your inbox).
-                  </div>
-                  <p class="text-ink-500 mb-4">Enter the exact email you used when you created your account.</p>`}
+              <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 mb-4 text-sm text-amber-900">
+                <b>No email needed</b> — after you tap the button below, your <b>reset link appears on this page</b> (scroll down). Inbox delivery is not required.
+              </div>
+              <p class="text-ink-500 mb-4">Enter the email for your account (e.g. shyam_1@hotmail.co.uk).</p>
               <label class="label">Email address</label>
               <input id="email" class="input mb-5" placeholder="you@restaurant.com" autocomplete="username">
-              <button class="btn btn-primary w-full mb-3" id="sendReset">${emailOn ? 'Email reset link' : 'Get reset link on screen'}</button>
+              <button class="btn btn-primary w-full mb-3" id="sendReset">Get reset link on screen</button>
               <div id="resetResult" class="hidden"></div>
               <p class="text-sm text-center mt-3"><a href="#" class="text-brand-600 font-semibold" id="backLogin">Back to sign in</a></p>
               ${authLegalFooter()}
@@ -732,30 +728,26 @@
                 </div>`;
             }
             btn.disabled = false;
-            btn.textContent = emailOn ? 'Email reset link' : 'Get reset link on screen';
+            btn.textContent = 'Get reset link on screen';
           } else {
-            const msg = r.message || (r.emailSent
-              ? 'Check your inbox and spam folder for the reset link.'
-              : 'No reset link — that email may not be registered. Check spelling, try sign-in, or create a new account.');
+            const msg = r.message || 'No reset link — that email may not be registered. Check spelling or try Create account.';
             if (result) {
               result.classList.remove('hidden');
               result.innerHTML = `
-                <div class="rounded-xl border ${r.emailSent ? 'border-brand-200 bg-brand-50' : 'border-amber-200 bg-amber-50'} p-4 text-sm">
-                  <p class="font-semibold mb-2">${r.emailSent ? 'Email sent' : 'No link to show'}</p>
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+                  <p class="font-semibold mb-2">No link to show</p>
                   <p class="text-ink-600 mb-3">${escapeHtml(msg)}</p>
-                  ${r.emailSent
-                    ? '<p class="text-xs text-ink-500 mt-2">Check spam/junk. If nothing arrives in a few minutes, try again or contact support@kiteline.uk</p>'
-                    : '<p class="text-xs text-ink-500">Tip: use the same email you typed when you registered. Or <a href="#register" class="text-brand-600 font-semibold">create account</a>.</p>'}
+                  <p class="text-xs text-ink-500">Tip: use shyam_1@hotmail.co.uk for owner, or <a href="#register" class="text-brand-600 font-semibold">create account</a>.</p>
                 </div>`;
             }
-            toast(msg, r.emailSent ? 'info' : 'warn');
+            toast(msg, 'warn');
             btn.disabled = false;
-            btn.textContent = emailOn ? 'Email reset link' : 'Get reset link on screen';
+            btn.textContent = 'Get reset link on screen';
           }
         } catch (e) {
           toast(e.message || 'Could not get reset link', 'error');
           btn.disabled = false;
-          btn.textContent = emailOn ? 'Email reset link' : 'Get reset link on screen';
+          btn.textContent = 'Get reset link on screen';
         }
       };
     },
