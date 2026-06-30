@@ -488,20 +488,49 @@
                   <button class="btn btn-ghost btn-sm" data-demo="lena@kiteline.uk" data-pw="demo1234">Manager</button>
                   <button class="btn btn-ghost btn-sm" data-demo="james@kiteline.uk" data-pw="demo1234">Staff</button>
                 </div>
+                <a href="/app/owner-login" class="btn btn-primary w-full mt-3 text-center" style="display:block">One-click Owner sign-in</a>
               </div>
-              <p class="text-center text-ink-400 text-sm mt-4">Demo build — any credentials work.</p>` : ''}
+              <p class="text-center text-ink-400 text-sm mt-4">Demo build — use One-click Owner if buttons fail.</p>` : ''}
               ${authLegalFooter()}
             </div>
           </div>
         </div>`;
       bindPasswordToggle();
       if (demo) {
+        const pwEl = document.getElementById('pw');
+        if (pwEl && demoDefaults.pw) pwEl.value = demoDefaults.pw;
+        const doSignIn = async () => {
+          const email = document.getElementById('email').value;
+          const pw = document.getElementById('pw').value;
+          const btn = document.getElementById('signin');
+          await App.ensureRemote();
+          if (S.remote && window.Api) {
+            btn.disabled = true; btn.textContent = 'Signing in…';
+            try {
+              const data = await window.Api.login(email, pw);
+              await S.hydrateFromServer();
+              App.applyInviteSite();
+              location.hash = 'home';
+              App.route = 'home';
+              toast('Signed in');
+              if (data.trial) App.trial = data.trial;
+              await App.maybeAiOAuth();
+              App.render();
+            } catch (e) {
+              toast((e.message || 'Login failed') + ' — try the green Owner link below', 'error');
+              btn.disabled = false; btn.textContent = 'Sign in';
+            }
+          } else if (App.isHostedApp()) {
+            toast('Could not reach server — open the green Owner link below', 'error');
+          }
+        };
         document.querySelectorAll('[data-demo]').forEach(b => b.onclick = () => {
           document.getElementById('email').value = b.dataset.demo;
           document.getElementById('pw').value = b.dataset.pw || 'demo1234';
-          document.getElementById('signin').click();
+          doSignIn();
         });
-      }
+        document.getElementById('signin').onclick = doSignIn;
+      } else {
       document.getElementById('signin').onclick = async () => {
         const email = document.getElementById('email').value;
         const pw = document.getElementById('pw').value;
@@ -556,6 +585,7 @@
           this.render();
         }
       };
+      }
     },
 
     renderTrialExpired() {

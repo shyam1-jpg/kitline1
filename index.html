@@ -112,10 +112,17 @@
   <script src="/js/register-form.js?v=6"></script>
   <script src="/js/views.js?v=22"></script>
   <script src="/js/compliance-views.js?v=3"></script>
-  <script src="/js/app.js?v=29"></script>
+  <script src="/js/app.js?v=30"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js?v=36').catch(() => {});
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => {
+            if (r.active && !String(r.active.scriptURL || '').includes('v=36')) r.unregister();
+          });
+        });
+      });
     }
   </script>
 </body>

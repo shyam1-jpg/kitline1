@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-30-offline-fix';
+const APP_BUILD = '2026-06-30-owner-login';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -498,13 +498,17 @@ const MIME = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript',
   '.ico':'image/x-icon', '.map':'application/json',
   '.webmanifest':'application/manifest+json' };
 
-function serveFile(res, filePath) {
+function serveFile(res, filePath, opts) {
   try {
     const ext = path.extname(filePath).toLowerCase();
     const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
-    if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
+    if (opts && opts.noStore) {
+      headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+    } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
       headers['Cache-Control'] = 'public, max-age=86400';
     } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy')) && (ext === '.html' || ext === '.js')) {
+      headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+    } else if (ext === '.html' || ext === '.js' || ext === '.css') {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     }
     const buf = fs.readFileSync(filePath);
@@ -513,6 +517,39 @@ function serveFile(res, filePath) {
   } catch {
     send(res, 404, { error: 'Not found' }, null, null);
   }
+}
+
+function serveAppIndex(res) {
+  try {
+    let html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const build = String(APP_BUILD).replace(/[^a-zA-Z0-9._-]/g, '');
+    html = html.replace(/\?v=[^"'&]+/g, '?v=' + build);
+    res.writeHead(200, security.securityHeaders({
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+    }));
+    res.end(html);
+  } catch {
+    send(res, 404, { error: 'Not found' }, null, null);
+  }
+}
+
+function demoOwnerLoginHtml(db) {
+  const email = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
+  if (!db.users[email]) {
+    db.users[email] = {
+      email,
+      name: process.env.OWNER_NAME || 'Owner',
+      pass: hashPassword('demo'),
+      emailVerified: true,
+      createdAt: new Date().toISOString(),
+    };
+  }
+  billing.ensureTrial(db.users[email]);
+  billing.syncOrgAccess(db, email);
+  const token = security.issueToken(db, email);
+  writeDb(db);
+  return activateHtml({ ok: true, token, user: { email } });
 }
 function isExistingFile(filePath) {
   try {
@@ -1330,9 +1367,21 @@ const server = http.createServer(async (req, res) => {
     // Marketing site at "/"
     if (url.pathname === '/' || url.pathname === '') return serveFile(res, path.join(ROOT, 'site', 'index.html'));
 
+    // One-click owner sign-in (demo mode only — bypasses cached login UI)
+    if (url.pathname === '/app/owner-login' && req.method === 'GET') {
+      if (!DEMO_MODE) {
+        res.writeHead(302, security.securityHeaders({ Location: '/app', 'Cache-Control': 'no-store' }));
+        return res.end();
+      }
+      const db = readDb();
+      const html = demoOwnerLoginHtml(db);
+      res.writeHead(200, security.securityHeaders({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }));
+      return res.end(html);
+    }
+
     // App at "/app" — serve SPA for all /app/* paths (hash router + deep links)
     if (url.pathname === '/app' || url.pathname.startsWith('/app/')) {
-      return serveFile(res, path.join(ROOT, 'index.html'));
+      return serveAppIndex(res);
     }
 
     // Vedanta Staff Rota (static site under site/vedanta-rota/)
