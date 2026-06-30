@@ -37,10 +37,10 @@
     async ping() {
       try {
         const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 1500);
-        const res = await fetch(BASE + '/api/me', { headers: token() ? { 'Authorization': 'Bearer ' + token() } : {}, signal: ctrl.signal });
+        const t = setTimeout(() => ctrl.abort(), 8000);
+        const res = await fetch(BASE + '/api/config', { signal: ctrl.signal, cache: 'no-store' });
         clearTimeout(t);
-        this.online = res.status !== 0;
+        this.online = res.ok;
         return this.online;
       } catch { this.online = false; return false; }
     },

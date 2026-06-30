@@ -215,6 +215,27 @@
       return this.config && this.config.emailConfigured === false;
     },
 
+    isHostedApp() {
+      return /kiteline\.uk|onrender\.com/i.test(location.hostname);
+    },
+
+    async ensureRemote() {
+      if (!window.Api) return false;
+      if (S.remote) return true;
+      S.remote = await window.Api.ping();
+      if (!S.remote) {
+        await new Promise((r) => setTimeout(r, 600));
+        S.remote = await window.Api.ping();
+      }
+      if (S.remote) {
+        try {
+          const cfg = await fetch('/api/config', { cache: 'no-store' }).then((r) => r.json());
+          if (cfg) this.config = Object.assign(this.config, cfg);
+        } catch {}
+      }
+      return S.remote;
+    },
+
     authed() {
       if (S.remote && window.Api) return !!window.Api.token();
       return !!S.session();
@@ -260,6 +281,10 @@
       // Detect backend. If present, use real auth + server-side state.
       if (window.Api) {
         S.remote = await window.Api.ping();
+        if (!S.remote) {
+          await new Promise((r) => setTimeout(r, 600));
+          S.remote = await window.Api.ping();
+        }
         if (S.remote) {
           try {
             const cfg = await fetch('/api/config').then(r => r.json());
@@ -481,6 +506,7 @@
         const email = document.getElementById('email').value;
         const pw = document.getElementById('pw').value;
         const btn = document.getElementById('signin');
+        await this.ensureRemote();
         if (S.remote && window.Api) {
           btn.disabled = true; btn.textContent = 'Signing in…';
           try {
@@ -488,6 +514,7 @@
             await S.hydrateFromServer();
             this.applyInviteSite();
             location.hash = 'home';
+            this.route = 'home';
             if (data.trial && data.trial.active) {
               toast('Signed in — ' + data.trial.daysLeft + ' days left on your free trial');
             } else {
@@ -519,9 +546,14 @@
             toast((e.message || 'Login failed') + '. Try Forgot password or Create account.', 'error');
             btn.disabled = false; btn.textContent = 'Sign in';
           }
+        } else if (this.isHostedApp()) {
+          toast('Could not reach Kiteline server — press Ctrl+F5 to reload, then try Owner again.', 'error');
         } else {
           S.login(email);
-          toast('Signed in (offline)'); this.render();
+          location.hash = 'home';
+          this.route = 'home';
+          toast('Signed in (offline)');
+          this.render();
         }
       };
     },

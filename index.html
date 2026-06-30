@@ -47,11 +47,26 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css?v=11" />
+  <link rel="stylesheet" href="/css/styles.css?v=12" />
 </head>
 <body class="bg-ink-100 text-ink-900 font-sans antialiased">
+  <noscript>
+    <div style="max-width:480px;margin:2rem auto;padding:1.5rem;font-family:system-ui,sans-serif;text-align:center">
+      <h1 style="color:#0f766e;font-size:1.5rem">Kiteline</h1>
+      <p>JavaScript is required to run the kitchen app. Please enable JavaScript in your browser.</p>
+      <p><a href="/" style="color:#0d9488;font-weight:bold">Back to kiteline.uk</a> &middot; <a href="mailto:contact@kiteline.uk" style="color:#0d9488">Contact support</a></p>
+    </div>
+  </noscript>
   <!-- App mounts here -->
-  <div id="root"></div>
+  <div id="root">
+    <div id="app-boot-fallback" class="min-h-screen flex items-center justify-center p-6" role="status" aria-live="polite">
+      <div class="text-center max-w-sm">
+        <p class="text-lg font-bold text-brand-700">Kiteline</p>
+        <p class="text-ink-500 mt-2 text-sm">Loading kitchen app&hellip;</p>
+        <p class="text-ink-400 mt-4 text-xs"><a href="/app#register" class="text-brand-600 font-semibold">Create account</a> &middot; <a href="/app" class="text-brand-600 font-semibold">Sign in</a></p>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast + modal layers -->
   <div id="toast-layer" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
@@ -85,7 +100,7 @@
 
   <!-- Scripts (classic, file:// friendly) -->
   <script src="/js/i18n.js?v=12"></script>
-  <script src="/js/api.js?v=17"></script>
+  <script src="/js/api.js?v=18"></script>
   <script src="/js/recipe-seeds.js?v=4"></script>
   <script src="/js/store.js?v=14"></script>
   <script src="/js/ui.js?v=12"></script>
@@ -97,7 +112,7 @@
   <script src="/js/register-form.js?v=6"></script>
   <script src="/js/views.js?v=22"></script>
   <script src="/js/compliance-views.js?v=3"></script>
-  <script src="/js/app.js?v=27"></script>
+  <script src="/js/app.js?v=29"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
