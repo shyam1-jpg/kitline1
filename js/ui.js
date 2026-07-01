@@ -164,5 +164,33 @@
     window.print();
   }
 
-  window.UI = { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv, printWithBodyClass };
+  /** Open a clean print window (avoids blank prints from modal/fixed overlays). */
+  function openPrintDocument(title, bodyHtml, opts) {
+    opts = opts || {};
+    const w = window.open('', '_blank');
+    if (!w) {
+      toast('Allow pop-ups to print', 'warn');
+      return null;
+    }
+    const origin = location.origin || '';
+    const build = (window.App && window.App.config && window.App.config.build) || 'print';
+    const safeBuild = String(build).replace(/[^a-zA-Z0-9._-]/g, '');
+    const cssHref = origin + '/css/styles.css?v=' + safeBuild;
+    const pageSize = opts.pageSize || 'A4 portrait';
+    const margin = opts.margin || '10mm 12mm';
+    const padding = opts.padding != null ? opts.padding : '12px';
+    const extraStyle = opts.extraStyle || '';
+    const autoPrint = opts.autoPrint !== false;
+    w.document.open();
+    w.document.write('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>' + escapeHtml(title) +
+      '</title><link rel="stylesheet" href="' + cssHref + '"><style>@page{size:' + pageSize + ';margin:' + margin + ';}' +
+      'body{margin:0;padding:' + padding + ';background:#fff;}.no-print{display:none!important;}' + extraStyle +
+      '</style></head><body>' + bodyHtml +
+      (autoPrint ? '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},600);});<\/script>' : '') +
+      '</body></html>');
+    w.document.close();
+    return w;
+  }
+
+  window.UI = { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv, printWithBodyClass, openPrintDocument };
 })();

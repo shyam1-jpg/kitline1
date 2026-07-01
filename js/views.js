@@ -4,7 +4,7 @@
    ============================================================ */
 (function () {
   const S = window.Store;
-  const { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv, printWithBodyClass } = window.UI;
+  const { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv, printWithBodyClass, openPrintDocument } = window.UI;
 
   const sensorStatus = (s) => (s.temp < s.min || s.temp > s.max) ? 'breach' : (s.temp > s.max - 0.5 || s.temp < s.min + 0.5) ? 'warn' : 'ok';
   const statusBadge = (st) => st==='breach' ? '<span class="badge badge-red">Breach</span>'
@@ -1578,6 +1578,46 @@
       <div style="font-size:10px;margin-top:5px;color:#64748b">Kiteline ? ${fmt.date(S.now())}</div>
     </div>`;
   }
+  function absolutizePrintImages(root) {
+    root.querySelectorAll('img').forEach(img => {
+      const src = img.getAttribute('src');
+      if (src && src.startsWith('/')) img.setAttribute('src', location.origin + src);
+    });
+  }
+
+  function printRecipeCardPopup() {
+    const card = document.getElementById('recipePrintCard');
+    if (!card) return toast('Open a recipe preview first', 'warn');
+    const clone = card.cloneNode(true);
+    clone.querySelectorAll('.no-print, .recipe-card__controls, .recipe-card__scale').forEach(el => el.remove());
+    clone.removeAttribute('id');
+    absolutizePrintImages(clone);
+    const title = (clone.querySelector('.recipe-card__title') && clone.querySelector('.recipe-card__title').textContent.trim()) || 'Kiteline recipe';
+    const opened = openPrintDocument(title, clone.outerHTML, {
+      extraStyle: '.recipe-print{max-width:100%;box-shadow:none;border-radius:0;padding:0;background:#fff}.recipe-card__shell{box-shadow:none;border-radius:0}.recipe-card__table tr{page-break-inside:avoid;break-inside:avoid}',
+    });
+    if (!opened) printWithBodyClass('print-recipe');
+  }
+
+  function printRecipeLabelPopup() {
+    const label = document.getElementById('recipeLabelPrint');
+    if (!label) return toast('Label not ready', 'warn');
+    const sz = (document.getElementById('recipeLabelSize') && document.getElementById('recipeLabelSize').value) || localStorage.getItem('kiteline.labelSize') || '62';
+    const clone = label.cloneNode(true);
+    clone.removeAttribute('id');
+    const pageSize = sz === '5030' ? '50mm 30mm' : sz === '62' ? '62mm auto' : 'A4 portrait';
+    const opened = openPrintDocument('Kiteline label', '<div style="display:flex;justify-content:center;padding:6mm 0">' + clone.outerHTML + '</div>', {
+      pageSize,
+      margin: '4mm',
+      padding: '0',
+      extraStyle: 'body{display:flex;justify-content:center}',
+    });
+    if (!opened) {
+      document.body.dataset.labelSize = sz;
+      printWithBodyClass('print-label');
+    }
+  }
+
   function printRecipeCard(r) {
     const curLabel = localStorage.getItem('kiteline.labelSize') || '62';
     const body = `${recipeCardPrintHtml(r, r.servings || 1)}
@@ -1595,7 +1635,7 @@
           <button class="btn btn-primary" id="doRecipePrint">${icon('print','ico')} Print recipe (A4)</button>
           <button class="btn btn-ghost" id="doRecipeLabelPrint">${icon('labels','ico')} Print label</button>
         </div>
-        <p class="text-xs text-ink-500 text-center max-w-lg">Recipe card ? office/A4 printer. Label ? Brother QL or thermal roll. Scale quantity first if needed.</p>
+        <p class="text-xs text-ink-500 text-center max-w-lg">Recipe card opens in a print window (allow pop-ups). Scale quantity first if needed.</p>
       </div>`;
     recipePreviewModal(r.name, body);
     const refreshLabel = () => {
@@ -1610,13 +1650,12 @@
     const szEl = document.getElementById('recipeLabelSize');
     if (szEl) szEl.onchange = () => { localStorage.setItem('kiteline.labelSize', szEl.value); refreshLabel(); };
     refreshLabel();
-    document.getElementById('doRecipePrint').onclick = () => printWithBodyClass('print-recipe');
+    document.getElementById('doRecipePrint').onclick = () => printRecipeCardPopup();
     document.getElementById('doRecipeLabelPrint').onclick = () => {
       const sz = document.getElementById('recipeLabelSize').value;
       localStorage.setItem('kiteline.labelSize', sz);
       refreshLabel();
-      document.body.dataset.labelSize = sz;
-      printWithBodyClass('print-label');
+      printRecipeLabelPopup();
     };
   }
   function resizeImage(file, cb) {

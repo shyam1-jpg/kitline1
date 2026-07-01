@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-07-01-recipe-print-fix';
+const APP_BUILD = '2026-07-01-recipe-popup-print';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
