@@ -141,6 +141,19 @@
     return `<span class="badge ${c}">${role}</span>`;
   };
 
+  function withTimeout(promise, ms, label) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error(label || 'Timed out'), { timedOut: true })), ms)),
+    ]);
+  }
+
+  function postLoginHash() {
+    const h = (location.hash || '').slice(1);
+    if (!h || h === 'register' || h === 'forgot-password' || h.startsWith('reset-password') || h.startsWith('verify-')) return 'home';
+    return h;
+  }
+
   const App = {
     route: (location.hash || '#home').slice(1),
     config: { demo: true, register: true },
@@ -301,7 +314,7 @@
       }
 
       if (window.Api) {
-        await this.ensureRemote();
+        await withTimeout(this.ensureRemote(), 12000, 'Server connection');
         if (window.Api.token()) {
           const authPath = this.authHashPath();
           if (authPath === 'register' || authPath === 'forgot-password' || authPath.startsWith('reset-password')) {
@@ -309,7 +322,7 @@
             return;
           }
           try {
-            const session = await window.Api.session();
+            const session = await withTimeout(window.Api.session(), 15000, 'Session');
             if (session && session.access === false) {
               window.Api.setToken(null);
               this.renderTrialExpired();
@@ -319,15 +332,24 @@
             if (session && session.user && session.user.lang && window.I18n) {
               window.I18n.setLang(session.user.lang);
             }
-            await S.hydrateFromServer();
+            await withTimeout(S.hydrateFromServer(), 20000, 'Workspace load');
             this.applyInviteSite();
             await this.maybeAiOAuth();
             this.render();
             return;
           } catch (e) {
             const authFail = e.status === 401 || (e.data && e.data.code === 'session_expired');
-            if (authFail) window.Api.setToken(null);
-            else console.error('Kiteline boot error:', e);
+            if (authFail) {
+              window.Api.setToken(null);
+              this.renderAuthScreen();
+              return;
+            }
+            if (e.timedOut || (e.message && /timed out/i.test(e.message))) {
+              console.warn('Kiteline boot slow — showing app with local data:', e.message);
+              try { this.render(); return; } catch (re) { console.error('Kiteline render error:', re); }
+            } else {
+              console.error('Kiteline boot error:', e);
+            }
             this.renderAuthScreen();
             return;
           }
@@ -496,7 +518,7 @@
                   <button class="btn btn-ghost btn-sm" data-demo="lena@kiteline.uk" data-pw="demo1234">Manager</button>
                   <button class="btn btn-ghost btn-sm" data-demo="james@kiteline.uk" data-pw="demo1234">Staff</button>
                 </div>
-                <a href="/app/owner-login" class="btn btn-primary w-full mt-3 text-center" style="display:block">One-click Owner sign-in</a>
+                <a href="/app/owner-login" data-owner-login class="btn btn-primary w-full mt-3 text-center" style="display:block">One-click Owner sign-in</a>
               </div>
               <p class="text-center text-ink-400 text-sm mt-4">Demo build — use One-click Owner if buttons fail.</p>` : ''}
               ${authLegalFooter()}
@@ -518,8 +540,8 @@
               const data = await window.Api.login(email, pw);
               await S.hydrateFromServer();
               App.applyInviteSite();
-              location.hash = 'home';
-              App.route = 'home';
+              location.hash = postLoginHash();
+              App.route = location.hash.slice(1) || 'home';
               toast('Signed in');
               if (data.trial) App.trial = data.trial;
               await App.maybeAiOAuth();
@@ -538,6 +560,11 @@
           doSignIn();
         });
         document.getElementById('signin').onclick = doSignIn;
+        const ownerLink = document.querySelector('[data-owner-login]');
+        if (ownerLink) {
+          const next = postLoginHash();
+          ownerLink.href = next === 'home' ? '/app/owner-login' : '/app/owner-login?next=' + encodeURIComponent(next);
+        }
       } else {
       document.getElementById('signin').onclick = async () => {
         const email = document.getElementById('email').value;
@@ -550,8 +577,8 @@
             const data = await window.Api.login(email, pw);
             await S.hydrateFromServer();
             this.applyInviteSite();
-            location.hash = 'home';
-            this.route = 'home';
+            location.hash = postLoginHash();
+            this.route = location.hash.slice(1) || 'home';
             if (data.trial && data.trial.active) {
               toast('Signed in — ' + data.trial.daysLeft + ' days left on your free trial');
             } else {
@@ -864,6 +891,9 @@
     /* ---------- APP SHELL ---------- */
     render() {
       if (!this.authed()) return this.renderAuthScreen();
+      try {
+      const hashRoute = (location.hash || '').slice(1);
+      if (hashRoute) this.route = hashRoute;
       const me = currentUser();
       let r = routeViewId(this.route);
       // route guard: bounce to home if this role can't access the route
@@ -873,7 +903,7 @@
       const view = (V[r] || V.home)();
       const navRoute = r;
       const site = S.site();
-      const openAlerts = S.db.alerts.filter(a => a.status==='open').length;
+      const openAlerts = (S.db.alerts || []).filter(a => a.status==='open').length;
 
       document.getElementById('root').innerHTML = `
         <div id="sidebarOverlay" class="sidebar-overlay"></div>
@@ -934,6 +964,22 @@
       if (pb) pb.onclick = () => this.openPalette();
       document.querySelectorAll('[data-nav]').forEach(el => el.onclick = () => { location.hash = el.dataset.nav; });
       if (view.mount) view.mount();
+      } catch (err) {
+        console.error('Kiteline render error:', err);
+        const msg = (err && err.message) ? escapeHtml(err.message) : 'Unknown error';
+        document.getElementById('root').innerHTML = `<div class="min-h-screen flex items-center justify-center p-6">
+          <div class="card card-pad max-w-md text-center">
+            <h2 class="text-xl font-bold text-red-600 mb-2">Could not load this page</h2>
+            <p class="text-sm text-ink-500 mb-4">${msg}</p>
+            <p class="flex flex-col gap-2">
+              <a href="/app#home" class="btn btn-primary">Go to Home</a>
+              <a href="/app#compliance" class="btn btn-ghost btn-sm">Kitchen Compliance overview</a>
+              <button type="button" class="btn btn-ghost btn-sm" id="renderRetry">Try again</button>
+            </p>
+          </div></div>`;
+        const retry = document.getElementById('renderRetry');
+        if (retry) retry.onclick = () => this.render();
+      }
     },
 
     /* ---------- COMMAND PALETTE (Ctrl/Cmd + K) ---------- */

@@ -13,20 +13,31 @@
   function email() { return localStorage.getItem(EMAIL_KEY) || ''; }
   function setEmail(e) { e ? localStorage.setItem(EMAIL_KEY, e) : localStorage.removeItem(EMAIL_KEY); }
 
-  async function req(method, route, body) {
-    const res = await fetch(BASE + '/api' + route, {
-      method,
-      headers: Object.assign({ 'Content-Type': 'application/json' },
-        token() ? { 'Authorization': 'Bearer ' + token() } : {}),
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    let data = null;
-    try { data = await res.json(); } catch {}
-    if (!res.ok) {
-      if (res.status === 401 && data && data.code === 'session_expired') setToken(null);
-      throw Object.assign(new Error((data && data.error) || res.statusText), { status: res.status, data });
+  async function req(method, route, body, timeoutMs) {
+    const ms = timeoutMs || 15000;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const res = await fetch(BASE + '/api' + route, {
+        method,
+        signal: ctrl.signal,
+        headers: Object.assign({ 'Content-Type': 'application/json' },
+          token() ? { 'Authorization': 'Bearer ' + token() } : {}),
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      let data = null;
+      try { data = await res.json(); } catch {}
+      if (!res.ok) {
+        if (res.status === 401 && data && data.code === 'session_expired') setToken(null);
+        throw Object.assign(new Error((data && data.error) || res.statusText), { status: res.status, data });
+      }
+      return data;
+    } catch (e) {
+      if (e && e.name === 'AbortError') throw Object.assign(new Error('Request timed out — check your connection'), { status: 0, timedOut: true });
+      throw e;
+    } finally {
+      clearTimeout(timer);
     }
-    return data;
   }
 
   const Api = {

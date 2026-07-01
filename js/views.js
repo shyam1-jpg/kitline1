@@ -4,7 +4,7 @@
    ============================================================ */
 (function () {
   const S = window.Store;
-  const { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv } = window.UI;
+  const { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv, printWithBodyClass } = window.UI;
 
   const sensorStatus = (s) => (s.temp < s.min || s.temp > s.max) ? 'breach' : (s.temp > s.max - 0.5 || s.temp < s.min + 0.5) ? 'warn' : 'ok';
   const statusBadge = (st) => st==='breach' ? '<span class="badge badge-red">Breach</span>'
@@ -1098,9 +1098,7 @@
         document.getElementById('doPrint').onclick = () => {
           localStorage.setItem('kiteline.labelSize', sz.value);
           document.body.dataset.labelSize = sz.value;
-          document.body.classList.add('print-label');
-          window.print();
-          setTimeout(() => document.body.classList.remove('print-label'), 500);
+          printWithBodyClass('print-label');
         };
       }
     }};
@@ -1589,7 +1587,7 @@
           <label class="label">Label printer roll</label>
           <select id="recipeLabelSize" class="select">
             <option value="62" ${curLabel==='62'?'selected':''}>62 mm ? Brother QL-800 / QL-810W</option>
-            <option value="5030" ${curLabel==='5030'?'selected':''}>50 ? 30 mm die-cut</option>
+            <option value="5030" ${curLabel==='5030'?'selected':''}>50?30 mm die-cut</option>
             <option value="a4" ${curLabel==='a4'?'selected':''}>A4 sheet</option>
           </select>
         </div>
@@ -1612,21 +1610,13 @@
     const szEl = document.getElementById('recipeLabelSize');
     if (szEl) szEl.onchange = () => { localStorage.setItem('kiteline.labelSize', szEl.value); refreshLabel(); };
     refreshLabel();
-    document.getElementById('doRecipePrint').onclick = () => {
-      document.body.classList.remove('print-label');
-      document.body.classList.add('print-recipe');
-      window.print();
-      setTimeout(() => document.body.classList.remove('print-recipe'), 500);
-    };
+    document.getElementById('doRecipePrint').onclick = () => printWithBodyClass('print-recipe');
     document.getElementById('doRecipeLabelPrint').onclick = () => {
       const sz = document.getElementById('recipeLabelSize').value;
       localStorage.setItem('kiteline.labelSize', sz);
       refreshLabel();
-      document.body.classList.remove('print-recipe');
-      document.body.classList.add('print-label');
       document.body.dataset.labelSize = sz;
-      window.print();
-      setTimeout(() => document.body.classList.remove('print-label'), 500);
+      printWithBodyClass('print-label');
     };
   }
   function resizeImage(file, cb) {

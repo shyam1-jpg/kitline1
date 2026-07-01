@@ -490,7 +490,7 @@ html, body { height: 100%; }
 
 @media print {
   .no-print { display:none !important; }
-  #modal-layer { position:static !important; background:none !important; height:auto !important; overflow:visible !important; }
+  #modal-layer { position:static !important; background:none !important; height:auto !important; overflow:visible !important; inset:auto !important; }
   #modal-layer > [data-close] { display:none !important; }
   .modal-card { box-shadow:none !important; border:none !important; max-width:none !important; padding:0 !important; }
   body.print-label #root,
@@ -498,7 +498,18 @@ html, body { height: 100%; }
   body.print-recipe #root,
   body.print-recipe #toast-layer { display:none !important; }
   body.print-label #modal-layer,
-  body.print-recipe #modal-layer { display:block !important; height:auto !important; overflow:visible !important; }
+  body.print-recipe #modal-layer,
+  body.print-label #modal-layer.hidden,
+  body.print-recipe #modal-layer.hidden {
+    display:block !important;
+    height:auto !important;
+    overflow:visible !important;
+  }
+  body.print-recipe #modal-layer.modal-layer--recipe,
+  body.print-label #modal-layer.modal-layer--recipe {
+    overflow:visible !important;
+    position:static !important;
+  }
   body { background:#fff; height:auto !important; }
   @page { size:A4 portrait; margin:10mm 12mm; }
 

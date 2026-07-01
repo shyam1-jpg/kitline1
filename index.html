@@ -47,7 +47,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css?v=12" />
+  <link rel="stylesheet" href="/css/styles.css?v=13" />
 </head>
 <body class="bg-ink-100 text-ink-900 font-sans antialiased">
   <noscript>
@@ -98,28 +98,48 @@
   })();
   </script>
 
+  <!-- Bust stale service-worker / app shell when build changes -->
+  <script>
+  (function () {
+    var build = '2026-07-01-recipe-print-fix';
+    try {
+      if (localStorage.getItem('kiteline.build') !== build) {
+        localStorage.setItem('kiteline.build', build);
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (r) { r.unregister(); });
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function (keys) { keys.forEach(function (k) { caches.delete(k); }); });
+        }
+      }
+    } catch (e) {}
+  })();
+  </script>
+
   <!-- Scripts (classic, file:// friendly) -->
   <script src="/js/i18n.js?v=12"></script>
-  <script src="/js/api.js?v=18"></script>
+  <script src="/js/api.js?v=19"></script>
   <script src="/js/recipe-seeds.js?v=4"></script>
   <script src="/js/store.js?v=14"></script>
-  <script src="/js/ui.js?v=12"></script>
+  <script src="/js/ui.js?v=13"></script>
   <script src="/js/security.js?v=1"></script>
   <script src="/js/compliance.js?v=3"></script>
   <script src="/js/recipe-nutrition.js?v=3"></script>
   <script src="/js/recipe-media.js?v=1"></script>
   <script src="/js/recipe-ai.js?v=2"></script>
   <script src="/js/register-form.js?v=6"></script>
-  <script src="/js/views.js?v=23"></script>
+  <script src="/js/views.js?v=24"></script>
   <script src="/js/compliance-views.js?v=3"></script>
-  <script src="/js/app.js?v=30"></script>
+  <script src="/js/app.js?v=31"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=36').catch(() => {});
+        navigator.serviceWorker.register('/sw.js?v=40').catch(() => {});
         navigator.serviceWorker.getRegistrations().then((regs) => {
           regs.forEach((r) => {
-            if (r.active && !String(r.active.scriptURL || '').includes('v=36')) r.unregister();
+            if (r.active && !String(r.active.scriptURL || '').includes('v=40')) r.unregister();
           });
         });
       });

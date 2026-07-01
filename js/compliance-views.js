@@ -34,6 +34,11 @@
     return window.App && window.App.currentUser ? window.App.currentUser() : { name: 'User', role: 'Staff', rank: 3 };
   }
 
+  function siteName(id) {
+    const s = S.site(id);
+    return (s && s.name) ? s.name : 'Kitchen';
+  }
+
   function sectionHeader(title, subtitle, actions) {
     return `<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
       <div><h1 class="text-2xl font-extrabold tracking-tight">${title}</h1>
@@ -336,7 +341,7 @@
 
   function renderAuditExport(site) {
     if (!C.canExport()) return deniedHtml();
-    const sName = S.site(site).name;
+    const sName = siteName(site);
     const counts = C.counts(site);
     const rows = Object.keys(C.emptyCompliance()).map(k => {
       const mod = C.MODULES.find(m => m.id === k);
@@ -373,7 +378,7 @@
     }
     const body = (RENDERERS[tab] || renderOverview)(site);
     const html = `
-      ${sectionHeader('Kitchen Compliance', 'SafeServe · Health &amp; Safety · FSMS · ' + escapeHtml(S.site(site).name), `
+      ${sectionHeader('Kitchen Compliance', 'SafeServe · Health &amp; Safety · FSMS · ' + escapeHtml(siteName(site)), `
         <a href="#temps" class="btn btn-ghost btn-sm">${icon('temp', 'ico')} Fridge temps</a>
         <a href="#alerts" class="btn btn-ghost btn-sm">${icon('alert', 'ico')} SMS alerts</a>
         <a href="#reports" class="btn btn-ghost btn-sm">${icon('reports', 'ico')} Reports</a>`)}
@@ -567,7 +572,7 @@
 
         const addHaccp = root.querySelector('[data-add="haccp"]');
         if (addHaccp) addHaccp.onclick = () => {
-          pushRecord('haccpPlans', { id: S.uid('hp'), ref: C.nextRef('KHACCP', 'haccpPlans'), site, title: 'Kitchen HACCP plan', version: '1.0', owner: currentUser().name, scope: S.site(site).name + ' — main kitchen', steps: C.HACCP_STEPS.map(s => Object.assign({}, s)), reviewDate: new Date(Date.now() + 90 * 864e5).toISOString().slice(0, 10), approvedBy: currentUser().name, at: S.now(), code: 'KHACCP', status: 'Draft' });
+            pushRecord('haccpPlans', { id: S.uid('hp'), ref: C.nextRef('KHACCP', 'haccpPlans'), site, title: 'Kitchen HACCP plan', version: '1.0', owner: currentUser().name, scope: siteName(site) + ' — main kitchen', steps: C.HACCP_STEPS.map(s => Object.assign({}, s)), reviewDate: new Date(Date.now() + 90 * 864e5).toISOString().slice(0, 10), approvedBy: currentUser().name, at: S.now(), code: 'KHACCP', status: 'Draft' });
           toast('HACCP plan created from template'); window.App.render();
         };
 

@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-06-30-views-fix';
+const APP_BUILD = '2026-07-01-recipe-print-fix';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -252,14 +252,15 @@ function completeEmailVerification(db, verifyToken, emailHint, ip) {
   };
 }
 
-function activateHtml(result) {
+function activateHtml(result, redirectHash) {
   if (!result.ok) {
     const msg = String(result.error || 'Activation failed').replace(/&/g, '&amp;').replace(/</g, '&lt;');
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Kiteline activation</title></head><body style="font-family:system-ui,sans-serif;padding:2rem;max-width:480px;margin:auto"><h1 style="color:#0f766e">Could not activate</h1><p>${msg}</p><p><a href="/app" style="color:#0d9488;font-weight:bold">Sign in</a> · <a href="/app#forgot-password" style="color:#0d9488">Forgot password</a></p></body></html>`;
   }
   const tokenJson = JSON.stringify(result.token);
   const emailJson = JSON.stringify((result.user && result.user.email) || '');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing in…</title></head><body style="font-family:system-ui,sans-serif;padding:3rem;text-align:center"><p>Signing you in to Kiteline…</p><script>localStorage.setItem('kiteline.token',${tokenJson});localStorage.setItem('kiteline.email',${emailJson});location.replace('/app#home');</script></body></html>`;
+  const hash = String(redirectHash || 'home').replace(/^#/, '').replace(/["'<>\\]/g, '') || 'home';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing in…</title></head><body style="font-family:system-ui,sans-serif;padding:3rem;text-align:center"><p>Signing you in to Kiteline…</p><script>localStorage.setItem('kiteline.token',${tokenJson});localStorage.setItem('kiteline.email',${emailJson});location.replace('/app#' + ${JSON.stringify(hash)});</script></body></html>`;
 }
 
 function userFromReq(db, req) {
@@ -547,7 +548,7 @@ function serveAppIndex(res) {
   }
 }
 
-function demoOwnerLoginHtml(db) {
+function demoOwnerLoginHtml(db, redirectHash) {
   const email = (process.env.OWNER_EMAIL || 'shyam_1@hotmail.co.uk').toLowerCase().trim();
   if (!db.users[email]) {
     db.users[email] = {
@@ -563,7 +564,7 @@ function demoOwnerLoginHtml(db) {
   billing.syncOrgAccess(db, email);
   const token = security.issueToken(db, email);
   writeDb(db);
-  return activateHtml({ ok: true, token, user: { email } });
+  return activateHtml({ ok: true, token, user: { email } }, redirectHash);
 }
 function isExistingFile(filePath) {
   try {
@@ -1392,7 +1393,8 @@ const server = http.createServer(async (req, res) => {
         return res.end();
       }
       const db = readDb();
-      const html = demoOwnerLoginHtml(db);
+      const next = (url.searchParams.get('next') || url.searchParams.get('hash') || '').replace(/^#/, '');
+      const html = demoOwnerLoginHtml(db, next || 'home');
       res.writeHead(200, security.securityHeaders({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }));
       return res.end(html);
     }

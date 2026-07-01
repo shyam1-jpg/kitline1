@@ -145,5 +145,24 @@
     setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
   }
 
-  window.UI = { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv };
+  /** Keep print CSS active until the browser finishes printing (not a fixed 500ms timeout). */
+  function printWithBodyClass(modeClass) {
+    const other = modeClass === 'print-recipe' ? 'print-label' : 'print-recipe';
+    document.body.classList.remove(other);
+    document.body.classList.add(modeClass);
+    const layer = document.getElementById('modal-layer');
+    if (layer) layer.classList.remove('hidden');
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      document.body.classList.remove(modeClass);
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    setTimeout(cleanup, 120000);
+    window.print();
+  }
+
+  window.UI = { icon, toast, modal, recipePreviewModal, closeModal, fmt, escapeHtml, downloadCsv, printWithBodyClass };
 })();

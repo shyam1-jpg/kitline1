@@ -526,6 +526,9 @@
     }
     if (!db.allergens) db.allergens = s.allergens;
     if (!db.currentSite) db.currentSite = s.currentSite;
+    if (Array.isArray(db.sites) && db.sites.length && !db.sites.some(x => x.id === db.currentSite)) {
+      db.currentSite = db.sites[0].id;
+    }
     // Only upgrade to full demo datasets for the owner demo tenant — never for private workspaces
     if (!isPrivate) {
       if ((db.sites || []).length < 10) db.sites = s.sites;
