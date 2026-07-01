@@ -47,7 +47,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css?v=13" />
+  <link rel="stylesheet" href="/css/styles.css?v=14" />
 </head>
 <body class="bg-ink-100 text-ink-900 font-sans antialiased">
   <noscript>
@@ -101,7 +101,7 @@
   <!-- Bust stale service-worker / app shell when build changes -->
   <script>
   (function () {
-    var build = '2026-07-01-recipe-popup-print';
+    var build = '2026-07-01-compliance-print';
     try {
       if (localStorage.getItem('kiteline.build') !== build) {
         localStorage.setItem('kiteline.build', build);
@@ -131,15 +131,15 @@
   <script src="/js/recipe-ai.js?v=2"></script>
   <script src="/js/register-form.js?v=6"></script>
   <script src="/js/views.js?v=25"></script>
-  <script src="/js/compliance-views.js?v=3"></script>
+  <script src="/js/compliance-views.js?v=4"></script>
   <script src="/js/app.js?v=31"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=41').catch(() => {});
+        navigator.serviceWorker.register('/sw.js?v=42').catch(() => {});
         navigator.serviceWorker.getRegistrations().then((regs) => {
           regs.forEach((r) => {
-            if (r.active && !String(r.active.scriptURL || '').includes('v=41')) r.unregister();
+            if (r.active && !String(r.active.scriptURL || '').includes('v=42')) r.unregister();
           });
         });
       });

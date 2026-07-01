@@ -4,7 +4,7 @@
 (function () {
   const S = window.Store;
   const C = window.Compliance;
-  const { icon, toast, modal, closeModal, fmt, escapeHtml } = window.UI;
+  const { icon, toast, modal, closeModal, fmt, escapeHtml, openPrintDocument } = window.UI;
 
   const MODULE_TEMPLATES = {
     hsChecks: 'Daily / weekly H&S walkthrough — areas checked, findings, corrective action, manager sign-off. Code: KHS.',
@@ -135,15 +135,53 @@
     if (S.logActivity) S.logActivity((S.db.team[0] && S.db.team[0].id) || 'u_sarah', 'Compliance: ' + (rec.ref || key));
   }
 
+  function compliancePrintExtraCss() {
+    return 'body{font-family:system-ui,sans-serif;color:#0f172a;font-size:13px;line-height:1.5}' +
+      'h1{font-size:22px;margin:0 0 8px;color:#0f766e;font-weight:800}' +
+      '.meta{color:#64748b;font-size:12px;margin-bottom:16px}' +
+      'table{width:100%;border-collapse:collapse;margin:12px 0}' +
+      'td,th{border:1px solid #e2e8f0;padding:8px;text-align:left;vertical-align:top;font-size:13px}' +
+      'th{background:#ecfdf5;color:#0f766e;font-weight:700}' +
+      '.card{border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:12px;page-break-inside:avoid}' +
+      '.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#dbeafe;color:#1e40af}' +
+      '.grid{display:block}.grid>*{margin-bottom:12px}' +
+      '.compliance-print-brand{display:flex;align-items:center;gap:8px;margin-bottom:12px;color:#0f766e;font-weight:800;font-size:18px}';
+  }
+
+  function printComplianceHtml(title, innerHtml) {
+    const body = '<div class="compliance-print-doc">' +
+      '<div class="compliance-print-brand"><img src="' + location.origin + '/kiteline-logo.png?v=mark3" alt="" width="32" height="32"> Kiteline</div>' +
+      '<h1>' + escapeHtml(title) + '</h1>' +
+      '<p class="meta">' + escapeHtml(siteName(S.db.currentSite)) + ' · ' + fmt.date(S.now()) + '</p>' +
+      innerHtml +
+      '<p class="meta" style="margin-top:20px">Kiteline Kitchen Compliance</p></div>';
+    const opened = openPrintDocument(title, body, { extraStyle: compliancePrintExtraCss() });
+    if (!opened) toast('Allow pop-ups to print', 'warn');
+  }
+
+  function printCompliancePage() {
+    const view = document.getElementById('view');
+    if (!view) return toast('Nothing to print', 'warn');
+    const clone = view.cloneNode(true);
+    clone.querySelectorAll('button, [data-add], [data-view-record], [data-close-acc], [data-view-haccp], [data-seed-fsms], [data-export-zip], [data-export-json], [data-print-audit], [data-csv-mod], #compliancePrintPage').forEach(el => el.remove());
+    clone.querySelectorAll('.flex.flex-wrap.gap-1.mb-5').forEach(el => el.remove());
+    const tab = activeTab();
+    const mod = C.MODULES.find(m => m.id === tab);
+    const title = 'Kitchen Compliance — ' + (mod ? mod.label : 'Overview');
+    printComplianceHtml(title, clone.innerHTML);
+  }
+
   function showRecordModal(key, rec) {
     const skip = { id: 1, site: 1, steps: 1 };
     const rows = Object.keys(rec).filter(k => !skip[k] && typeof rec[k] !== 'object').map(k =>
       `<tr><td class="text-xs font-semibold text-ink-500 pr-4 py-1">${escapeHtml(k)}</td><td class="text-sm py-1">${escapeHtml(String(rec[k]))}</td></tr>`
     ).join('');
-    modal((rec.ref || 'Record') + (rec.code ? ' · ' + rec.code : ''), `
-      <table class="w-full text-left">${rows}</table>
-      ${rec.steps ? `<p class="text-xs text-ink-400 mt-3">${rec.steps.length} HACCP step(s) — use Full plan to view table.</p>` : ''}
-      <button class="btn btn-ghost btn-sm w-full mt-3" onclick="window.print()">${icon('print', 'ico')} Print record</button>`, { wide: true });
+    const title = (rec.ref || 'Record') + (rec.code ? ' · ' + rec.code : '');
+    const tableHtml = `<table class="w-full text-left">${rows}</table>` +
+      (rec.steps ? `<p class="text-xs text-ink-400 mt-3">${rec.steps.length} HACCP step(s) — use Full plan to view table.</p>` : '');
+    modal(title, tableHtml + `<button type="button" class="btn btn-ghost btn-sm w-full mt-3" id="printComplianceRecord">${icon('print', 'ico')} Print record</button>`, { wide: true });
+    const printBtn = document.getElementById('printComplianceRecord');
+    if (printBtn) printBtn.onclick = () => printComplianceHtml(title, tableHtml);
   }
 
   function listCard(key, r, bodyHtml, actions) {
@@ -379,6 +417,7 @@
     const body = (RENDERERS[tab] || renderOverview)(site);
     const html = `
       ${sectionHeader('Kitchen Compliance', 'SafeServe · Health &amp; Safety · FSMS · ' + escapeHtml(siteName(site)), `
+        <button type="button" class="btn btn-ghost btn-sm" id="compliancePrintPage">${icon('print', 'ico')} Print</button>
         <a href="#temps" class="btn btn-ghost btn-sm">${icon('temp', 'ico')} Fridge temps</a>
         <a href="#alerts" class="btn btn-ghost btn-sm">${icon('alert', 'ico')} SMS alerts</a>
         <a href="#reports" class="btn btn-ghost btn-sm">${icon('reports', 'ico')} Reports</a>`)}
@@ -390,6 +429,9 @@
       mount() {
         const root = document.getElementById('view');
         if (!root) return;
+
+        const printPageBtn = root.querySelector('#compliancePrintPage');
+        if (printPageBtn) printPageBtn.onclick = () => printCompliancePage();
 
         root.querySelectorAll('[data-view-record]').forEach(btn => {
           btn.onclick = () => {
@@ -616,7 +658,7 @@
           C.exportAuditZip(site).then(() => toast('Audit ZIP downloaded')).catch(e => toast(e.message || 'Export failed', 'error')).finally(() => { zipBtn.disabled = false; });
         };
         root.querySelector('[data-export-json]') && (root.querySelector('[data-export-json]').onclick = () => C.exportAuditZip(site).then(() => toast('Audit pack downloaded')));
-        root.querySelector('[data-print-audit]') && (root.querySelector('[data-print-audit]').onclick = () => window.print());
+        root.querySelector('[data-print-audit]') && (root.querySelector('[data-print-audit]').onclick = () => printCompliancePage());
         root.querySelectorAll('[data-csv-mod]').forEach(b => { b.onclick = () => { C.exportModuleCsv(b.dataset.csvMod, site); toast('CSV exported'); }; });
       },
     };

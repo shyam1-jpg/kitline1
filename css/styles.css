@@ -575,4 +575,23 @@ html, body { height: 100%; }
     padding:8mm 0;
   }
   body.print-label #recipePrintCard { display:none !important; }
+
+  /* App pages — Ctrl+P prints main content, not blank sidebar */
+  #sidebar,
+  #sidebarOverlay,
+  .sidebar,
+  header,
+  .mobile-nav-btn,
+  #toast-layer { display:none !important; }
+  .app-shell { display:block !important; }
+  main, #view {
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+  #view .card { page-break-inside:avoid; break-inside:avoid; }
+  #view button { display:none !important; }
+  #view a.btn { display:none !important; }
 }
