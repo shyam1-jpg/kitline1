@@ -931,6 +931,7 @@
     </div>`).join('');
     const html = `
       ${sectionHeader('MenuGuard ? Allergen Menus','Digital allergen menus with QR codes, 14 statutory allergens, multi-language', `
+        <a class="btn btn-ghost btn-sm" href="/menu-creator/" target="_blank" rel="noopener">${icon('recipe','ico')} Menu Creator</a>
         <button class="btn btn-primary btn-sm" data-act="newmenu">${icon('plus','ico')} New menu</button>`)}
       <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">${cards}</div>`;
     return { title:'MenuGuard', html, mount() {
@@ -2462,12 +2463,18 @@
       {l:'Sites',route:'sites',i:'sites',c:'#16a34a'},
       {l:'Team',route:'team',i:'team',c:'#db2777'},
       {l:'Recipes',route:'recipes',i:'recipe',c:'#ca8a04'},
+      {l:'Menu Creator',href:'/menu-creator/',i:'recipe',c:'#2f6b4f'},
       {l:'Food Cost',route:'foodcost',i:'coin',c:'#16a34a'},
       {l:'Reports',route:'reports',i:'reports',c:'#4f46e5'},
       {l:'Manual',route:'manual',i:'help',c:'#0891b2'},
       {l:'Settings',route:'settings',i:'settings',c:'#64748b'},
     ];
-    const quick = apps.map(q=>`<button class="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-ink-50 transition-colors" data-go="${q.route}">
+    const quick = apps.map(q=> q.href
+      ? `<a class="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-ink-50 transition-colors" href="${q.href}" target="_blank" rel="noopener">
+      <span class="w-12 h-12 rounded-2xl flex items-center justify-center flex-none" style="background:${q.c}14;color:${q.c}">${icon(q.i,'w-6 h-6')}</span>
+      <span class="text-xs font-medium text-center text-ink-600 leading-tight">${q.l}</span>
+    </a>`
+      : `<button class="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-ink-50 transition-colors" data-go="${q.route}">
       <span class="w-12 h-12 rounded-2xl flex items-center justify-center flex-none" style="background:${q.c}14;color:${q.c}">${icon(q.i,'w-6 h-6')}</span>
       <span class="text-xs font-medium text-center text-ink-600 leading-tight">${q.l}</span>
     </button>`).join('');

@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-07-01-compliance-print';
+const APP_BUILD = '2026-07-01-menu-creator';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -520,7 +520,7 @@ function serveFile(res, filePath, opts) {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
       headers['Cache-Control'] = 'public, max-age=86400';
-    } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy')) && (ext === '.html' || ext === '.js')) {
+    } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy') || filePath.includes('menu-creator')) && (ext === '.html' || ext === '.js')) {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     } else if (ext === '.html' || ext === '.js' || ext === '.css') {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
@@ -1412,6 +1412,23 @@ const server = http.createServer(async (req, res) => {
     // Vedanta Ordering System (PWA under site/vedanta-ordering/)
     if (url.pathname === '/vedanta-ordering' || url.pathname === '/vedanta-ordering/') {
       return serveFile(res, path.join(ROOT, 'site', 'vedanta-ordering', 'index.html'));
+    }
+
+    // Menu Creator (printable menus PWA under site/menu-creator/)
+    if (url.pathname === '/menu-creator' || url.pathname === '/menu-creator/') {
+      return serveFile(res, path.join(ROOT, 'site', 'menu-creator', 'index.html'));
+    }
+    if (url.pathname === '/menu-creator/service-worker.js') {
+      res.writeHead(200, security.securityHeaders({
+        'Content-Type': 'text/javascript',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Service-Worker-Allowed': '/menu-creator/',
+      }));
+      try {
+        return res.end(fs.readFileSync(path.join(ROOT, 'site', 'menu-creator', 'service-worker.js')));
+      } catch {
+        return send(res, 404, { error: 'Not found' }, null, req);
+      }
     }
 
     // Kitline Academy (static site under site/academy/)
