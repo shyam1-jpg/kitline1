@@ -78,8 +78,8 @@
     };
   }
 
-  const SAMPLE_SITES = ['site_grove', 'site_dock', 'site_quay', 'site_vedanta'];
-    const SAMPLE_VERSION = 3;
+  const SAMPLE_SITES = ['site_grove', 'site_dock', 'site_quay', 'site_vedanta', 'site_govindas'];
+    const SAMPLE_VERSION = 4;
 
   function siteSuffix(siteId) {
     return String(siteId || 'site').replace('site_', '');

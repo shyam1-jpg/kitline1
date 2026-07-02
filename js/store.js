@@ -131,7 +131,8 @@
       { id:'site_academy', name:'Culinary Academy Kitchen', city:'Edinburgh', timezone:'Europe/London', address:'12 Lauriston Place', postcode:'EH3 9DF', country:'UK', type:'Education', covers:40, rating:5, manager:'Ewan Fraser', phone:'+44 131 555 0155', email:'academy@kiteline.uk', opened:'2017', lastInspection:daysAgo(75).slice(0,10), status:'Active' },
       { id:'site_marina', name:'Marina Fish & Grill', city:'Brighton', timezone:'Europe/London', address:'27 Madeira Drive', postcode:'BN2 1EN', country:'UK', type:'Seafood', covers:70, rating:4, manager:'Nina Kostova', phone:'+44 1273 555 0122', email:'marina@kiteline.uk', opened:'2019', lastInspection:daysAgo(33).slice(0,10), status:'Seasonal' },
       { id:'site_heathrow', name:'Terminal 3 Food Court', city:'Hounslow', timezone:'Europe/London', address:'Heathrow T3, Inner Ring E', postcode:'TW6 1QG', country:'UK', type:'Food Court', covers:220, rating:5, manager:'Raj Patel', phone:'+44 20 555 0199', email:'t3@kiteline.uk', opened:'2014', lastInspection:daysAgo(18).slice(0,10), status:'Active' },
-      { id:'site_vedanta', name:'Riverside Kitchen', legalName:'Riverside Foods Ltd', city:'London', timezone:'Europe/London', address:'12 Riverside Walk', postcode:'—', country:'UK', type:'Kitchen', covers:80, rating:5, manager:'Shyam Prasad', phone:'', email:'shyam_1@hotmail.co.uk', opened:'2024', lastInspection:daysAgo(10).slice(0,10), status:'Active' },
+      { id:'site_vedanta', name:'The Ve Kitchen One', legalName:'The Vedanta Way Limited', city:'London', timezone:'Europe/London', address:'The Ve Outlet One — Vedanta Campus', postcode:'WD25 8HE', country:'UK', type:'School & Events Catering', covers:520, rating:5, manager:'Shyam Prasad', phone:'', email:'shyam_1@hotmail.co.uk', opened:'2018', lastInspection:daysAgo(10).slice(0,10), status:'Active', pilot:true, tags:['vedanta','school-meals'] },
+      { id:'site_govindas', name:'Govindas Central Kitchen', legalName:'Govindas Ltd', city:'London', timezone:'Europe/London', address:'Bhaktivedanta Manor — School Meals Unit', postcode:'WD25 8HE', country:'UK', type:'Vegetarian School Catering', covers:1200, rating:5, manager:'Anita Sharma', phone:'+44 1923 851000', email:'kitchen@govindas.demo', opened:'2010', lastInspection:daysAgo(14).slice(0,10), status:'Active', pilot:true, tags:['govindas','vegetarian','school-meals'] },
       { id:'site_regent', name:'The Regent Hotel', city:'London', timezone:'Europe/London', address:'88 Regent Street', postcode:'W1B 5RS', country:'UK', type:'Hotel', covers:200, rating:5, manager:'Helen Croft', phone:'+44 20 7123 4600', email:'regent@kiteline.uk', opened:'2012', lastInspection:daysAgo(35).slice(0,10), status:'Active' },
       { id:'site_manor', name:'Manor Park Hotel', city:'Edinburgh', timezone:'Europe/London', address:'12 Manor Park Gardens', postcode:'EH12 5BF', country:'UK', type:'Hotel', covers:140, rating:4, manager:'Gordon Reid', phone:'+44 131 555 0201', email:'manor@kiteline.uk', opened:'2015', lastInspection:daysAgo(50).slice(0,10), status:'Active' },
       { id:'site_coastal', name:'Coastal Bay Hotel', city:'Brighton', timezone:'Europe/London', address:'5 Seafront Parade', postcode:'BN1 2FJ', country:'UK', type:'Hotel', covers:110, rating:5, manager:'Kate Morrison', phone:'+44 1273 555 0210', email:'coastal@kiteline.uk', opened:'2018', lastInspection:daysAgo(22).slice(0,10), status:'Active' },
@@ -139,7 +140,15 @@
     ];
 
     const team = [
-      { id:'u_shyam', name:'Shyam Prasad', role:'Owner', email:'shyam_1@hotmail.co.uk', phone:'', siteId:'site_vedanta', initials:'SP', access:'Admin' },
+      { id:'u_shyam', name:'Shyam Prasad', role:'Owner & Director', email:'shyam_1@hotmail.co.uk', phone:'', siteId:'site_vedanta', initials:'SP', access:'Admin', clockPin:'1001' },
+      { id:'u_ved_chef', name:'Priya Mehta', role:'Head Chef', email:'chef@vedantaway.demo', phone:'+44 7700 900101', siteId:'site_vedanta', initials:'PM', access:'Manager', clockPin:'1111' },
+      { id:'u_ved_sous', name:'James Okafor', role:'Sous Chef', email:'sous@vedantaway.demo', phone:'+44 7700 900102', siteId:'site_vedanta', initials:'JO', access:'Staff', clockPin:'2222' },
+      { id:'u_ved_kp', name:'Marco Rossi', role:'Kitchen Porter', email:'kp@vedantaway.demo', phone:'+44 7700 900103', siteId:'site_vedanta', initials:'MR', access:'Staff', clockPin:'3333' },
+      { id:'u_ved_comp', name:'Amy Chen', role:'Compliance Lead', email:'compliance@vedantaway.demo', phone:'+44 7700 900104', siteId:'site_vedanta', initials:'AC', access:'Manager', clockPin:'4444' },
+      { id:'u_gov_mgr', name:'Anita Sharma', role:'Operations Director', email:'anita@govindas.demo', phone:'+44 7700 900201', siteId:'site_govindas', initials:'AS', access:'Admin', clockPin:'5555' },
+      { id:'u_gov_chef', name:'Ravi Patel', role:'Head Chef', email:'ravi@govindas.demo', phone:'+44 7700 900202', siteId:'site_govindas', initials:'RP', access:'Manager', clockPin:'6666' },
+      { id:'u_gov_prep', name:'Lena Park', role:'Prep Lead', email:'prep@govindas.demo', phone:'+44 7700 900203', siteId:'site_govindas', initials:'LP', access:'Staff', clockPin:'7777' },
+      { id:'u_gov_kp', name:'Tom Hughes', role:'Kitchen Porter', email:'kp@govindas.demo', phone:'+44 7700 900204', siteId:'site_govindas', initials:'TH', access:'Staff', clockPin:'8888' },
       { id:'u_sarah', name:'Sarah Mitchell', role:'Head Chef', email:'sarah@kiteline.uk', siteId:'site_grove', initials:'SM', access:'Admin' },
       { id:'u_james', name:'James Okafor', role:'Sous Chef', email:'james@kiteline.uk', siteId:'site_grove', initials:'JO', access:'Staff' },
       { id:'u_lena', name:'Lena Park', role:'Kitchen Manager', email:'lena@kiteline.uk', siteId:'site_dock', initials:'LP', access:'Manager' },
@@ -202,10 +211,15 @@
       mk('s20','Fish Display','fridge', 2, 0, 4, 'site_marina', 2.8, { location:'Front counter', zone:'Fresh fish', standard:'0–4°C fresh fish display' }),
       mk('s21','T3 Unit 4 — Hot Hold','hot', 70, 63, 90, 'site_heathrow', 68.4, { location:'Unit 4', zone:'Hot hold', notes:'Below 63°C — corrective action logged' }),
       mk('s22','T3 Unit 7 — Fridge','fridge', 4, 1, 5, 'site_heathrow', 4.0, { location:'Unit 7', zone:'Prep' }),
-      mk('s23','Walk-in Fridge — Riverside','fridge', 4, 1, 5, 'site_vedanta', 3.4, { location:'Riverside Kitchen', zone:'Main cold store', notes:'Primary fridge' }),
-      mk('s24','Prep Fridge — Riverside','fridge', 4, 1, 5, 'site_vedanta', 4.0, { location:'Prep line', zone:'Daily prep' }),
-      mk('s25','Freezer — Riverside','freezer', -18, -22, -16, 'site_vedanta', -18.2, { location:'Cold store', zone:'Frozen' }),
-      mk('s26','Hot Hold — Riverside','hot', 70, 63, 90, 'site_vedanta', 72.5, { location:'Service', zone:'Hot hold' }),
+      mk('s_v1','The Ve Fridge 1','fridge', 4, 1, 5, 'site_vedanta', 3.2, { location:'Main prep', zone:'Chilled', notes:'Primary chilled store' }),
+      mk('s_v2','The Ve Fridge 2','fridge', 4, 1, 5, 'site_vedanta', 4.1, { location:'Salad bar', zone:'Produce' }),
+      mk('s_v3','The Ve Freezer 1','freezer', -18, -22, -16, 'site_vedanta', -18.4, { location:'Cold store', zone:'Frozen' }),
+      mk('s_v4','The Ve Hot Hold','hot', 70, 63, 90, 'site_vedanta', 71.2, { location:'Service line', zone:'Hot hold' }),
+      mk('s_v5','The Ve Blast Chiller','fridge', 3, 0, 5, 'site_vedanta', 2.6, { location:'Prep', zone:'Cooling CCP' }),
+      mk('s_g1','Govindas Walk-in Fridge','fridge', 4, 1, 5, 'site_govindas', 3.5, { location:'Central kitchen', zone:'Chilled' }),
+      mk('s_g2','Govindas Prep Fridge','fridge', 4, 1, 5, 'site_govindas', 3.9, { location:'Vegetable prep', zone:'Produce' }),
+      mk('s_g3','Govindas Freezer','freezer', -18, -22, -16, 'site_govindas', -19.0, { location:'Stores', zone:'Frozen' }),
+      mk('s_g4','Govindas Hot Hold','hot', 70, 63, 90, 'site_govindas', 73.1, { location:'Dispatch', zone:'Hot hold' }),
       mk('s27','Regent Main Fridge','fridge', 4, 1, 5, 'site_regent', 3.6, { location:'Hotel kitchen', zone:'Main fridge' }),
       mk('s28','Manor Park Freezer','freezer', -18, -22, -16, 'site_manor', -17.8, { location:'Basement', zone:'Frozen' }),
       mk('s29','Coastal Bay Fridge','fridge', 4, 1, 5, 'site_coastal', 3.9, { location:'Seafront kitchen', zone:'Prep' }),
@@ -504,9 +518,153 @@
       sites, team, sensors, checklists, records, alerts, menus, labels, waste, recipes, activity, workflows,
       suppliers, training, incidents, maintenance, deliveries,
       assets, batches, cooling, phlogs, holding,
+      rotaShifts: [], clockSessions: [], attendanceLog: [],
       allergens: ALLERGENS,
       currentSite: 'site_grove',
     };
+  }
+
+  // Pilot kitchens — Vedanta & Govindas full feature packs for market testing
+  const PILOT_PACK_VERSION = 2;
+  const PILOT_SITE_IDS = ['site_vedanta', 'site_govindas'];
+  let _pilotSeedDefs = null;
+  function pilotSeedDefs() {
+    if (!_pilotSeedDefs) {
+      const s = seed();
+      _pilotSeedDefs = {
+        sites: s.sites.filter((x) => PILOT_SITE_IDS.includes(x.id)),
+        team: s.team.filter((t) => PILOT_SITE_IDS.includes(t.siteId)),
+        sensors: s.sensors.filter((sen) => PILOT_SITE_IDS.includes(sen.siteId)),
+      };
+    }
+    return _pilotSeedDefs;
+  }
+  const PILOT_SITES = [
+    {
+      id: 'site_vedanta',
+      assigneeMap: { u_sarah: 'u_ved_chef', u_james: 'u_ved_sous', u_marco: 'u_ved_kp', u_amy: 'u_ved_comp' },
+      links: [{ label: 'Vedanta Rota', href: '/vedanta-rota/' }, { label: 'Vedanta Ordering', href: '/vedanta-ordering/' }, { label: 'Menu Creator', href: '/menu-creator/' }],
+    },
+    {
+      id: 'site_govindas',
+      assigneeMap: { u_sarah: 'u_gov_chef', u_james: 'u_gov_prep', u_marco: 'u_gov_kp', u_lena: 'u_gov_prep' },
+      links: [{ label: 'Menu Creator', href: '/menu-creator/' }],
+    },
+  ];
+  const PILOT_CLONE_KEYS = [
+    { key: 'checklists', siteKey: 'site' }, { key: 'records', siteKey: 'site' }, { key: 'alerts', siteKey: 'site' },
+    { key: 'menus', siteKey: 'site' }, { key: 'labels', siteKey: 'site' }, { key: 'waste', siteKey: 'site' },
+    { key: 'assets', siteKey: 'site' }, { key: 'batches', siteKey: 'site' }, { key: 'cooling', siteKey: 'site' },
+    { key: 'phlogs', siteKey: 'site' }, { key: 'holding', siteKey: 'site' }, { key: 'deliveries', siteKey: 'site' },
+    { key: 'incidents', siteKey: 'site' }, { key: 'maintenance', siteKey: 'site' }, { key: 'workflows', siteKey: 'site' },
+  ];
+
+  function pilotRemapPerson(row, map) {
+    ['assignee', 'by', 'person', 'reportedBy'].forEach((f) => { if (row[f] && map[row[f]]) row[f] = map[row[f]]; });
+  }
+
+  function pilotSiteScore(db, siteId) {
+    let n = 0;
+    PILOT_CLONE_KEYS.forEach(({ key, siteKey }) => { n += (db[key] || []).filter((r) => r[siteKey] === siteId).length; });
+    n += (db.recipes || []).filter((r) => r.site === siteId).length;
+    return n;
+  }
+
+  function clonePilotRows(db, fromSite, pilot, minCount) {
+    const toSite = pilot.id;
+    const map = pilot.assigneeMap || {};
+    PILOT_CLONE_KEYS.forEach(({ key, siteKey }) => {
+      if (!Array.isArray(db[key])) db[key] = [];
+      if (db[key].filter((r) => r[siteKey] === toSite).length >= minCount) return;
+      db[key].filter((r) => r[siteKey] === fromSite).forEach((row) => {
+        const c = JSON.parse(JSON.stringify(row));
+        c.id = uid(key.slice(0, 2) || 'p');
+        c[siteKey] = toSite;
+        pilotRemapPerson(c, map);
+        db[key].push(c);
+      });
+    });
+  }
+
+  function clonePilotRecipes(db, fromSite, toSite, min) {
+    if (!Array.isArray(db.recipes)) return;
+    if (db.recipes.filter((r) => r.site === toSite).length >= min) return;
+    db.recipes.filter((r) => r.site === fromSite).forEach((r) => {
+      const c = JSON.parse(JSON.stringify(r));
+      c.id = uid('r');
+      c.site = toSite;
+      db.recipes.push(c);
+    });
+  }
+
+  function upsertPilotMeta(db) {
+    const defs = pilotSeedDefs();
+    db.sites = db.sites || [];
+    defs.sites.forEach((site) => {
+      const idx = db.sites.findIndex((s) => s.id === site.id);
+      const copy = JSON.parse(JSON.stringify(site));
+      if (idx >= 0) Object.assign(db.sites[idx], copy);
+      else db.sites.push(copy);
+    });
+    db.team = db.team || [];
+    defs.team.forEach((member) => {
+      const ex = db.team.find((t) => t.id === member.id);
+      const copy = JSON.parse(JSON.stringify(member));
+      if (ex) Object.assign(ex, copy);
+      else db.team.push(copy);
+    });
+    const shyam = db.team.find((t) => (t.email || '').toLowerCase() === 'shyam_1@hotmail.co.uk');
+    if (shyam) {
+      shyam.siteId = 'site_vedanta';
+      shyam.role = 'Owner & Director';
+      shyam.access = 'Admin';
+      if (!shyam.clockPin) shyam.clockPin = '1001';
+    }
+    db.sensors = (db.sensors || []).filter((s) => !['s23', 's24', 's25', 's26'].includes(s.id));
+    defs.sensors.forEach((sensor) => {
+      const ex = db.sensors.find((s) => s.id === sensor.id);
+      const copy = JSON.parse(JSON.stringify(sensor));
+      if (ex) Object.assign(ex, copy);
+      else db.sensors.push(copy);
+    });
+  }
+
+  function ensurePilots(db) {
+    if (!db || db._tenantPrivate || db._isPrivate) return db;
+    const from = 'site_grove';
+    upsertPilotMeta(db);
+    PILOT_SITES.forEach((pilot) => {
+      if (pilotSiteScore(db, pilot.id) < 40) {
+        clonePilotRows(db, from, pilot, 5);
+        clonePilotRecipes(db, from, pilot.id, 30);
+      }
+      if (window.Compliance && window.Compliance.ensureSiteModuleSamples) window.Compliance.ensureSiteModuleSamples(db, pilot.id);
+      if (window.Rota && window.Rota.seedRotaForSite && !(db.rotaShifts || []).some((s) => s.site === pilot.id)) {
+        window.Rota.seedRotaForSite(db, pilot.id);
+      }
+    });
+    db._pilotPackVersion = PILOT_PACK_VERSION;
+    db._pilotSites = PILOT_SITES.map((p) => p.id);
+    return db;
+  }
+
+  function pilotBannerHtml(siteId) {
+    const pilot = PILOT_SITES.find((p) => p.id === siteId);
+    if (!pilot) return '';
+    const site = (Store.db.sites || []).find((s) => s.id === siteId) || {};
+    const links = (pilot.links || []).map((l) =>
+      `<a href="${l.href}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">${l.label}</a>`
+    ).join('');
+    return `<div class="card card-pad mb-5 border-l-4 border-brand-500" style="background:linear-gradient(135deg,#0f766e08,#fff)">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wide text-brand-700 mb-1">Pilot test kitchen</div>
+          <h2 class="font-extrabold text-lg">${site.legalName || site.name || siteId}</h2>
+          <p class="text-sm text-ink-500">${site.name || ''} — full Kiteline feature pack ready for market testing</p>
+        </div>
+        <div class="flex flex-wrap gap-2">${links}</div>
+      </div>
+    </div>`;
   }
 
   // Ensure a loaded/synced db has every collection the current app expects.
@@ -514,7 +672,7 @@
     if (!db || typeof db !== 'object') return seed();
     const isPrivate = !!(db._tenantPrivate || db._isPrivate);
     const s = seed();
-    ['sites','team','sensors','checklists','records','alerts','menus','labels','waste','recipes','activity','workflows','suppliers','training','incidents','maintenance','deliveries','assets','batches','cooling','phlogs','holding'].forEach(k => { if (!Array.isArray(db[k])) db[k] = s[k]; });
+    ['sites','team','sensors','checklists','records','alerts','menus','labels','waste','recipes','activity','workflows','suppliers','training','incidents','maintenance','deliveries','assets','batches','cooling','phlogs','holding','rotaShifts','clockSessions','attendanceLog'].forEach(k => { if (!Array.isArray(db[k])) db[k] = s[k]; });
     if (!db.compliance || typeof db.compliance !== 'object') {
       db.compliance = { hsChecks:[], riskAssessments:[], coshh:[], accidents:[], inductions:[], manualHandling:[], safetyChecks:[], foodComplaints:[], probeCalibration:[], thirdPartyEvents:[], haccpPlans:[], fsmsDocuments:[], equipmentMaintenance:[] };
     }
@@ -538,6 +696,8 @@
       if (!db.workflows || db.workflows.length < 90) db.workflows = s.workflows;
       if ((db.recipes || []).length < 100) db.recipes = s.recipes;
     }
+    if (window.Rota && window.Rota.ensureDemo) window.Rota.ensureDemo(db);
+    if (!isPrivate) ensurePilots(db);
     return db;
   }
 
@@ -572,12 +732,16 @@
         const serverState = await window.Api.getState();
         if (serverState) {
           const isPrivate = !!(serverState._tenantPrivate || serverState._isPrivate);
+          const needsPilot = !isPrivate && (
+            !PILOT_SITE_IDS.every((id) => (serverState.sites || []).some((s) => s.id === id))
+            || serverState._pilotPackVersion !== PILOT_PACK_VERSION
+          );
           const missing = !isPrivate && (['suppliers','training','incidents','maintenance','deliveries','recipes','assets','batches','cooling','phlogs','holding','workflows'].some(k => !Array.isArray(serverState[k]))
             || (serverState.sites || []).length < 10 || (serverState.sensors || []).length < 20
             || (serverState.workflows || []).length < 90);
           this.db = ensureShape(serverState);
           save(this.db);
-          if (missing) await window.Api.putState(this.db).catch(() => {}); // persist newly-added collections
+          if (missing || needsPilot) await window.Api.putState(this.db).catch(() => {}); // persist newly-added collections
         } else {
           await window.Api.putState(this.db); // upload local seed on first run
         }
@@ -670,5 +834,148 @@
     },
   };
 
+  const ROTA_STATUS = {
+    scheduled: { label: 'On duty', cls: 'badge-green' },
+    off: { label: 'Off', cls: 'badge-gray' },
+    sick: { label: 'Sick', cls: 'badge-red' },
+    leave: { label: 'Leave', cls: 'badge-amber' },
+  };
+
+  function rotaDateKey(d) {
+    const x = d ? new Date(d) : new Date();
+    return x.toISOString().slice(0, 10);
+  }
+
+  function rotaFmtTime(v) {
+    return new Date(v).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function rotaTeamForSite(db, siteId) {
+    const site = siteId || db.currentSite;
+    return (db.team || []).filter(m => m.siteId === site);
+  }
+
+  function rotaGetShift(db, site, staffId, date) {
+    return (db.rotaShifts || []).find(s => s.site === site && s.staffId === staffId && s.date === date) || null;
+  }
+
+  function rotaGetClock(db, site, staffId, date) {
+    return (db.clockSessions || []).find(c => c.site === site && c.staffId === staffId && c.date === date) || null;
+  }
+
+  function rotaIsClockedIn(db, site, staffId, date) {
+    const c = rotaGetClock(db, site, staffId, date || rotaDateKey());
+    if (!c || !c.sessions || !c.sessions.length) return false;
+    const last = c.sessions[c.sessions.length - 1];
+    return !!(last && last.clockIn && !last.clockOut);
+  }
+
+  function rotaClockedInStaff(db, site) {
+    return rotaTeamForSite(db, site).filter(m => rotaIsClockedIn(db, site, m.id));
+  }
+
+  function rotaLog(db, site, staffId, action, byUserId) {
+    db.attendanceLog.unshift({ id: 'att_' + Date.now(), site, staffId, action, at: new Date().toISOString(), by: byUserId || staffId });
+    db.attendanceLog = db.attendanceLog.slice(0, 300);
+  }
+
+  function rotaClockIn(db, site, staffId, byUserId) {
+    const date = rotaDateKey();
+    if (rotaIsClockedIn(db, site, staffId, date)) return { ok: false, reason: 'Already clocked in' };
+    let doc = rotaGetClock(db, site, staffId, date);
+    const now = new Date().toISOString();
+    if (!doc) {
+      doc = { id: 'clk_' + staffId + '_' + date, site, staffId, date, sessions: [] };
+      db.clockSessions.push(doc);
+    }
+    doc.sessions.push({ clockIn: rotaFmtTime(now), clockOut: null, clockInAt: now, clockOutAt: null });
+    rotaLog(db, site, staffId, 'clock_in', byUserId);
+    return { ok: true, doc };
+  }
+
+  function rotaClockOut(db, site, staffId, byUserId) {
+    const date = rotaDateKey();
+    const doc = rotaGetClock(db, site, staffId, date);
+    if (!doc || !doc.sessions.length) return { ok: false, reason: 'Not clocked in' };
+    const last = doc.sessions[doc.sessions.length - 1];
+    if (!last || last.clockOut) return { ok: false, reason: 'Not clocked in' };
+    const now = new Date().toISOString();
+    last.clockOut = rotaFmtTime(now);
+    last.clockOutAt = now;
+    rotaLog(db, site, staffId, 'clock_out', byUserId);
+    return { ok: true, doc };
+  }
+
+  function rotaSetShift(db, site, staffId, date, patch, byUserId) {
+    let row = rotaGetShift(db, site, staffId, date);
+    if (!row) {
+      row = Object.assign({ id: 'rs_' + staffId + '_' + date, site, staffId, date, status: 'scheduled', startTime: '09:00', endTime: '17:00', note: '' }, patch);
+      db.rotaShifts.push(row);
+    } else Object.assign(row, patch);
+    row.updatedAt = new Date().toISOString();
+    row.by = byUserId || row.by;
+    return row;
+  }
+
+  function rotaWeekDates(startDate) {
+    const d = startDate ? new Date(startDate) : new Date();
+    const mon = new Date(d);
+    mon.setHours(12, 0, 0, 0);
+    mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return Array.from({ length: 7 }, (_, i) => {
+      const x = new Date(mon);
+      x.setDate(mon.getDate() + i);
+      return rotaDateKey(x);
+    });
+  }
+
+  function rotaDayLabel(dateStr) {
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  function rotaVerifyPin(member, pin) {
+    const expected = member.clockPin || member.pin;
+    if (!expected) return true;
+    return String(expected) === String(pin || '').trim();
+  }
+
+  function rotaSeedForSite(db, siteId) {
+    const team = rotaTeamForSite(db, siteId);
+    const dates = rotaWeekDates();
+    const patterns = [{ start: '06:00', end: '14:00' }, { start: '09:00', end: '17:00' }, { start: '14:00', end: '22:00' }];
+    team.forEach((m, idx) => {
+      dates.forEach((date, di) => {
+        if (rotaGetShift(db, siteId, m.id, date)) return;
+        if (di >= 5) { rotaSetShift(db, siteId, m.id, date, { status: 'off' }, 'system'); return; }
+        const p = patterns[(idx + di) % patterns.length];
+        rotaSetShift(db, siteId, m.id, date, { status: 'scheduled', startTime: p.start, endTime: p.end }, 'system');
+      });
+      if (!m.clockPin && !m.pin) m.clockPin = String(1000 + (idx + 1) * 111).slice(0, 4);
+    });
+  }
+
+  function rotaEnsureDemo(db) {
+    const site = db.currentSite || 'site_grove';
+    if (!(db.rotaShifts || []).some(s => s.site === site)) rotaSeedForSite(db, site);
+    ['site_vedanta', 'site_govindas'].forEach((sid) => {
+      if (!(db.rotaShifts || []).some(s => s.site === sid)) rotaSeedForSite(db, sid);
+    });
+    return db;
+  }
+
+  window.Rota = {
+    ROTA_STATUS, dateKey: rotaDateKey, teamForSite: rotaTeamForSite,
+    getShift: rotaGetShift, getClock: rotaGetClock, isClockedIn: rotaIsClockedIn,
+    clockedInStaff: rotaClockedInStaff, clockIn: rotaClockIn, clockOut: rotaClockOut,
+    setShift: rotaSetShift, weekDates: rotaWeekDates, dayLabel: rotaDayLabel,
+    verifyPin: rotaVerifyPin, seedRotaForSite: rotaSeedForSite, ensureDemo: rotaEnsureDemo,
+    scheduledToday(db, site, date) {
+      const d = date || rotaDateKey();
+      return rotaTeamForSite(db, site).map(m => ({ member: m, shift: rotaGetShift(db, site, m.id, d) }))
+        .filter(x => x.shift && x.shift.status === 'scheduled');
+    },
+  };
+
   window.Store = Store;
+  window.PilotSites = { PILOT_SITES, ensurePilots, pilotBannerHtml };
 })();

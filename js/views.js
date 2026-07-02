@@ -681,6 +681,7 @@
             <div class="flex items-center gap-2 mb-1">
               <span class="text-xl">${typeIcon(s.type)}</span>
               <span class="badge badge-gray">${escapeHtml(s.type||'Kitchen')}</span>
+              ${s.pilot?'<span class="badge badge-green">Pilot</span>':''}
               ${s.status==='Seasonal'?'<span class="badge badge-amber">Seasonal</span>':''}
             </div>
             <div class="font-bold text-lg">${escapeHtml(s.name)}</div>
@@ -825,6 +826,7 @@
       <td>${escapeHtml(m.role)}</td>
       <td><select class="select !w-auto !py-1 text-xs" data-acc="${m.id}">${['Admin','Manager','Staff'].map(a=>`<option ${accessOf(m)===a?'selected':''}>${a}</option>`).join('')}</select></td>
       <td class="text-xs text-ink-500">${escapeHtml(m.phone || '?')}</td>
+      <td><input class="input !w-20 !py-1 text-xs font-mono text-center" data-clockpin="${m.id}" maxlength="4" inputmode="numeric" placeholder="????" value="${m.clockPin || m.pin || ''}" title="4-digit kitchen clock PIN"></td>
       <td>${escapeHtml(S.site(m.siteId).name)}</td></tr>`).join('');
     const curSite = S.site(S.db.currentSite);
     const staffUrl = employeeAppUrl(S.db.currentSite, 'register');
@@ -837,7 +839,9 @@
       ${sectionHeader('Team & Accountability','Track who did what and when ? full audit trail', `
         ${limitNote}
         <button class="btn btn-ghost btn-sm" data-act="staffqr">${icon('qr','ico')} Staff QR</button>
-        <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add member</button>`)}
+        <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add member</button>
+        <a href="#clock" class="btn btn-ghost btn-sm">${icon('clock','ico')} Clock</a>
+        <a href="#rota" class="btn btn-ghost btn-sm">${icon('team','ico')} Rota</a>`)}
       <div class="card card-pad mb-5 fade-in">
         <div class="flex flex-wrap items-center gap-5">
           <div id="teamQrInline" class="p-2 bg-white rounded-xl border border-ink-100 flex-none"></div>
@@ -854,7 +858,7 @@
       </div>
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card overflow-hidden lg:col-span-2">
-          <table class="table"><thead><tr><th>Member</th><th>Job title</th><th>Access</th><th>Mobile (SMS)</th><th>Site</th></tr></thead><tbody>${rows}</tbody></table>
+          <table class="table"><thead><tr><th>Member</th><th>Job title</th><th>Access</th><th>Mobile (SMS)</th><th>Clock PIN</th><th>Site</th></tr></thead><tbody>${rows}</tbody></table>
         </div>
         <div class="card card-pad">
           <h3 class="font-bold mb-3">Activity Log</h3>
@@ -874,6 +878,17 @@
       document.querySelectorAll('[data-acc]').forEach(sel=>sel.onchange=()=>{
         const m=S.db.team.find(x=>x.id===sel.dataset.acc); if(!m)return;
         m.access=sel.value; S.persist(); toast(m.name+' is now '+sel.value); window.App.render();
+      });
+      document.querySelectorAll('[data-clockpin]').forEach(inp => {
+        inp.onchange = () => {
+          const m = S.db.team.find(x => x.id === inp.dataset.clockpin);
+          if (!m) return;
+          const v = inp.value.trim();
+          if (v && !/^\d{4}$/.test(v)) return toast('PIN must be 4 digits', 'warn');
+          m.clockPin = v || undefined;
+          S.persist();
+          toast('Clock PIN updated for ' + m.name);
+        };
       });
       document.querySelector('[data-act="add"]').onclick=()=>{
         const max = S.db.org.maxUsers;
@@ -1595,7 +1610,8 @@
     absolutizePrintImages(clone);
     const title = (clone.querySelector('.recipe-card__title') && clone.querySelector('.recipe-card__title').textContent.trim()) || 'Kiteline recipe';
     const opened = openPrintDocument(title, clone.outerHTML, {
-      extraStyle: '.recipe-print{max-width:100%;box-shadow:none;border-radius:0;padding:0;background:#fff}.recipe-card__shell{box-shadow:none;border-radius:0}.recipe-card__table tr{page-break-inside:avoid;break-inside:avoid}',
+      light: true,
+      extraStyle: '.recipe-print{max-width:100%;box-shadow:none;border-radius:0;padding:0;background:#fff}.recipe-card__shell{box-shadow:none;border-radius:0}.recipe-card__table tr{page-break-inside:avoid;break-inside:avoid}.recipe-card__title{font-size:22pt;font-weight:700}',
     });
     if (!opened) printWithBodyClass('print-recipe');
   }
@@ -2283,27 +2299,27 @@
     return workflowListPage('wfod', 'Overdue Tasks', 'Past-due items needing immediate action', 'alert', items);
   }
   function wfstaff() {
-    const { workflows } = wfStats();
-    const live = workflows.filter(w => w.status === 'in_progress');
-    const staff = [...new Set(live.map(w => w.assignee))].map(id => {
-      const m = S.member(id);
-      const tasks = live.filter(w => w.assignee === id);
-      return { id, name: m.name, initials: m.initials, role: m.role || 'Staff', tasks };
+    const site = S.db.currentSite;
+    const staff = staffActiveList(site);
+    const rows = staff.flatMap(s => {
+      if (!s.tasks.length) {
+        return [{ staffName: s.name, staffInitials: s.initials, staffRole: s.role, label: s.onClock ? 'On shift (clocked in)' : 'Active', category: '?', status: s.onClock ? 'clock' : 'task', updatedAt: new Date().toISOString(), isFirst: true }];
+      }
+      return s.tasks.map((t, i) => ({
+        ...t, staffName: s.name, staffInitials: s.initials, staffRole: s.role,
+        onClock: s.onClock, isFirst: i === 0,
+      }));
     });
-    const rows = staff.flatMap(s => s.tasks.map((t, i) => {
-      const m = WF_META[t.status] || WF_META.in_progress;
-      return { ...t, staffName: s.name, staffInitials: s.initials, staffRole: s.role, isFirst: i === 0 };
-    }));
     const pag = wfPaginate('wfstaff', rows);
     const tbody = pag.slice.map(r => `<tr>
       <td>${r.isFirst ? `<div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xs">${escapeHtml(r.staffInitials)}</div><div><div class="font-semibold text-sm">${escapeHtml(r.staffName)}</div><div class="text-xs text-ink-400">${escapeHtml(r.staffRole)}</div></div></div>` : ''}</td>
       <td class="font-semibold text-sm">${escapeHtml(r.label)}</td>
       <td class="text-xs text-ink-500">${escapeHtml(r.category)}</td>
-      <td><span class="badge badge-amber">?? In Progress</span></td>
+      <td><span class="badge ${r.onClock ? 'badge-green' : 'badge-amber'}">${r.onClock ? 'Clocked in' : 'In progress'}</span></td>
       <td class="text-xs text-ink-400">${fmt.ago(r.updatedAt)}</td>
     </tr>`).join('');
     const html = `
-      ${sectionHeader('Staff Currently Working', `${staff.length} staff on active tasks ? 10 per page`, `<a href="#home" class="btn btn-ghost btn-sm">Back to Home</a>`)}
+      ${sectionHeader('Staff Currently Working', `${staff.length} on shift (clock + active tasks) ? 10 per page`, `<a href="#clock" class="btn btn-primary btn-sm">${icon('clock','ico')} Clock</a><a href="#rota" class="btn btn-ghost btn-sm">${icon('team','ico')} Rota</a><a href="#home" class="btn btn-ghost btn-sm">Home</a>`)}
       <div class="card overflow-hidden mb-4">
         <table class="table"><thead><tr><th>Staff</th><th>Active task</th><th>Category</th><th>Status</th><th>Updated</th></tr></thead>
         <tbody>${tbody || '<tr><td colspan="5" class="text-center py-8 text-ink-400">No staff on active tasks.</td></tr>'}</tbody></table>
@@ -2378,11 +2394,7 @@
     const completedToday = workflows.filter(w => w.status === 'completed' && isToday(w.completedAt)).sort((a,b) => new Date(b.completedAt)-new Date(a.completedAt));
     const outstanding = workflows.filter(w => w.status === 'scheduled' || w.status === 'in_progress');
     const overdue = workflows.filter(w => w.status === 'overdue');
-    const staffActive = [...new Set(live.map(w => w.assignee))].map(id => {
-      const m = S.member(id);
-      const tasks = live.filter(w => w.assignee === id);
-      return { ...m, tasks };
-    });
+    const staffActive = staffActiveList(site);
 
     const siteSensors = S.sensorsForSite(site);
     const breaches = siteSensors.filter(s => s.temp > s.max || s.temp < s.min).length;
@@ -2463,13 +2475,17 @@
       {l:'Sites',route:'sites',i:'sites',c:'#16a34a'},
       {l:'Team',route:'team',i:'team',c:'#db2777'},
       {l:'Recipes',route:'recipes',i:'recipe',c:'#ca8a04'},
+      {l:'Clock In/Out',route:'clock',i:'team',c:'#0d9488'},
+      {l:'Rota',route:'rota',i:'team',c:'#2563eb'},
       {l:'Menu Creator',href:'/menu-creator/',i:'recipe',c:'#2f6b4f'},
+      {l:'Vedanta Rota',href:'/vedanta-rota/',i:'team',c:'#7c3aed',pilot:'site_vedanta'},
+      {l:'Vedanta Ordering',href:'/vedanta-ordering/',i:'truck',c:'#ea580c',pilot:'site_vedanta'},
       {l:'Food Cost',route:'foodcost',i:'coin',c:'#16a34a'},
       {l:'Reports',route:'reports',i:'reports',c:'#4f46e5'},
       {l:'Manual',route:'manual',i:'help',c:'#0891b2'},
       {l:'Settings',route:'settings',i:'settings',c:'#64748b'},
     ];
-    const quick = apps.map(q=> q.href
+    const quick = apps.filter(q => !q.pilot || q.pilot === site).map(q=> q.href
       ? `<a class="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-ink-50 transition-colors" href="${q.href}" target="_blank" rel="noopener">
       <span class="w-12 h-12 rounded-2xl flex items-center justify-center flex-none" style="background:${q.c}14;color:${q.c}">${icon(q.i,'w-6 h-6')}</span>
       <span class="text-xs font-medium text-center text-ink-600 leading-tight">${q.l}</span>
@@ -2544,6 +2560,7 @@
       ${openAlerts?`<div class="card card-pad mb-5 flex items-center gap-3 border-l-4 border-red-500 bg-red-50">
         ${icon('alert','w-5 h-5 text-red-600')}<div class="text-sm"><b>${openAlerts} open alert(s)</b> at this site.</div>
         <button class="btn btn-ghost btn-sm ml-auto" data-go="alerts">View alerts</button></div>`:''}
+      ${(window.PilotSites && window.PilotSites.pilotBannerHtml) ? window.PilotSites.pilotBannerHtml(site) : ''}
       ${trialBannerHtml}
       ${milestonesHtml}
 
@@ -2568,9 +2585,9 @@
             <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('team','w-5 h-5 text-brand-600')} Staff Currently Working</h2><a href="#wfstaff" class="text-xs text-brand-600 font-semibold">View all ?</a></div>
             ${staffActive.length ? staffActive.map(s=>`<div class="flex items-center gap-3 py-2 border-b border-ink-50 last:border-0">
               <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">${s.initials}</div>
-              <div class="flex-1 min-w-0"><div class="font-semibold text-sm">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${s.tasks.length} active task${s.tasks.length>1?'s':''}</div></div>
-              <span class="badge badge-amber">?? Active</span>
-            </div>`).join('') : '<p class="text-ink-400 text-sm">No staff logged on active tasks.</p>'}
+              <div class="flex-1 min-w-0"><div class="font-semibold text-sm">${escapeHtml(s.name)}</div><div class="text-xs text-ink-400">${s.tasks.length ? s.tasks.length + ' active task' + (s.tasks.length>1?'s':'') : (s.onClock ? 'Clocked in' : 'On shift')}</div></div>
+              <span class="badge ${s.onClock ? 'badge-green' : 'badge-amber'}">${s.onClock ? 'Clocked in' : 'Active'}</span>
+            </div>`).join('') : '<p class="text-ink-400 text-sm">No one clocked in ? use <a href="#clock" class="text-brand-600 font-semibold">Clock In / Out</a>.</p>'}
           </div>
           <div class="card card-pad">
             <div class="flex items-center justify-between mb-3"><h2 class="font-bold flex items-center gap-2">${icon('alert','w-5 h-5 text-red-500')} Overdue <span class="badge badge-red">${overdue.length}</span></h2><a href="#wfod" class="text-xs text-brand-600 font-semibold">10/page ?</a></div>
@@ -4009,5 +4026,198 @@
     }};
   }
 
-  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings };
+  function staffActiveList(site) {
+    const R = window.Rota;
+    if (R) R.ensureDemo(S.db);
+    const live = S.workflowsForSite(site).filter(w => w.status === 'in_progress');
+    const clocked = R ? R.clockedInStaff(S.db, site) : [];
+    const seen = new Set();
+    const out = [];
+    clocked.forEach(m => {
+      if (seen.has(m.id)) return;
+      seen.add(m.id);
+      out.push(Object.assign({}, m, { onClock: true, tasks: live.filter(w => w.assignee === m.id) }));
+    });
+    [...new Set(live.map(w => w.assignee))].forEach(id => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const m = S.member(id);
+      out.push(Object.assign({}, m, { onClock: false, tasks: live.filter(w => w.assignee === id) }));
+    });
+    return out;
+  }
+
+  function clockPinModal(member, onOk) {
+    modal('Enter PIN ? ' + escapeHtml(member.name), `<div class="space-y-3 text-center">
+      <p class="text-sm text-ink-500">4-digit kitchen PIN</p>
+      <input id="clockPinIn" class="input text-center text-2xl tracking-[0.4em]" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="????">
+      <button type="button" class="btn btn-primary w-full" id="clockPinOk">Confirm</button></div>`, { wide: false });
+    const inp = document.getElementById('clockPinIn');
+    if (inp) inp.focus();
+    document.getElementById('clockPinOk').onclick = () => {
+      const pin = (inp && inp.value) || '';
+      if (!window.Rota.verifyPin(member, pin)) return toast('Wrong PIN', 'warn');
+      closeModal();
+      onOk();
+    };
+  }
+
+  function clock() {
+    const R = window.Rota;
+    const site = S.db.currentSite;
+    const siteName = S.site(site).name;
+    if (R) R.ensureDemo(S.db);
+    const team = R.teamForSite(S.db, site);
+    const today = R.dateKey();
+    const clocked = R.clockedInStaff(S.db, site);
+    const scheduled = R.scheduledToday(S.db, site);
+
+    const cards = team.map(m => {
+      const on = R.isClockedIn(S.db, site, m.id);
+      const shift = R.getShift(S.db, site, m.id, today);
+      const sess = R.getClock(S.db, site, m.id, today);
+      const last = sess && sess.sessions && sess.sessions.length ? sess.sessions[sess.sessions.length - 1] : null;
+      const shiftTxt = shift && shift.status === 'scheduled' ? shift.startTime + '?' + shift.endTime : (shift ? R.ROTA_STATUS[shift.status].label : 'No shift');
+      return `<div class="clock-staff-card ${on ? 'clock-staff-card--in' : ''}" data-clock-staff="${escapeHtml(m.id)}">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold">${escapeHtml(m.initials)}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold">${escapeHtml(m.name)}</div>
+            <div class="text-xs text-ink-400">${escapeHtml(m.role)} ? ${escapeHtml(shiftTxt)}</div>
+            ${last ? `<div class="text-xs text-ink-500 mt-1">${on ? 'In since ' + escapeHtml(last.clockIn) : 'Last out ' + escapeHtml(last.clockOut || '?')}</div>` : ''}
+          </div>
+          <span class="badge ${on ? 'badge-green' : 'badge-gray'}">${on ? 'Clocked in' : 'Out'}</span>
+        </div>
+        <button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'} btn-sm w-full mt-3 clock-toggle-btn">${on ? 'Clock out' : 'Clock in'}</button>
+      </div>`;
+    }).join('');
+
+    const html = `${sectionHeader('Clock In / Out', escapeHtml(siteName) + ' ? ' + today, `<a href="#rota" class="btn btn-ghost btn-sm">${icon('team', 'ico')} Rota</a><a href="#wfstaff" class="btn btn-ghost btn-sm">${icon('team', 'ico')} On shift</a>`)}
+      <div class="grid sm:grid-cols-3 gap-4 mb-5">
+        <div class="kpi"><div class="text-xs text-ink-500">Clocked in now</div><div class="v text-brand-600">${clocked.length}</div></div>
+        <div class="kpi"><div class="text-xs text-ink-500">Scheduled today</div><div class="v">${scheduled.length}</div></div>
+        <div class="kpi"><div class="text-xs text-ink-500">Team on site</div><div class="v">${team.length}</div></div>
+      </div>
+      <div class="card card-pad mb-4 text-center">
+        <div class="clock-live-time" id="clockLiveTime">--:--</div>
+        <p class="text-sm text-ink-500 mt-1">Tap your name to clock in or out ? PIN required if set on Team</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards || '<p class="text-ink-400">No team at this site.</p>'}</div>`;
+
+    return { title: 'Clock In / Out', html, mount() {
+      const tick = () => {
+        const el = document.getElementById('clockLiveTime');
+        if (el) el.textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      };
+      tick();
+      const iv = setInterval(tick, 1000);
+      const me = window.App && window.App.currentUser ? window.App.currentUser() : null;
+      document.querySelectorAll('[data-clock-staff]').forEach(card => {
+        const btn = card.querySelector('.clock-toggle-btn');
+        if (!btn) return;
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const id = card.dataset.clockStaff;
+          const member = S.db.team.find(x => x.id === id);
+          if (!member) return;
+          const doToggle = () => {
+            const on = R.isClockedIn(S.db, site, id);
+            const res = on ? R.clockOut(S.db, site, id, me && me.email) : R.clockIn(S.db, site, id, me && me.email);
+            if (!res.ok) return toast(res.reason, 'warn');
+            S.persist();
+            if (S.logActivity) S.logActivity(id, on ? 'Clocked out' : 'Clocked in');
+            toast(member.name + (on ? ' clocked out' : ' clocked in'));
+            window.App.render();
+          };
+          if (member.clockPin || member.pin) clockPinModal(member, doToggle);
+          else doToggle();
+        };
+      });
+      window._clockIv = iv;
+    }};
+  }
+
+  function rota() {
+    const R = window.Rota;
+    const site = S.db.currentSite;
+    if (R) R.ensureDemo(S.db);
+    window.RotaWeekOff = window.RotaWeekOff || 0;
+    const base = new Date();
+    base.setDate(base.getDate() + window.RotaWeekOff * 7);
+    const dates = R.weekDates(base);
+    const team = R.teamForSite(S.db, site);
+    const weekLabel = R.dayLabel(dates[0]) + ' ? ' + R.dayLabel(dates[6]);
+
+    const head = dates.map(d => `<th class="text-xs">${R.dayLabel(d)}</th>`).join('');
+    const rows = team.map(m => {
+      const cells = dates.map(date => {
+        const sh = R.getShift(S.db, site, m.id, date);
+        const st = sh ? sh.status : '';
+        const meta = R.ROTA_STATUS[st];
+        const txt = !sh ? '?' : st === 'scheduled' ? sh.startTime + '<br>' + sh.endTime : (meta ? meta.label : st);
+        return `<td class="rota-cell" data-rota-edit="${escapeHtml(m.id)}" data-rota-date="${date}"><span class="rota-pill rota-pill--${st || 'empty'}">${txt}</span></td>`;
+      }).join('');
+      return `<tr><td class="font-semibold text-sm whitespace-nowrap">${escapeHtml(m.name)}<div class="text-xs text-ink-400 font-normal">${escapeHtml(m.role)}</div></td>${cells}</tr>`;
+    }).join('');
+
+    const today = R.dateKey();
+    const schedToday = R.scheduledToday(S.db, site).length;
+    const clocked = R.clockedInStaff(S.db, site).length;
+    const missing = R.scheduledToday(S.db, site).filter(x => !R.isClockedIn(S.db, site, x.member.id)).length;
+
+    const html = `${sectionHeader('Rota & Shifts', weekLabel + ' ? ' + escapeHtml(S.site(site).name), `
+      <a href="#clock" class="btn btn-primary btn-sm">${icon('clock', 'ico')} Clock terminal</a>
+      <button type="button" class="btn btn-ghost btn-sm" id="rotaSeedBtn">${icon('plus', 'ico')} Fill week</button>`)}
+      <div class="grid sm:grid-cols-3 gap-4 mb-4">
+        <div class="kpi"><div class="text-xs text-ink-500">Scheduled today</div><div class="v">${schedToday}</div></div>
+        <div class="kpi"><div class="text-xs text-ink-500">Clocked in</div><div class="v text-brand-600">${clocked}</div></div>
+        <div class="kpi"><div class="text-xs text-ink-500">Not clocked in</div><div class="v ${missing ? 'text-amber-600' : ''}">${missing}</div></div>
+      </div>
+      <div class="flex gap-2 mb-3">
+        <button type="button" class="btn btn-ghost btn-sm" id="rotaPrev">? Prev week</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="rotaToday">This week</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="rotaNext">Next week ?</button>
+      </div>
+      <div class="card overflow-x-auto"><table class="table rota-grid"><thead><tr><th>Staff</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="text-xs text-ink-400 mt-3">Tap a cell to set shift times or mark off / sick / leave. Staff clock in at <a href="#clock" class="text-brand-600 font-semibold">Clock In / Out</a>.</p>`;
+
+    return { title: 'Rota', html, mount() {
+      const prev = document.getElementById('rotaPrev');
+      const next = document.getElementById('rotaNext');
+      const todayBtn = document.getElementById('rotaToday');
+      if (prev) prev.onclick = () => { window.RotaWeekOff--; window.App.render(); };
+      if (next) next.onclick = () => { window.RotaWeekOff++; window.App.render(); };
+      if (todayBtn) todayBtn.onclick = () => { window.RotaWeekOff = 0; window.App.render(); };
+      const seed = document.getElementById('rotaSeedBtn');
+      if (seed) seed.onclick = () => { R.seedRotaForSite(S.db, site); S.persist(); toast('Week rota filled'); window.App.render(); };
+      document.querySelectorAll('[data-rota-edit]').forEach(cell => {
+        cell.onclick = () => {
+          const staffId = cell.dataset.rotaEdit;
+          const date = cell.dataset.rotaDate;
+          const member = S.db.team.find(x => x.id === staffId);
+          const cur = R.getShift(S.db, site, staffId, date);
+          modal('Shift ? ' + (member ? member.name : staffId) + ' ? ' + date, `<div class="space-y-3">
+            <div><label class="label">Status</label><select id="rs_st" class="select">${['scheduled','off','sick','leave'].map(k => `<option value="${k}" ${cur && cur.status===k?'selected':''}>${R.ROTA_STATUS[k].label}</option>`).join('')}</select></div>
+            <div class="grid grid-cols-2 gap-2"><div><label class="label">Start</label><input id="rs_a" class="input" type="time" value="${cur && cur.startTime || '09:00'}"></div>
+            <div><label class="label">End</label><input id="rs_b" class="input" type="time" value="${cur && cur.endTime || '17:00'}"></div></div>
+            <input id="rs_n" class="input" placeholder="Note" value="${cur && cur.note ? escapeHtml(cur.note) : ''}">
+            <button type="button" class="btn btn-primary w-full" id="rs_save">Save shift</button></div>`);
+          document.getElementById('rs_save').onclick = () => {
+            R.setShift(S.db, site, staffId, date, {
+              status: document.getElementById('rs_st').value,
+              startTime: document.getElementById('rs_a').value,
+              endTime: document.getElementById('rs_b').value,
+              note: document.getElementById('rs_n').value.trim(),
+            }, (window.App.currentUser && window.App.currentUser().email) || 'manager');
+            S.persist();
+            closeModal();
+            toast('Shift saved');
+            window.App.render();
+          };
+        };
+      });
+    }};
+  }
+
+  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings, clock, rota };
 })();

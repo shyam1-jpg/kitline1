@@ -28,7 +28,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true'
   || (!isProd && process.env.DEMO_MODE !== 'false');
 // Early access: registration open unless explicitly disabled.
 const ALLOW_REGISTER = process.env.ALLOW_REGISTER !== 'false';
-const APP_BUILD = '2026-07-01-menu-creator';
+const APP_BUILD = '2026-07-02-pilot-sites';
 const APP_URL = (process.env.APP_URL || (process.env.RENDER === 'true' ? 'https://kiteline.uk' : '')).replace(/\/$/, '');
 const notify = require('./notify');
 const vedantaReports = require('./vedanta-reports');
@@ -1088,6 +1088,10 @@ async function handleApi(req, res, url) {
     const state = tenants.getStateForUser(db, me.email);
     if (!state) return apiSend(409, { error: 'No workspace for this account — contact support.' });
     if (tenants.ensureStarterPack(state, db.users[me.email], me.email)) writeDb(db);
+    if (tenants.tenantInfo(db, me.email).isDemo) {
+      const { mergeExtraSites } = require('./extra-sites');
+      if (mergeExtraSites(state)) writeDb(db);
+    }
     if (state.org && state.org.name === 'Brigade') {
       state.org.name = 'Kiteline';
       state.org.plan = 'Complete Kiteline';
