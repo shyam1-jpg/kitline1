@@ -520,7 +520,7 @@ function serveFile(res, filePath, opts) {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webp' || ext === '.svg') {
       headers['Cache-Control'] = 'public, max-age=86400';
-    } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy') || filePath.includes('menu-creator')) && (ext === '.html' || ext === '.js')) {
+    } else if ((filePath.includes('vedanta-rota') || filePath.includes('vedanta-ordering') || filePath.includes('academy') || filePath.includes('menu-creator') || filePath.includes('parslia')) && (ext === '.html' || ext === '.js')) {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
     } else if (ext === '.html' || ext === '.js' || ext === '.css') {
       headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
@@ -1387,7 +1387,18 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, aiConnector.mcpInfo(), null, req);
     }
 
-    // Marketing site at "/"
+    const host = (req.headers.host || '').split(':')[0].toLowerCase();
+    const isParsliaSite = host === 'parslia.app' || host === 'www.parslia.app';
+
+    // Parslia marketing site (parslia.app root, or /parslia preview on other hosts)
+    if (isParsliaSite && (url.pathname === '/' || url.pathname === '')) {
+      return serveFile(res, path.join(ROOT, 'site', 'parslia', 'index.html'));
+    }
+    if (url.pathname === '/parslia' || url.pathname === '/parslia/') {
+      return serveFile(res, path.join(ROOT, 'site', 'parslia', 'index.html'));
+    }
+
+    // Kiteline marketing site at "/"
     if (url.pathname === '/' || url.pathname === '') return serveFile(res, path.join(ROOT, 'site', 'index.html'));
 
     // One-click owner sign-in (demo mode only — bypasses cached login UI)
