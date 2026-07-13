@@ -453,7 +453,7 @@ async function sendAcademyVerificationEmail(db, email, baseUrl) {
   const verifyUrl = `${baseUrl}/academy/?verify=${verifyToken}`;
   const msg = {
     subject: 'Kiteline Academy — verify your email',
-    text: `Welcome to Kiteline Academy!\n\nVerify your email to activate your student account:\n\n${verifyUrl}\n\nExpires in 48 hours.\n\nIf you did not receive this email, check spam/junk or use Resend verification on the sign-in page — a link will appear on screen.`,
+    text: `Welcome to Kiteline Academy!\n\nVerify your email to activate your student account:\n\n${verifyUrl}\n\nExpires in 48 hours.\n\nIf you did not receive this email, check spam/junk or use Resend verification on the sign-in page.`,
     html: `<div style="font-family:Inter,sans-serif;max-width:520px"><h2 style="color:#36e6ff">Verify Kiteline Academy</h2><p>Confirm your email to sign in and access your free courses.</p><p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#36e6ff;color:#061020;font-weight:bold;border-radius:8px;text-decoration:none">Verify my email</a></p><p style="color:#64748b;font-size:13px">Or copy this link: ${verifyUrl}</p><p style="color:#64748b;font-size:13px">Check spam/junk if you do not see this message. Need help? contact@kiteline.uk</p></div>`,
     replyTo: process.env.ACADEMY_REPLY_TO || 'contact@kiteline.uk',
   };

@@ -205,10 +205,8 @@ async function handleAcademyRoute(ctx) {
         needsVerification: true,
         emailSent: !!mail.emailSent,
         message: mail.emailSent
-          ? 'Account created. We emailed you a verification link — also use the button below if nothing arrives (check spam/junk).'
-          : 'Account created. Email could not be sent from our server — use the verify button below to activate your account.',
-        verifyUrl: mail.verifyUrl,
-        smtpError: mail.smtpError || undefined,
+          ? 'Account created. We emailed you a verification link — check your inbox and spam/junk.'
+          : 'Account created, but the verification email could not be sent. Please try Resend verification in a few minutes, or email contact@kiteline.uk for help.',
       });
     }
     const token = await issueAcademySession(db, profile.email);
@@ -240,7 +238,7 @@ async function handleAcademyRoute(ctx) {
       return plainSend(423, { error: 'Account temporarily locked after failed attempts. Try again in ' + mins + ' minute(s).', code: 'account_locked' });
     }
     if (academyEmailVerificationRequired() && user.emailVerified === false) {
-      return plainSend(403, { error: 'Verify your email before signing in — click Resend verification on the sign-in form for an on-screen link.', code: 'email_not_verified' });
+      return plainSend(403, { error: 'Verify your email before signing in — click Resend verification on the sign-in form and check your inbox and spam/junk.', code: 'email_not_verified' });
     }
     if (!academyEmailVerificationRequired() && user.emailVerified === false) {
       user.emailVerified = true;
@@ -324,15 +322,9 @@ async function handleAcademyRoute(ctx) {
         console.error('[academy] reset email failed:', e.message);
         return { mode: 'outbox', smtpError: e.message };
       });
-      const emailSent = notify.emailActuallySent(sendResult);
-      const showLink = notify.shouldShowEmailLink(sendResult);
       return plainSend(200, {
         ok: true,
-        emailSent,
-        message: emailSent
-          ? 'If that email is registered, we sent a reset link — check inbox and spam.'
-          : 'Email could not be delivered — use the reset link on screen.',
-        resetUrl: showLink ? resetUrl : undefined,
+        message: 'If that email is registered, we sent a reset link — check inbox and spam.',
       });
     }
     return plainSend(200, { ok: true, message: 'If that email is registered, we sent a reset link.' });
@@ -357,10 +349,53 @@ async function handleAcademyRoute(ctx) {
       ok: true,
       emailSent: !!mail.emailSent,
       message: mail.emailSent
-        ? 'Verification email sent — check inbox and spam, or use the button below now.'
-        : 'Email could not be sent — use the verify button below to activate your account.',
-      verifyUrl: mail.verifyUrl,
+        ? 'Verification email sent — check your inbox and spam/junk.'
+        : 'The verification email could not be sent right now. Please try again in a few minutes, or email contact@kiteline.uk for help.',
     });
+  }
+
+  if (route === '/academy/contact' && req.method === 'POST') {
+    const rl = security.checkRateLimit(req, 'contact');
+    if (!rl.ok) return plainSend(429, { error: 'Too many messages. Try again later.', retryAfter: rl.retryAfter });
+    const name = String(body.name || '').trim().slice(0, 120);
+    const email = String(body.email || '').trim().toLowerCase().slice(0, 200);
+    const interest = String(body.interest || '').trim().slice(0, 120);
+    const message = String(body.message || '').trim().slice(0, 4000);
+    const consent = body.consent === true;
+    if (!name || !email || !message) return plainSend(400, { error: 'Name, email and message are required' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return plainSend(400, { error: 'Enter a valid email address' });
+    if (!consent) return plainSend(400, { error: 'Please tick the consent checkbox' });
+    db.academyContactMessages = db.academyContactMessages || [];
+    const ref = 'KA-' + Date.now().toString(36).toUpperCase();
+    db.academyContactMessages.push({ ref, at: new Date().toISOString(), name, email, interest, message, consent: true, ip });
+    security.audit(db, 'academy_contact_message', { ip, email, ref });
+    writeDb(db);
+    const support = process.env.ACADEMY_REPLY_TO || 'contact@kiteline.uk';
+    notify.sendRawEmail(support, {
+      subject: `[Academy contact ${ref}] ${interest || 'General'} — ${name}`,
+      text: `Ref: ${ref}\nName: ${name}\nEmail: ${email}\nInterest: ${interest || '-'}\n\n${message}`,
+      replyTo: email,
+    }).catch((e) => console.error('[academy] contact notify failed:', e.message));
+    notify.sendRawEmail(email, {
+      subject: `Kiteline Academy — we received your message (${ref})`,
+      text: `Hello ${name},\n\nThanks for contacting Kiteline Academy. Your reference is ${ref}.\nWe usually reply within 24-48 hours (UK time).\n\nYour message:\n${message}\n\nKiteline Academy · contact@kiteline.uk`,
+      replyTo: support,
+    }).catch(() => {});
+    return plainSend(200, { ok: true, ref, message: 'Message received — reference ' + ref + '. We reply within 24–48 hours.' });
+  }
+
+  if (route === '/academy/newsletter' && req.method === 'POST') {
+    const rl = security.checkRateLimit(req, 'contact');
+    if (!rl.ok) return plainSend(429, { error: 'Too many requests. Try again later.', retryAfter: rl.retryAfter });
+    const email = String(body.email || '').trim().toLowerCase().slice(0, 200);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return plainSend(400, { error: 'Enter a valid email address' });
+    db.academyNewsletter = db.academyNewsletter || [];
+    if (!db.academyNewsletter.find((s) => s.email === email && !s.unsubscribedAt)) {
+      db.academyNewsletter.push({ email, consentAt: new Date().toISOString(), ip });
+    }
+    security.audit(db, 'academy_newsletter_subscribe', { ip, email });
+    writeDb(db);
+    return plainSend(200, { ok: true, message: 'Subscribed — you can unsubscribe anytime by emailing contact@kiteline.uk.' });
   }
 
   if (route === '/academy/reset-password' && req.method === 'POST') {

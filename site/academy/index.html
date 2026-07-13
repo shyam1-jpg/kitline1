@@ -26,6 +26,12 @@ a{color:inherit;text-decoration:none}
 .nav{max-width:1280px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:15px 22px}
 .brand{display:flex;gap:12px;align-items:center;font-weight:1000;letter-spacing:-.02em}
 .brand-wordmark{height:52px;width:auto;display:block;max-width:min(280px,52vw)}
+.brand-icon{width:46px;height:46px;border-radius:14px;display:block;flex-shrink:0;object-fit:cover;box-shadow:0 12px 30px rgba(54,230,255,.25),0 0 0 1px rgba(255,255,255,.08)}
+.brand-text{display:flex;flex-direction:column;line-height:1.05}
+.brand-text b{font-size:21px;font-weight:1000;letter-spacing:-.02em;color:#fff}
+.brand-text b em{font-style:normal;background:linear-gradient(135deg,var(--cyan),#676bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--cyan)}
+.brand-text small{font-size:9.5px;font-weight:800;letter-spacing:.14em;color:var(--muted);margin-top:3px}
+@media(max-width:560px){.brand-text small{display:none}.brand-text b{font-size:18px}}
 .logo{width:48px;height:48px;border-radius:17px;overflow:hidden;display:block;flex-shrink:0;box-shadow:0 18px 44px rgba(54,230,255,.28),0 0 0 1px rgba(255,255,255,.08)}
 .logo img{width:100%;height:100%;object-fit:cover;display:block}
 .navlinks{display:flex;gap:16px;align-items:center;color:var(--muted);font-weight:800;font-size:14px}
@@ -219,7 +225,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
 <div class="beta-banner">✨ <b>Kiteline Academy is open for early learners.</b> Try free lessons today — no card required. <a href="#free-trial">Start free</a></div>
 <header class="nav-wrap">
   <nav class="nav">
-    <a class="brand" href="#home"><img class="brand-wordmark" src="kitline-academy-wordmark.png?v=1" alt="Kiteline Academy — Code, AI, Data, Future Skills" width="280" height="52"></a>
+    <a class="brand" href="#home"><img class="brand-icon" src="kitline-academy-logo.png?v=1" alt="" width="46" height="46"><span class="brand-text"><b>Kiteline <em>Academy</em></b><small>CODE · AI · DATA · FUTURE SKILLS</small></span></a>
     <div class="navlinks">
       <a href="#home">Home</a><a href="#learn-hub">Learn</a><a href="#courses">Courses</a><a href="#ai-tools">AI Tools</a><a href="#pricing">Pricing</a><a href="#playground">Code Lab</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="#contact">Contact</a>
     </div>
@@ -269,7 +275,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
       <h2 style="margin:0 0 10px;font-size:clamp(28px,4vw,40px)">Free trial — start learning today</h2>
       <p style="color:var(--muted);line-height:1.65;margin:0">No credit card required. Create a free account and try sample lessons before you enrol.</p>
       <div class="free-trial-list">
-        <div>✅ <span><b style="color:#fff">10 free AI lessons</b> — full AI World starter course + web basics</span></div>
+        <div>✅ <span><b style="color:#fff">101 free lessons</b> — five full starter courses: AI, HTML, CSS, JavaScript and Python</span></div>
         <div>✅ <span><b style="color:#fff">Code Lab</b> — edit HTML and see your profile page update live</span></div>
         <div>✅ <span><b style="color:#fff">No card required</b> — sign up with email only</span></div>
       </div>
@@ -358,7 +364,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
 <section id="pricing">
   <div class="head"><div><h2>Pricing</h2><p>Start free, upgrade when you are ready. Cancel monthly plans anytime.</p></div></div>
   <div class="pricing-grid">
-    <div class="plan"><h3>Free</h3><div class="amount">£0</div><ul><li>AI World — 10 lessons</li><li>Web Basics — 5 lessons</li><li>Code Lab + progress tracking</li><li>No card required</li></ul><button class="btn secondary" type="button" onclick="openAuth('register')">Create free account</button></div>
+    <div class="plan"><h3>Free</h3><div class="amount">£0</div><ul><li>5 free starter courses — AI, HTML, CSS, JavaScript, Python</li><li>101 lessons with Try it Yourself</li><li>Code Lab + progress tracking + starter certificates</li><li>No card required</li></ul><button class="btn secondary" type="button" onclick="openAuth('register')">Create free account</button></div>
     <div class="plan"><h3>Starter</h3><div class="amount">£9.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>Beginner courses</li><li>Progress tracking</li><li>Email support</li><li>Cancel anytime</li></ul><button class="btn secondary" type="button" onclick="openCheckout('Starter — £9.99/month',9.99,'subscription')">Start Starter</button></div>
     <div class="plan popular"><h3>Pro Student</h3><div class="amount">£19.99<span style="font-size:16px;color:var(--muted)">/mo</span></div><ul><li>All courses & paths</li><li>Code Lab & downloads</li><li>Certificates</li><li>Priority support</li></ul><button class="btn" type="button" onclick="openCheckout('Pro Student — £19.99/month',19.99,'subscription')">Join Pro</button></div>
     <div class="plan"><h3>Annual Bundle</h3><div class="amount">£99</div><ul><li>All beginner courses</li><li>One-time payment</li><li>1 year access</li><li>Certificate included</li></ul><button class="btn gold" type="button" onclick="openCheckout('Annual Bundle — £99 (1 year)',99,'annual')">Buy 1-year access</button></div>
@@ -461,7 +467,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
     <div>
       <p style="color:var(--muted);line-height:1.75;font-size:16px">I built Kiteline Academy because many people want to learn AI and coding but feel left behind by jargon-heavy courses. This platform is beginner-friendly: short lessons, real practice, and honest progress tracking.</p>
       <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px">Founded by <b style="color:#fff">Shyam Prasad</b>, Kiteline Academy helps students, workers and small business owners use AI tools, build basic websites, and grow digital confidence step by step — from phone, tablet or computer.</p>
-      <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px">We are still growing the full course library. What is live today is real: two complete free starter courses, a working lesson player, student accounts, and certificates for completed courses.</p>
+      <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px">We are still growing the full course library. What is live today is real: five free starter courses (101 lessons), five Pro courses (45 lessons), a working lesson player, student accounts, and certificates for completed courses.</p>
       <p style="color:var(--muted);line-height:1.75;font-size:16px;margin-top:14px"><b style="color:#fff">Kiteline Academy</b> is a separate online learning product from Kiteline kitchen software.</p>
     </div>
     <div class="about-photo"><div class="initials">SP</div><b style="color:#fff;font-size:18px">Shyam Prasad</b><p style="color:var(--muted);margin:8px 0 0">Founder · Kiteline Academy</p></div>
@@ -469,12 +475,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
 </section>
 
 <section id="testimonials">
-  <div class="head"><div><h2>Early feedback</h2><p>Example feedback from early testing — not verified customer reviews yet.</p></div></div>
-  <div class="testimonial-grid">
-    <div class="testimonial"><p>“The AI course explained things simply. I finally understand how to use ChatGPT for my work.”</p><b>— Example: beginner learner, UK</b></div>
-    <div class="testimonial"><p>“I liked the Code Lab — I could see my HTML page update instantly. Very clear for beginners.”</p><b>— Example: career switcher</b></div>
-    <div class="testimonial"><p>“Good structure, clear prices and a certificate at the end. Feels like a real online school.”</p><b>— Example: small business owner</b></div>
-  </div>
+  <div class="head"><div><h2>Student reviews</h2><p>We are collecting verified reviews from our first students. Completed a course? Email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> to share your feedback — with your permission we will publish it here.</p></div></div>
 </section>
 
 <section id="faq">
@@ -483,11 +484,11 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
     <div class="faq-item"><b>Do I need coding experience?</b><p>No. Beginner courses start from zero. We explain every step in plain language.</p></div>
     <div class="faq-item"><b>Can I learn from mobile?</b><p>Yes. Lessons and the student dashboard are mobile-friendly. Code Lab works best on a laptop or tablet.</p></div>
     <div class="faq-item"><b>Do I get a certificate?</b><p>Yes — after completing all lessons and quizzes in a course. Certificates show completion only; they are not formal accredited qualifications unless clearly stated.</p></div>
-    <div class="faq-item"><b>How do payments work?</b><p>Create a free account first. Paid plans use secure Stripe checkout when enabled. You can also email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> for help. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
+    <div class="faq-item"><b>How do payments work?</b><p>Create a free account first. Card payments are processed securely by Stripe. If online checkout is not yet available for your plan, use <b>Request enrolment</b> and we will email you payment and access details. Questions? Email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a>. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
     <div class="faq-item"><b>Can I cancel my subscription?</b><p>Yes. Monthly Starter and Pro plans can be cancelled anytime before your next billing date from your student dashboard Billing tab. See our <a href="refunds.html" style="color:var(--cyan)">refund policy</a>.</p></div>
     <div class="faq-item"><b>What is your refund policy?</b><p>Digital content access starts immediately. UK consumers may lose the 14-day cancellation right once streaming begins — you confirm this at checkout. See <a href="refunds.html" style="color:var(--cyan)">refunds.html</a> for full details.</p></div>
     <div class="faq-item"><b>Is there a minimum age?</b><p>Accounts are for learners aged 13+. Under-18s should have a parent or guardian’s permission.</p></div>
-    <div class="faq-item"><b>I forgot my password or cannot sign in</b><p>Use <b>Forgot password?</b> on the sign-in form. If email does not arrive, click <b>Resend verification</b> — we also show a verify link on screen. Check spam/junk.</p></div>
+    <div class="faq-item"><b>I forgot my password or cannot sign in</b><p>Use <b>Forgot password?</b> on the sign-in form and we will email you a secure reset link. If no email arrives, check spam/junk, then try <b>Resend verification</b> — or email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> from your registered address.</p></div>
     <div class="faq-item"><b>How do I delete my account?</b><p>Email <a href="mailto:contact@kiteline.uk" style="color:var(--cyan)">contact@kiteline.uk</a> from your registered address and we will delete your account and personal data within 30 days.</p></div>
     <div class="faq-item"><b>Are payments secure?</b><p>Yes. Card payments are processed through Stripe. We never store your full card number.</p></div>
     <div class="faq-item"><b>Do you use analytics cookies?</b><p>We use essential session and language cookies only. If we add analytics or marketing cookies later, we will show a cookie choice banner. See <a href="cookies.html" style="color:var(--cyan)">cookie policy</a>.</p></div>
@@ -508,7 +509,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
         <textarea id="cfMessage" rows="4" required placeholder="Your message — enrolment help, billing, etc."></textarea>
         <label class="check-row"><input id="cfConsent" type="checkbox" required><span>I consent to Kiteline Academy contacting me about my message. See <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--cyan)">privacy policy</a>.</span></label>
         <button class="btn" type="submit">Send message</button>
-        <p id="cfSuccess" style="display:none;color:#50f0a0;font-size:14px;margin:0">Thanks — your email app should open. We reply within 24–48 hours.</p>
+        <p id="cfSuccess" style="display:none;color:#50f0a0;font-size:14px;margin:0">Thanks — your message was received. We reply within 24–48 hours.</p>
       </form>
     </div>
     <div class="contact-card"><b>Newsletter</b><p>Get course launches, free lessons and academy updates.</p><div class="newsletter"><input id="newsEmail" type="email" placeholder="Email address"><button class="btn secondary" type="button" onclick="submitNewsletter()">Subscribe</button></div><p style="margin-top:12px;font-size:13px;color:var(--muted)"><b style="color:#fff">Kiteline Academy</b> · UK online academy</p></div>
@@ -528,7 +529,7 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
   <div class="box">
     <button class="close" type="button" onclick="closeBuy()">×</button>
     <h2 id="buyTitle">Enrol</h2>
-    <p id="buyDesc" style="color:var(--muted)">Request enrolment and we will email your secure payment link when checkout is enabled on your account.</p>
+    <p id="buyDesc" style="color:var(--muted)">Request enrolment and we will reply by email with payment and access details.</p>
     <button class="btn staff-only" style="width:100%;display:none" type="button" id="buyBtn" onclick="completeBuy()">Pay with Stripe</button>
     <button class="btn" style="width:100%" type="button" id="buyRequestBtn" onclick="requestEnrolmentFromBuy()">Request enrolment</button>
     <div class="notice" id="buyNotice">We reply within 24–48 hours with payment and access details.</div>
@@ -551,12 +552,12 @@ body.staff-preview .staff-only.btn.secondary,body.staff-preview .staff-only.btn{
       <button class="btn" style="width:100%" type="button" onclick="loginAccount()" data-i18n="loginBtn">Sign in to my account</button>
       <button type="button" class="auth-link" onclick="forgotPassword()">Forgot password?</button>
       <button type="button" class="auth-link" onclick="resendVerification()">Resend verification email</button>
-      <p class="secure-note" style="color:#c8fbff">📧 No email? Click <b>Resend verification</b> — we will show a verify link on screen. Check spam/junk too.</p>
+      <p class="secure-note" style="color:#c8fbff">📧 No email after a few minutes? Check spam/junk, then click <b>Resend verification</b>. Still stuck? Email contact@kiteline.uk from your registered address.</p>
       <p style="margin:14px 0 0;font-size:13px;color:var(--muted)">Teaching staff? <button type="button" class="auth-link" onclick="authTab('staff')">Staff login →</button></p>
     </div>
     <div class="auth-panel" id="panelStaff">
       <p style="color:var(--muted);margin:0 0 14px">Staff preview — enter your staff login ID plus your Academy email and password to unlock all courses.</p>
-      <input id="staffIdInput" autocomplete="off" placeholder="Staff login ID (e.g. KITELINE-STAFF-2026)" style="width:100%;margin-bottom:10px">
+      <input id="staffIdInput" autocomplete="off" placeholder="Staff login ID" style="width:100%;margin-bottom:10px">
       <input id="staffEmail" type="email" autocomplete="username" placeholder="Work email" style="width:100%;margin-bottom:10px">
       <input id="staffPass" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;margin-bottom:10px">
       <button class="btn gold" style="width:100%" type="button" onclick="loginStaffAccount()">Sign in with staff ID</button>
@@ -826,21 +827,30 @@ function requestEnrolment(label){
   location.href='mailto:contact@kiteline.uk?subject='+subj+'&body='+body;
   toast('Opening email — we reply within 24–48 hours');
 }
-function submitContactForm(e){
+async function submitContactForm(e){
   e.preventDefault();
   if(!$('cfConsent').checked){toast('Please tick the consent checkbox');return}
   const name=$('cfName').value.trim(), email=$('cfEmail').value.trim(), interest=$('cfInterest').value, msg=$('cfMessage').value.trim();
-  const subj=encodeURIComponent('Kiteline Academy — '+(interest||'Contact'));
-  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nInterest: '+interest+'\nConsent: yes\n\n'+msg);
-  location.href='mailto:contact@kiteline.uk?subject='+subj+'&body='+body;
-  $('cfSuccess').style.display='block';
-  toast('Opening email to contact@kiteline.uk');
+  try{
+    const data=await api('/contact',{name,email,interest,message:msg,consent:$('cfConsent').checked});
+    $('cfSuccess').textContent=data.message||'Thanks — your message was received. We reply within 24–48 hours.';
+    $('cfSuccess').style.display='block';
+    $('cfName').value='';$('cfEmail').value='';$('cfMessage').value='';$('cfInterest').value='';$('cfConsent').checked=false;
+    toast('Message sent'+(data.ref?' — ref '+data.ref:''));
+  }catch(err){
+    toast(err.message||'Could not send — please email contact@kiteline.uk directly');
+  }
 }
-function submitNewsletter(){
+async function submitNewsletter(){
   const email=$('newsEmail').value.trim();
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Enter a valid email');return}
-  location.href='mailto:contact@kiteline.uk?subject='+encodeURIComponent('Kiteline Academy newsletter')+'&body='+encodeURIComponent('Please subscribe me to Kiteline Academy updates:\n'+email);
-  toast('Thanks — finish sending the email to subscribe');
+  try{
+    const data=await api('/newsletter',{email});
+    $('newsEmail').value='';
+    toast(data.message||'Subscribed — thank you!');
+  }catch(err){
+    toast(err.message||'Could not subscribe — please email contact@kiteline.uk');
+  }
 }
 function requestEnrolmentFromBuy(){
   if(!buying){toast('No course selected');return}
@@ -1025,15 +1035,7 @@ async function registerAccount(){
     const data=await api('/register',payload);
     if(data.needsVerification){
       closeAuth();
-      if(data.verifyUrl){
-        showLinkModal(
-          'Activate your Kiteline Academy account',
-          (data.message||'') + ' If the email does not arrive within a few minutes, check spam/junk — or click the button below to verify instantly.',
-          data.verifyUrl
-        );
-      }else{
-        toast(data.message||'Account created — check your email and spam folder');
-      }
+      toast(data.message||'Account created — check your email and spam folder for the verification link');
       return;
     }
     setUser(data.user);
@@ -1051,15 +1053,7 @@ async function resendVerification(){
   if(!email)return;
   try{
     const data=await api('/resend-verification',{email:email.trim()});
-    if(data.verifyUrl){
-      showLinkModal(
-        'Verify your Kiteline Academy email',
-        (data.message||'Use this link if the email did not arrive.') + ' Check spam/junk folder as well.',
-        data.verifyUrl
-      );
-    }else{
-      toast(data.message||'Check your email and spam folder');
-    }
+    toast(data.message||'Check your email and spam folder');
   }catch(err){toast(err.message)}
 }
 async function loginStaffAccount(){
@@ -1106,10 +1100,7 @@ async function forgotPassword(){
   if(!email)return;
   try{
     const data=await api('/forgot-password',{email:email.trim()});
-    toast(data.message||'Check your email');
-    if(data.resetUrl){
-      showLinkModal('Reset your Kiteline Academy password', data.message||'Use this link to choose a new password.', data.resetUrl);
-    }
+    toast(data.message||'If that email is registered, we sent a reset link — check inbox and spam.');
   }catch(e){toast(e.message)}
 }
 function toggleAuth(){if(getUser()&&isSignedIn())logoutServer();else openAuth('signin')}

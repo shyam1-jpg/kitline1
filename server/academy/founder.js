@@ -20,7 +20,9 @@ const FREE_ACADEMY_COURSE_IDS = ALL_ACADEMY_COURSE_IDS.slice(0, 5);
 const PAID_ACADEMY_COURSE_IDS = ALL_ACADEMY_COURSE_IDS.slice(5);
 
 function staffLoginId() {
-  return (process.env.ACADEMY_STAFF_ID || 'KITELINE-STAFF-2026').trim();
+  // Staff login is disabled unless ACADEMY_STAFF_ID is explicitly set in the
+  // environment. Never ship a hardcoded/shared default credential.
+  return (process.env.ACADEMY_STAFF_ID || '').trim();
 }
 
 function founderEmails() {
@@ -87,10 +89,10 @@ function prepareAcademyAccess(user, ensureLearning, paidEnrollments) {
 function publicUserFlags(user) {
   if (!user) return {};
   if (isAcademyFounder(user.email)) {
-    return { role: 'founder', staffPreview: true, staffLoginId: staffLoginId() };
+    return { role: 'founder', staffPreview: true };
   }
   if (user.staffAccess) {
-    return { role: 'staff', staffPreview: true, staffLoginId: staffLoginId() };
+    return { role: 'staff', staffPreview: true };
   }
   if (user.paidSubscriber) {
     return { role: 'subscriber', paidAccess: true };
