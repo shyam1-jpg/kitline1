@@ -39,6 +39,7 @@ const security = require('./security');
 const recipeAi = require('./recipe-ai');
 const recipeAiAccess = require('./recipe-ai-access');
 const tenants = require('./tenants');
+const aiConnector = require('./ai-connector');
 const academyStore = require('./academy/store');
 const academyHandlers = require('./academy/handlers');
 const vedantaOrdering = require('./vedanta-ordering');
