@@ -3352,15 +3352,16 @@
           <p class="text-sm text-ink-500 mb-3">Link your <b>company workspace</b> to a ChatGPT Custom GPT (GPT Actions). Works for hotels, restaurants, catering, commercial kitchens, schools, care homes, retreat centres, cafés, bakeries, event venues and other hospitality businesses. ChatGPT only sees <b>your</b> company data. Never share your Kiteline password — use an AI token or OAuth. Dietary rules (vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free, etc.) are set per company, not forced on every customer.</p>
           <ol class="text-xs text-ink-600 list-decimal pl-4 mb-4 space-y-1">
             <li>Create an AI token below (Admin only).</li>
-            <li>In ChatGPT → Create a GPT → Actions → Import from URL using the schema below.</li>
-            <li>Authentication → API Key → Bearer → paste the <code class="text-[11px]">kl_ai_…</code> token.</li>
-            <li>Ask ChatGPT to search recipes, build menus, check stock, log temperatures, or run allergen / compliance reports for <b>this</b> company only.</li>
+            <li><b>MCP:</b> use <code class="text-[11px]">https://kiteline.uk/mcp</code> with Bearer <code class="text-[11px]">kl_ai_…</code>.</li>
+            <li><b>GPT Actions:</b> Import OpenAPI schema URL below → Authentication → API Key → Bearer → paste the token.</li>
+            <li>Tools: search_recipes, create_menu, get_menus, get_missing_temperature_logs, add_temperature_log, generate_allergen_report, generate_shopping_list — scoped to <b>this</b> company only. Writes/exports need confirmation.</li>
           </ol>
           <div class="rounded-xl border border-brand-200 bg-brand-50/40 p-4 mb-4">
-            <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2">Schema URL (paste in ChatGPT Actions)</p>
+            <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2">MCP URL</p>
+            <code class="text-xs break-all block mb-2">https://kiteline.uk/mcp</code>
+            <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2 mt-3">OpenAPI schema (GPT Actions)</p>
             <code class="text-xs break-all block mb-2" id="chatgptSchemaUrl">https://kiteline.uk/api/ai/openapi.json</code>
             <button type="button" class="btn btn-ghost btn-sm" id="chatgptCopySchema">Copy schema URL</button>
-            <p class="text-[11px] text-ink-500 mt-2">Also available: <code class="break-all">https://kiteline.uk/mcp</code> (tool catalogue) and <code class="break-all">https://kiteline.uk/api/ai/health</code>.</p>
           </div>
           <div id="chatgptOAuthBox" class="rounded-xl border border-ink-200 bg-ink-50 p-4 mb-4 text-sm hidden">
             <p class="font-semibold mb-2">OAuth (recommended for customers)</p>

@@ -40,6 +40,7 @@ const recipeAi = require('./recipe-ai');
 const recipeAiAccess = require('./recipe-ai-access');
 const tenants = require('./tenants');
 const aiConnector = require('./ai-connector');
+const aiMcp = require('./ai-mcp');
 const academyStore = require('./academy/store');
 const academyHandlers = require('./academy/handlers');
 const vedantaOrdering = require('./vedanta-ordering');
@@ -1385,7 +1386,22 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
 
     if (url.pathname === '/mcp') {
-      return send(res, 200, aiConnector.mcpInfo(), null, req);
+      const db = readDb();
+      const ip = security.clientIp(req);
+      let body = {};
+      if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+        body = await readBody(req);
+      }
+      return aiMcp.handleHttp({
+        req,
+        res,
+        method: req.method,
+        body,
+        db,
+        writeDb,
+        ip,
+        send,
+      });
     }
 
     // Kiteline marketing site at "/"

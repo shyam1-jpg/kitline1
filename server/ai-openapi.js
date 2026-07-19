@@ -9,11 +9,18 @@ function buildOpenApi(baseUrl) {
     ['workspace', 'get', true, 'Company settings and dietary configuration'],
     ['workspace', 'patch', true, 'Update company settings / dietary rules (Admin)'],
     ['sites', 'get', true, 'Kitchens / sites for this company'],
+    ['search_recipes', 'get', true, 'MCP: search recipes / dishes in this company'],
+    ['create_menu', 'post', true, 'MCP: create menu from all saved dishes (confirm required)'],
+    ['get_menus', 'get', true, 'MCP: list menus and dishes'],
+    ['get_missing_temperature_logs', 'get', true, 'MCP: missing temperature logs today'],
+    ['add_temperature_log', 'post', true, 'MCP: add temperature log (confirm required)'],
+    ['generate_allergen_report', 'post', true, 'MCP: allergen report export (confirm required)'],
+    ['generate_shopping_list', 'post', true, 'MCP: shopping list export (confirm required)'],
     ['search', 'get', true, 'Search recipes, dishes, menus, stock and suppliers'],
     ['recipes', 'get', true, 'Search recipes, products and dishes (?q=)'],
     ['recipes', 'post', true, 'Create a draft recipe'],
     ['menus', 'get', true, 'List or search menus'],
-    ['menus', 'post', true, 'Create or publish a menu'],
+    ['menus', 'post', true, 'Create or publish a menu from all account dishes'],
     ['allergens', 'get', true, 'Allergen report for dishes'],
     ['nutrition', 'get', true, 'Nutrition report for dishes'],
     ['temperature-logs', 'get', true, 'Read temperature records'],
@@ -26,12 +33,12 @@ function buildOpenApi(baseUrl) {
     ['labels', 'post', true, 'Create a food label'],
     ['stock', 'get', true, 'Search stock batches and assets (?q=)'],
     ['suppliers', 'get', true, 'Search suppliers (?q=)'],
-    ['shopping-list', 'get', true, 'Generate shopping / ordering list'],
-    ['shopping-list', 'post', true, 'Generate shopping list from menus or recipes'],
+    ['shopping-list', 'get', true, 'Generate shopping / ordering list (confirm required)'],
+    ['shopping-list', 'post', true, 'Generate shopping list from menus or recipes (confirm required)'],
     ['orders', 'get', true, 'Supplier deliveries / orders'],
     ['waste', 'get', true, 'Waste records'],
     ['rota', 'get', true, 'Staff rota and operational records'],
-    ['reports', 'get', true, 'Business, cost and compliance reports'],
+    ['reports', 'get', true, 'Business, cost and compliance reports (export needs confirm)'],
   ];
 
   resources.forEach(([name, method, auth, summary]) => {
@@ -110,16 +117,17 @@ function buildOpenApi(baseUrl) {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Kiteline AI Connector (ChatGPT)',
-      version: '1.1.0',
+      title: 'Kiteline AI Connector (ChatGPT / MCP)',
+      version: '1.2.0',
       description:
-        'Secure Kiteline API for authorised AI assistants (ChatGPT Custom GPT Actions / MCP). '
+        'Secure Kiteline API for authorised AI assistants (ChatGPT Custom GPT Actions + MCP at https://kiteline.uk/mcp). '
         + 'Kiteline is a multipurpose business and hospitality-management platform for hotels, restaurants, '
         + 'catering companies, commercial kitchens, schools, colleges, care homes, retreat centres, cafés, '
         + 'bakeries, event venues and other food businesses. '
-        + 'Each company has its own secure workspace. '
-        + 'Use a Kiteline AI token — never a user password. Create tokens while signed in: Settings → Connect ChatGPT, '
-        + 'or POST /api/ai/tokens.',
+        + 'Each company has its own secure workspace — tokens never cross companies. '
+        + 'MCP tools: search_recipes, create_menu, get_menus, get_missing_temperature_logs, '
+        + 'add_temperature_log, generate_allergen_report, generate_shopping_list. '
+        + 'Use a Kiteline AI token — never a user password. Create tokens: Settings → Connect ChatGPT.',
     },
     servers: [{ url: origin }],
     components: {

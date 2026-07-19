@@ -6,9 +6,14 @@ const security = require('./security');
 const aiAuth = require('./ai-auth');
 const { buildOpenApi } = require('./ai-openapi');
 const aiOauth = require('./ai-oauth');
+const aiMcp = require('./ai-mcp');
 
 function uid(prefix) {
   return `${prefix}_${crypto.randomBytes(4).toString('hex')}`;
+}
+
+function menuDishList(menu) {
+  return aiMcp.menuDishList(menu);
 }
 
 function appUrl(req) {
@@ -102,10 +107,10 @@ function searchCatalog(state, siteId, q) {
   const recipes = filterSite(state.recipes || [], siteId).filter((r) =>
     textMatch(q, r.name, r.category, r.allergens, r.ingredients));
   const menus = filterSite(state.menus || [], siteId).filter((m) =>
-    textMatch(q, m.name, m.title, m.status, m.items));
+    textMatch(q, m.name, m.title, m.status, menuDishList(m)));
   const dishes = [];
   filterSite(state.menus || [], siteId).forEach((m) => {
-    (m.items || []).forEach((item) => {
+    menuDishList(m).forEach((item) => {
       if (textMatch(q, item.name, item.title, item.category, item.allergens)) {
         dishes.push({
           id: item.id || null,
@@ -202,9 +207,10 @@ function buildShoppingList(state, siteId, opts) {
     const menus = filterSite(state.menus || [], siteId).filter((m) =>
       !optsSafe.menuId || m.id === optsSafe.menuId);
     menus.forEach((m) => {
-      (m.items || []).forEach((item) => {
+      menuDishList(m).forEach((item) => {
         const recipe = (state.recipes || []).find((r) =>
-          r.id === item.recipeId || (r.name || '').toLowerCase() === String(item.name || '').toLowerCase());
+          r.id === item.recipeId
+          || (r.name || '').toLowerCase() === String(item.name || item.recipeName || '').toLowerCase());
         ((recipe && recipe.ingredients) || item.ingredients || []).forEach((ing) => {
           if (typeof ing === 'string') addItem(ing, null, null, `menu:${m.name || m.id}`, null);
           else addItem(ing.name || ing.item, ing.qty || ing.quantity, ing.unit, `menu:${m.name || m.id}`, ing.supplier);
@@ -395,22 +401,45 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
   const siteId = siteRes.siteId;
   const meta = { site: siteId, resource: name, method };
 
+  const mcpToolNames = new Set(aiMcp.TOOL_DEFS.map((t) => t.name));
+  if (mcpToolNames.has(name)) {
+    const args = Object.assign({}, query, body.data || {}, body, { site: body.site || query.site || siteId });
+    if (name === 'search_recipes' || name === 'get_menus' || name === 'get_missing_temperature_logs') {
+      // read-only — no confirm
+    } else if (args.confirm !== true && args.confirm !== 'true') {
+      return apiSend(409, {
+        error: 'Confirmation required — resend with "confirm": true after the user approves',
+        code: 'confirmation_required',
+      });
+    } else {
+      args.confirm = true;
+    }
+    const tool = await aiMcp.runTool(name, args, ctx, db, writeDb, ip);
+    if (!tool.ok) return apiSend(tool.status || 400, { error: tool.error, code: tool.code });
+    return apiSend(200, tool.data);
+  }
+
   if (name === 'me') {
     auditAi(db, ip, ctx, 'me', meta);
-    return apiSend(200, {
+    const info = tenants.tenantInfo(db, ctx.user.email);
+    return apiSend(200, aiMcp.sanitizePublic({
       email: ctx.user.email,
       name: ctx.user.name,
-      tenant: tenants.tenantInfo(db, ctx.user.email),
+      company: (info && info.name) || (ctx.state.org && ctx.state.org.name) || null,
       role: aiAuth.resolveRole(ctx.state, ctx.user.email),
       permissions: ctx.permissions,
-      sites: (ctx.state.sites || []).filter((s) => ctx.siteIds.includes(s.id)),
+      sites: (ctx.state.sites || []).filter((s) => ctx.siteIds.includes(s.id)).map((s) => ({
+        name: s.name,
+        type: s.type || null,
+        city: s.city || null,
+      })),
       workspace: workspacePayload(ctx.state, ctx),
-      token: { id: ctx.entry.id, label: ctx.entry.label },
+      token: { label: ctx.entry.label },
       platform: {
         product: 'Kiteline',
         description: 'Multipurpose business and hospitality-management platform — not limited to one cuisine, diet, or business type.',
       },
-    });
+    }));
   }
 
   if (name === 'workspace') {
@@ -520,41 +549,43 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
       if (!perm.ok) return apiSend(403, { error: perm.error });
       const q = (query.q || query.query || '').trim();
       let menus = filterSite(ctx.state.menus || [], siteId);
-      if (q) menus = menus.filter((m) => textMatch(q, m.name, m.title, m.status, m.items));
+      if (q) menus = menus.filter((m) => textMatch(q, m.name, m.title, m.status, menuDishList(m)));
       auditAi(db, ip, ctx, 'menus_read', meta);
-      return apiSend(200, { menus, q: q || undefined });
+      return apiSend(200, {
+        menus: menus.map((m) => aiMcp.sanitizePublic({
+          name: m.name || m.title,
+          status: m.status,
+          dishCount: menuDishList(m).length,
+          dishes: menuDishList(m).map((d) => ({ name: d.name || d.title, allergens: d.allergens || [] })),
+        })),
+        q: q || undefined,
+      });
     }
     if (method === 'POST') {
-      const permKey = body.publish ? 'publish_menus' : 'create_menu_drafts';
-      const perm = aiAuth.requirePermission(ctx, permKey, body.publish ? 'Manager' : 'Staff');
-      if (!perm.ok) return apiSend(403, { error: perm.error });
-      const conf = aiAuth.requireConfirm(method, body);
-      if (!conf.ok) return apiSend(409, conf);
-      const data = body.data || body;
-      const menu = Object.assign({
-        id: uid('menu'),
+      const tool = await aiMcp.runTool('create_menu', Object.assign({}, body.data || {}, body, {
+        confirm: body.confirm === true,
+        name: (body.data && body.data.name) || body.name,
+        publish: !!body.publish,
         site: siteId,
-        status: body.publish ? 'published' : 'draft',
-        createdAt: new Date().toISOString(),
-        createdBy: ctx.user.email,
-        items: [],
-      }, data);
-      if (!body.publish) menu.status = 'draft';
-      const next = JSON.parse(JSON.stringify(ctx.state));
-      next.menus = next.menus || [];
-      next.menus.push(menu);
-      saveState(db, ctx, next);
-      writeDb(db);
-      auditAi(db, ip, ctx, 'menus_create', meta);
-      return apiSend(201, { ok: true, menu });
+      }), ctx, db, writeDb, ip);
+      if (!tool.ok) return apiSend(tool.status || 400, { error: tool.error, code: tool.code });
+      return apiSend(201, tool.data);
     }
   }
 
-  if (name === 'allergens') {
+  if (name === 'allergens' || name === 'generate_allergen_report') {
     const perm = aiAuth.requirePermission(ctx, 'read_allergen_data');
     if (!perm.ok) return apiSend(403, { error: perm.error });
+    if (name === 'generate_allergen_report' || query.export === '1' || body.confirm === true) {
+      if (body.confirm !== true && query.confirm !== 'true') {
+        return apiSend(409, {
+          error: 'Confirmation required — resend with "confirm": true after the user approves this export',
+          code: 'confirmation_required',
+        });
+      }
+    }
     auditAi(db, ip, ctx, 'allergens_read', meta);
-    return apiSend(200, allergenReport(ctx.state, siteId));
+    return apiSend(200, aiMcp.sanitizePublic(allergenReport(ctx.state, siteId)));
   }
 
   if (name === 'nutrition') {
@@ -564,16 +595,22 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
     return apiSend(200, nutritionReport(ctx.state, siteId));
   }
 
-  if (name === 'shopping-list' || name === 'ordering-list') {
+  if (name === 'shopping-list' || name === 'ordering-list' || name === 'generate_shopping_list') {
     if (method === 'GET' || method === 'POST') {
-      if (!aiAuth.hasPermission(ctx, 'manage_stock')
-        && !aiAuth.hasPermission(ctx, 'manage_suppliers')
-        && !aiAuth.hasPermission(ctx, 'read_recipes')) {
-        return apiSend(403, { error: 'AI permission denied: manage_stock, manage_suppliers, or read_recipes' });
+      const opts = Object.assign({}, query, (body && (body.data || body)) || {}, { site: siteId });
+      if (method === 'GET' && opts.confirm !== true && opts.confirm !== 'true') {
+        return apiSend(409, {
+          error: 'Confirmation required — resend with "confirm": true after the user approves this export',
+          code: 'confirmation_required',
+        });
       }
-      const opts = Object.assign({}, query, (body && (body.data || body)) || {});
-      auditAi(db, ip, ctx, 'shopping_list', meta);
-      return apiSend(200, buildShoppingList(ctx.state, siteId, opts));
+      if (method === 'POST') {
+        const conf = aiAuth.requireConfirm(method, body);
+        if (!conf.ok) return apiSend(409, conf);
+      }
+      const tool = await aiMcp.runTool('generate_shopping_list', Object.assign({}, opts, { confirm: true }), ctx, db, writeDb, ip);
+      if (!tool.ok) return apiSend(tool.status || 400, { error: tool.error, code: tool.code });
+      return apiSend(200, tool.data);
     }
   }
 
@@ -741,10 +778,18 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
       return apiSend(403, { error: 'AI permission denied: read_recipes or manage_rota' });
     }
     auditAi(db, ip, ctx, 'rota_read', meta);
+    const team = filterSite(ctx.state.team || [], siteId).map((t) => aiMcp.sanitizePublic({
+      name: t.name,
+      role: t.role || t.access || null,
+      email: t.email || null,
+      site: ((ctx.state.sites || []).find((s) => s.id === (t.siteId || t.site)) || {}).name || null,
+    }));
     return apiSend(200, {
-      team: filterSite(ctx.state.team || [], siteId),
-      workflows: filterSite(ctx.state.workflows || [], siteId).filter((w) => /rota|shift|schedule/i.test(w.label || '')),
-      note: 'Full staff rota may be on a separate Kiteline rota module if enabled for your organisation.',
+      team,
+      workflows: filterSite(ctx.state.workflows || [], siteId)
+        .filter((w) => /rota|shift|schedule/i.test(w.label || ''))
+        .map((w) => aiMcp.sanitizePublic({ label: w.label, status: w.status })),
+      note: 'Full staff rota may be on a separate Kiteline rota module if enabled for your organisation. PINs and secrets are never returned.',
     });
   }
 
@@ -754,18 +799,23 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
       const readPerm = aiAuth.requirePermission(ctx, 'read_haccp_records');
       if (!readPerm.ok) return apiSend(403, { error: perm.error });
       auditAi(db, ip, ctx, 'reports_summary', meta);
-      return apiSend(200, {
+      return apiSend(200, aiMcp.sanitizePublic({
         summaryOnly: true,
-        message: 'Enable export_reports permission on the AI token for full inspection export.',
-        report: Object.assign(buildReport(ctx.state, siteId), {
-          allergens: allergenReport(ctx.state, siteId),
-          nutrition: nutritionReport(ctx.state, siteId),
+        message: 'Enable export_reports permission on the AI token for full inspection export. Full export also requires confirm: true.',
+        report: {
+          summary: buildReport(ctx.state, siteId).summary,
           workspace: workspacePayload(ctx.state, ctx),
-        }),
+        },
+      }));
+    }
+    if (body.confirm !== true && query.confirm !== 'true') {
+      return apiSend(409, {
+        error: 'Confirmation required — resend with "confirm": true after the user approves this export',
+        code: 'confirmation_required',
       });
     }
     auditAi(db, ip, ctx, 'reports_export', meta);
-    return apiSend(200, {
+    return apiSend(200, aiMcp.sanitizePublic({
       export: true,
       report: Object.assign(buildReport(ctx.state, siteId), {
         allergens: allergenReport(ctx.state, siteId),
@@ -773,7 +823,7 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
         shoppingList: buildShoppingList(ctx.state, siteId, { includeAllStock: false }),
         workspace: workspacePayload(ctx.state, ctx),
       }),
-    });
+    }));
   }
 
   return apiSend(404, { error: 'Unknown AI resource' });
@@ -794,8 +844,9 @@ async function handleApi(opts) {
     await apiSend(200, {
       ok: true,
       service: 'kiteline-ai',
-      version: '1.1.0',
+      version: '1.2.0',
       product: 'Kiteline multipurpose hospitality platform',
+      mcp: 'https://kiteline.uk/mcp',
       auth: 'AI token (kl_ai_…) via Bearer or x-api-key — not user passwords',
       tenantScoped: true,
     });
@@ -897,39 +948,7 @@ async function handleApi(opts) {
 }
 
 function mcpInfo() {
-  return {
-    name: 'kiteline',
-    version: '1.1.0',
-    status: 'ready',
-    description:
-      'Kiteline secure AI connector for hotels, restaurants, catering, commercial kitchens, '
-      + 'schools, care homes, retreat centres, cafés, bakeries, event venues and other hospitality businesses. '
-      + 'Each company has a private workspace. Dietary rules are configurable per business and never forced globally.',
-    openapi: '/api/ai/openapi.json',
-    health: '/api/ai/health',
-    oauth: '/api/ai/oauth',
-    docs: 'https://kiteline.uk',
-    chatgpt: {
-      importSchema: 'https://kiteline.uk/api/ai/openapi.json',
-      auth: 'Bearer or x-api-key with kl_ai_… token from Settings → Connect ChatGPT',
-    },
-    tools: [
-      { name: 'search', path: '/api/ai/search', methods: ['GET'], summary: 'Search recipes, dishes, menus, stock and suppliers' },
-      { name: 'recipes', path: '/api/ai/recipes', methods: ['GET', 'POST'], summary: 'Search and manage recipes / products / dishes' },
-      { name: 'menus', path: '/api/ai/menus', methods: ['GET', 'POST'], summary: 'Create and manage menus' },
-      { name: 'stock', path: '/api/ai/stock', methods: ['GET'], summary: 'Search stock batches and assets' },
-      { name: 'suppliers', path: '/api/ai/suppliers', methods: ['GET'], summary: 'Search suppliers' },
-      { name: 'shopping-list', path: '/api/ai/shopping-list', methods: ['GET', 'POST'], summary: 'Generate shopping and ordering lists' },
-      { name: 'temperature-logs', path: '/api/ai/temperature-logs', methods: ['GET', 'POST'], summary: 'Read and add temperature records' },
-      { name: 'allergens', path: '/api/ai/allergens', methods: ['GET'], summary: 'Allergen report' },
-      { name: 'nutrition', path: '/api/ai/nutrition', methods: ['GET'], summary: 'Nutrition report' },
-      { name: 'rota', path: '/api/ai/rota', methods: ['GET'], summary: 'Staff rota and operational records' },
-      { name: 'reports', path: '/api/ai/reports', methods: ['GET'], summary: 'Business, cost and compliance reports' },
-      { name: 'workspace', path: '/api/ai/workspace', methods: ['GET', 'PATCH'], summary: 'Company settings and dietary configuration' },
-      { name: 'haccp-logs', path: '/api/ai/haccp-logs', methods: ['GET', 'POST'], summary: 'HACCP / compliance records' },
-      { name: 'me', path: '/api/ai/me', methods: ['GET'], summary: 'Current company workspace for this AI token' },
-    ],
-  };
+  return aiMcp.discovery();
 }
 
 module.exports = { handleApi, mcpInfo, DIETARY_OPTIONS, BUSINESS_TYPES };
