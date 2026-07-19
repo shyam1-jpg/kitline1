@@ -13,11 +13,11 @@ const tenants = require('./tenants');
 const security = require('./security');
 const aiAuth = require('./ai-auth');
 
-const PROTOCOL_VERSION = '2024-11-05';
+const PROTOCOL_VERSION = '2025-03-26';
 const SERVER_INFO = {
   name: 'kiteline',
-  version: '1.2.0',
-  title: 'Kiteline MCP',
+  version: '1.2.1',
+  title: 'Kiteline',
 };
 
 const SENSITIVE_KEY = /^(password|passwd|pwd|pin|clockpin|adminpin|hash|secret|token|apikey|api_key|openai|openaiKeyEnc|credential|privatekey|authorization|ingest)$/i;
@@ -300,7 +300,7 @@ function allergenReport(state, siteId) {
 const TOOL_DEFS = [
   {
     name: 'search_recipes',
-    description: 'Search recipes, products and dishes saved in this company workspace only.',
+    description: 'Search recipes, products and dishes saved in this Kiteline company workspace only. Use this when the user asks about dishes, recipes or products.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -309,11 +309,12 @@ const TOOL_DEFS = [
       },
     },
     mutating: false,
+    annotations: { readOnlyHint: true, openWorldHint: false },
   },
   {
     name: 'create_menu',
     description:
-      'Create a menu in this company workspace using all dishes (recipes) already saved for the site. Requires confirm: true.',
+      'Create a menu in this Kiteline company workspace using all dishes (recipes) already saved for the site. Requires user confirmation.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -322,13 +323,14 @@ const TOOL_DEFS = [
         publish: { type: 'boolean', description: 'Publish immediately (needs publish permission)' },
         confirm: { type: 'boolean', description: 'Must be true after user approval' },
       },
-      required: ['name', 'confirm'],
+      required: ['name'],
     },
     mutating: true,
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   },
   {
     name: 'get_menus',
-    description: 'List menus for this company workspace, including all linked dishes.',
+    description: 'List menus for this Kiteline company workspace, including all linked dishes. Use this when the user asks what menus exist.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -337,19 +339,21 @@ const TOOL_DEFS = [
       },
     },
     mutating: false,
+    annotations: { readOnlyHint: true, openWorldHint: false },
   },
   {
     name: 'get_missing_temperature_logs',
-    description: 'List fridge/freezer units that have no temperature log for today in this company workspace.',
+    description: 'List fridge/freezer units that have no temperature log for today in this Kiteline company workspace.',
     inputSchema: {
       type: 'object',
       properties: { site: { type: 'string' } },
     },
     mutating: false,
+    annotations: { readOnlyHint: true, openWorldHint: false },
   },
   {
     name: 'add_temperature_log',
-    description: 'Add a temperature record for a unit in this company workspace. Requires confirm: true.',
+    description: 'Add a temperature record for a unit in this Kiteline company workspace. Requires user confirmation.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -360,26 +364,27 @@ const TOOL_DEFS = [
         site: { type: 'string' },
         confirm: { type: 'boolean' },
       },
-      required: ['equipment', 'temp', 'confirm'],
+      required: ['equipment', 'temp'],
     },
     mutating: true,
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   },
   {
     name: 'generate_allergen_report',
-    description: 'Generate an allergen report from dishes in this company workspace. Requires confirm: true (export).',
+    description: 'Generate an allergen report from dishes in this Kiteline company workspace. Export requires user confirmation.',
     inputSchema: {
       type: 'object',
       properties: {
         site: { type: 'string' },
         confirm: { type: 'boolean' },
       },
-      required: ['confirm'],
     },
     mutating: true,
+    annotations: { readOnlyHint: false, openWorldHint: false },
   },
   {
     name: 'generate_shopping_list',
-    description: 'Generate a shopping / ordering list from stock and menu dishes in this company workspace. Requires confirm: true (export).',
+    description: 'Generate a shopping / ordering list from stock and menu dishes in this Kiteline company workspace. Export requires user confirmation.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -390,9 +395,9 @@ const TOOL_DEFS = [
         includeAllStock: { type: 'boolean' },
         confirm: { type: 'boolean' },
       },
-      required: ['confirm'],
     },
     mutating: true,
+    annotations: { readOnlyHint: false, openWorldHint: false },
   },
 ];
 
@@ -607,22 +612,39 @@ async function runTool(name, args, ctx, db, writeDb, ip) {
 function discovery() {
   return {
     name: SERVER_INFO.name,
+    title: SERVER_INFO.title,
     version: SERVER_INFO.version,
     status: 'ready',
     protocol: 'mcp',
     protocolVersion: PROTOCOL_VERSION,
-    transport: 'http-jsonrpc',
+    transport: 'streamable-http',
     endpoint: 'https://kiteline.uk/mcp',
     description:
       'Secure Kiteline MCP for ChatGPT. Each AI token is locked to one company workspace. '
       + 'Hotels, restaurants, catering, schools, care homes, cafés and other hospitality businesses '
       + 'each keep private recipes, menus, stock, staff and compliance data.',
     authentication: {
-      type: 'bearer_or_api_key',
+      type: 'mixed',
+      note: 'initialize and tools/list need no auth. tools/call needs Bearer kl_ai_… or OAuth.',
       header_bearer: 'Authorization: Bearer kl_ai_…',
       header_api_key: 'x-api-key: kl_ai_…',
-      how_to_create: 'Sign in to Kiteline → Settings → Connect ChatGPT → Create AI token',
-      note: 'Never use your Kiteline password, admin PIN, or database credentials.',
+      how_to_create_token: 'Sign in to Kiteline → Settings → Connect ChatGPT → Create AI token',
+      oauth: 'https://kiteline.uk/api/ai/oauth',
+    },
+    chatgpt_setup: {
+      important: 'Kiteline will NOT appear in ChatGPT Apps until you CREATE it once.',
+      steps: [
+        'Open ChatGPT on the web (Plus/Pro/Business/Enterprise).',
+        'Settings → Security and login → turn ON Developer mode.',
+        'Go to https://chatgpt.com/plugins (or Settings → Apps/Plugins).',
+        'Click + / Create developer-mode app.',
+        'Name: Kiteline',
+        'MCP server URL: https://kiteline.uk/mcp (no trailing slash)',
+        'Auth: Mixed or No authentication for scan; for tools use your kl_ai_ token / OAuth.',
+        'Click Create / Scan tools — you should see 7 Kiteline tools.',
+        'In a new chat: + → Developer mode → enable Kiteline (not Kitchen OS).',
+        'Send: @Kiteline List all available Kiteline tools and show my business profile.',
+      ],
     },
     methods: ['initialize', 'tools/list', 'tools/call', 'ping'],
     tools: TOOL_DEFS.map((t) => ({
@@ -630,6 +652,7 @@ function discovery() {
       description: t.description,
       mutating: t.mutating,
       confirmationRequired: t.mutating,
+      annotations: t.annotations || null,
     })),
     openapi: 'https://kiteline.uk/api/ai/openapi.json',
     health: 'https://kiteline.uk/api/ai/health',
@@ -681,8 +704,9 @@ async function handleJsonRpc(body, opts) {
     };
   }
 
-  if (method === 'notifications/initialized' || method === 'initialized') {
-    return { status: 200, payload: jsonRpcResult(id, {}) };
+  if (method === 'notifications/initialized' || method === 'initialized' || method.startsWith('notifications/')) {
+    // Streamable HTTP: notifications get 202 Accepted with empty body
+    return { status: 202, payload: null, empty: true };
   }
 
   if (method === 'ping') {
@@ -697,6 +721,7 @@ async function handleJsonRpc(body, opts) {
           name: t.name,
           description: t.description,
           inputSchema: t.inputSchema,
+          annotations: t.annotations || undefined,
         })),
       }),
     };
@@ -758,18 +783,71 @@ async function handleJsonRpc(body, opts) {
   return { status: 404, payload: jsonRpcError(id, -32601, `Method not found: ${method}`) };
 }
 
+function wantsEventStream(req) {
+  const accept = String((req.headers && req.headers.accept) || '').toLowerCase();
+  return accept.includes('text/event-stream');
+}
+
+function mcpCorsOrigin(req) {
+  const origin = (req && req.headers && req.headers.origin) || '';
+  if (!origin) return '*';
+  if (/^https:\/\/([a-z0-9-]+\.)?(chatgpt\.com|openai\.com|oaistatic\.com)$/i.test(origin)) return origin;
+  return security.corsOrigin(req, process.env.NODE_ENV === 'production' || !!process.env.RENDER);
+}
+
+function writeRaw(res, req, status, payload, extraHeaders) {
+  const cors = mcpCorsOrigin(req);
+  const headers = Object.assign({
+    'Access-Control-Allow-Origin': cors,
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, Accept, Mcp-Session-Id',
+    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
+    'Cache-Control': 'no-store',
+  }, extraHeaders || {});
+  if (payload == null) {
+    res.writeHead(status, security.securityHeaders(headers));
+    return res.end();
+  }
+  headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  const body = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  res.writeHead(status, security.securityHeaders(headers));
+  return res.end(body);
+}
+
 async function handleHttp(opts) {
   const {
     req, res, method, body, db, writeDb, ip, send,
   } = opts;
 
+  // CORS preflight for ChatGPT browser clients
+  if (method === 'OPTIONS') {
+    return writeRaw(res, req, 204, null);
+  }
+
+  // Streamable HTTP GET: clients asking for SSE — we don't keep long-lived server push streams
+  if ((method === 'GET' || method === 'HEAD') && wantsEventStream(req)) {
+    return writeRaw(res, req, 405, { error: 'SSE listen not required; use POST JSON-RPC (streamable HTTP).' });
+  }
+
+  // Human / browser discovery document
   if (method === 'GET' || method === 'HEAD') {
     return send(res, 200, discovery(), null, req);
   }
 
+  if (method === 'DELETE') {
+    // Session terminate (optional) — acknowledge
+    return writeRaw(res, req, 200, { ok: true });
+  }
+
   if (method === 'POST') {
     const rpc = await handleJsonRpc(body, { db, req, ip, writeDb });
-    return send(res, rpc.status, rpc.payload, null, req);
+    if (rpc.empty) {
+      return writeRaw(res, req, rpc.status || 202, null);
+    }
+    const extra = {};
+    if (body && body.method === 'initialize') {
+      extra['Mcp-Session-Id'] = crypto.randomBytes(16).toString('hex');
+    }
+    return writeRaw(res, req, rpc.status, rpc.payload, extra);
   }
 
   return send(res, 405, { error: 'Method not allowed. Use GET (discovery) or POST (JSON-RPC).' }, null, req);

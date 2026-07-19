@@ -3350,11 +3350,20 @@
         <div class="card card-pad lg:col-span-2" id="chatgptAiCard">
           <h3 class="font-bold mb-1">Connect ChatGPT</h3>
           <p class="text-sm text-ink-500 mb-3">Link your <b>company workspace</b> to a ChatGPT Custom GPT (GPT Actions). Works for hotels, restaurants, catering, commercial kitchens, schools, care homes, retreat centres, cafés, bakeries, event venues and other hospitality businesses. ChatGPT only sees <b>your</b> company data. Never share your Kiteline password — use an AI token or OAuth. Dietary rules (vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free, etc.) are set per company, not forced on every customer.</p>
+          <div class="rounded-xl border border-amber-300 bg-amber-50 p-3 mb-4 text-xs text-ink-700">
+            <p class="font-bold text-amber-900 mb-1">Kiteline will not appear in ChatGPT until you create it once</p>
+            <ol class="list-decimal pl-4 space-y-1">
+              <li>ChatGPT web → <b>Settings → Security and login → Developer mode ON</b></li>
+              <li>Open <a class="text-brand-700 font-semibold" href="https://chatgpt.com/plugins" target="_blank" rel="noopener">chatgpt.com/plugins</a> → <b>+</b> Create app</li>
+              <li>Name: <b>Kiteline</b> · MCP URL: <code class="text-[11px]">https://kiteline.uk/mcp</code></li>
+              <li>Scan tools (7 tools). Then in a chat: <b>+</b> → Developer mode → enable <b>Kiteline</b> (not Kitchen OS)</li>
+            </ol>
+          </div>
           <ol class="text-xs text-ink-600 list-decimal pl-4 mb-4 space-y-1">
-            <li>Create an AI token below (Admin only).</li>
-            <li><b>MCP:</b> use <code class="text-[11px]">https://kiteline.uk/mcp</code> with Bearer <code class="text-[11px]">kl_ai_…</code>.</li>
-            <li><b>GPT Actions:</b> Import OpenAPI schema URL below → Authentication → API Key → Bearer → paste the token.</li>
-            <li>Tools: search_recipes, create_menu, get_menus, get_missing_temperature_logs, add_temperature_log, generate_allergen_report, generate_shopping_list — scoped to <b>this</b> company only. Writes/exports need confirmation.</li>
+            <li>Create an AI token below (Admin only) for authenticated tool calls.</li>
+            <li><b>MCP:</b> <code class="text-[11px]">https://kiteline.uk/mcp</code> with Bearer <code class="text-[11px]">kl_ai_…</code>.</li>
+            <li><b>Alternative — Custom GPT Actions:</b> import OpenAPI schema below → API Key / Bearer → paste token. Name the GPT <b>Kiteline</b>.</li>
+            <li>Tools: search_recipes, create_menu, get_menus, get_missing_temperature_logs, add_temperature_log, generate_allergen_report, generate_shopping_list — this company only.</li>
           </ol>
           <div class="rounded-xl border border-brand-200 bg-brand-50/40 p-4 mb-4">
             <p class="text-xs font-bold text-brand-800 uppercase tracking-wide mb-2">MCP URL</p>

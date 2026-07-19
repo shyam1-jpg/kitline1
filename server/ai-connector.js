@@ -844,7 +844,7 @@ async function handleApi(opts) {
     await apiSend(200, {
       ok: true,
       service: 'kiteline-ai',
-      version: '1.2.0',
+      version: '1.2.1',
       product: 'Kiteline multipurpose hospitality platform',
       mcp: 'https://kiteline.uk/mcp',
       auth: 'AI token (kl_ai_…) via Bearer or x-api-key — not user passwords',
