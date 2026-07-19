@@ -4,43 +4,72 @@ function buildOpenApi(baseUrl) {
   const origin = (baseUrl || 'https://kiteline.uk').replace(/\/$/, '');
   const paths = {};
   const resources = [
-    ['health', 'get', false],
-    ['me', 'get', true],
-    ['sites', 'get', true],
-    ['recipes', 'get', true],
-    ['recipes', 'post', true],
-    ['menus', 'get', true],
-    ['menus', 'post', true],
-    ['allergens', 'get', true],
-    ['temperature-logs', 'get', true],
-    ['temperature-logs', 'post', true],
-    ['haccp-logs', 'get', true],
-    ['haccp-logs', 'post', true],
-    ['cleaning-checks', 'get', true],
-    ['fridge-freezer-units', 'get', true],
-    ['labels', 'get', true],
-    ['labels', 'post', true],
-    ['stock', 'get', true],
-    ['suppliers', 'get', true],
-    ['orders', 'get', true],
-    ['waste', 'get', true],
-    ['rota', 'get', true],
-    ['reports', 'get', true],
+    ['health', 'get', false, 'Connector health check'],
+    ['me', 'get', true, 'Current company workspace for this AI token'],
+    ['workspace', 'get', true, 'Company settings and dietary configuration'],
+    ['workspace', 'patch', true, 'Update company settings / dietary rules (Admin)'],
+    ['sites', 'get', true, 'Kitchens / sites for this company'],
+    ['search', 'get', true, 'Search recipes, dishes, menus, stock and suppliers'],
+    ['recipes', 'get', true, 'Search recipes, products and dishes (?q=)'],
+    ['recipes', 'post', true, 'Create a draft recipe'],
+    ['menus', 'get', true, 'List or search menus'],
+    ['menus', 'post', true, 'Create or publish a menu'],
+    ['allergens', 'get', true, 'Allergen report for dishes'],
+    ['nutrition', 'get', true, 'Nutrition report for dishes'],
+    ['temperature-logs', 'get', true, 'Read temperature records'],
+    ['temperature-logs', 'post', true, 'Add a temperature record'],
+    ['haccp-logs', 'get', true, 'Read HACCP / compliance records'],
+    ['haccp-logs', 'post', true, 'Add a HACCP / compliance record'],
+    ['cleaning-checks', 'get', true, 'Cleaning / hygiene checks'],
+    ['fridge-freezer-units', 'get', true, 'Fridge and freezer units'],
+    ['labels', 'get', true, 'Food labels'],
+    ['labels', 'post', true, 'Create a food label'],
+    ['stock', 'get', true, 'Search stock batches and assets (?q=)'],
+    ['suppliers', 'get', true, 'Search suppliers (?q=)'],
+    ['shopping-list', 'get', true, 'Generate shopping / ordering list'],
+    ['shopping-list', 'post', true, 'Generate shopping list from menus or recipes'],
+    ['orders', 'get', true, 'Supplier deliveries / orders'],
+    ['waste', 'get', true, 'Waste records'],
+    ['rota', 'get', true, 'Staff rota and operational records'],
+    ['reports', 'get', true, 'Business, cost and compliance reports'],
   ];
 
-  resources.forEach(([name, method, auth]) => {
+  resources.forEach(([name, method, auth, summary]) => {
     const p = `/api/ai/${name}`;
     paths[p] = paths[p] || {};
-    paths[p][method] = {
-      operationId: `${method}_${name.replace(/-/g, '_')}`,
-      summary: `${method.toUpperCase()} ${name}`,
-      ...(auth ? { security: [{ AiBearer: [] }, { AiApiKey: [] }] } : {}),
-      parameters: method === 'get' ? [{
+    const params = [];
+    if (method === 'get' || method === 'patch') {
+      params.push({
         name: 'site',
         in: 'query',
         schema: { type: 'string' },
-        description: 'Kitchen site id (e.g. site_grove)',
-      }] : [],
+        description: 'Kitchen site id for this company (e.g. site_grove)',
+      });
+    }
+    if (method === 'get' && ['search', 'recipes', 'menus', 'stock', 'suppliers'].includes(name)) {
+      params.push({
+        name: 'q',
+        in: 'query',
+        schema: { type: 'string' },
+        description: 'Search query',
+      });
+    }
+    if (method === 'get' && name === 'shopping-list') {
+      params.push(
+        { name: 'menuId', in: 'query', schema: { type: 'string' }, description: 'Build list from a menu' },
+        { name: 'recipeId', in: 'query', schema: { type: 'string' }, description: 'Build list from a recipe' },
+        { name: 'fromMenus', in: 'query', schema: { type: 'boolean' }, description: 'Include ingredients from site menus' },
+      );
+    }
+    paths[p][method] = {
+      operationId: `${method}_${name.replace(/-/g, '_')}`,
+      summary: summary || `${method.toUpperCase()} ${name}`,
+      description:
+        'Tenant-scoped: only data for the company that owns this AI token. '
+        + 'Dietary rules (vegetarian, vegan, Jain, Ekadashi, halal, kosher, gluten-free, etc.) '
+        + 'are configured per company via /api/ai/workspace — never forced on all Kiteline customers.',
+      ...(auth ? { security: [{ AiBearer: [] }, { AiApiKey: [] }, { OAuth2: [] }] } : {}),
+      parameters: params,
       requestBody: method !== 'get' ? {
         required: true,
         content: {
@@ -51,6 +80,19 @@ function buildOpenApi(baseUrl) {
                 confirm: { type: 'boolean', description: 'Must be true for create/update/delete' },
                 site: { type: 'string' },
                 data: { type: 'object' },
+                dietary: {
+                  type: 'object',
+                  description: 'Per-company dietary profiles (workspace update only)',
+                  properties: {
+                    enabled: { type: 'array', items: { type: 'string' } },
+                    defaultProfile: { type: 'string', nullable: true },
+                    notes: { type: 'string' },
+                  },
+                },
+                businessType: {
+                  type: 'string',
+                  description: 'hotel | restaurant | catering | commercial_kitchen | school | college | care_home | retreat_centre | cafe | bakery | event_venue | other_hospitality',
+                },
               },
             },
           },
@@ -59,7 +101,8 @@ function buildOpenApi(baseUrl) {
       responses: {
         200: { description: 'OK' },
         401: { description: 'Invalid or missing AI token' },
-        403: { description: 'Permission denied' },
+        403: { description: 'Permission denied or site not allowed' },
+        409: { description: 'Confirmation required' },
       },
     };
   });
@@ -67,11 +110,16 @@ function buildOpenApi(baseUrl) {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Kiteline AI Connector',
-      version: '1.0.0',
+      title: 'Kiteline AI Connector (ChatGPT)',
+      version: '1.1.0',
       description:
-        'Secure Kiteline API for authorised AI assistants (ChatGPT GPT Actions). '
-        + 'Use a Kiteline AI token — never a user password. Create tokens in the Kiteline app while signed in: POST /api/ai/tokens',
+        'Secure Kiteline API for authorised AI assistants (ChatGPT Custom GPT Actions / MCP). '
+        + 'Kiteline is a multipurpose business and hospitality-management platform for hotels, restaurants, '
+        + 'catering companies, commercial kitchens, schools, colleges, care homes, retreat centres, cafés, '
+        + 'bakeries, event venues and other food businesses. '
+        + 'Each company has its own secure workspace. '
+        + 'Use a Kiteline AI token — never a user password. Create tokens while signed in: Settings → Connect ChatGPT, '
+        + 'or POST /api/ai/tokens.',
     },
     servers: [{ url: origin }],
     components: {
@@ -94,8 +142,8 @@ function buildOpenApi(baseUrl) {
               authorizationUrl: `${origin}/api/ai/oauth/authorize`,
               tokenUrl: `${origin}/api/ai/oauth/token`,
               scopes: {
-                'kiteline.read': 'Read recipes, allergens, logs, and reports',
-                'kiteline.write': 'Create and update records (with user confirmation)',
+                'kiteline.read': 'Read recipes, stock, allergens, logs, and reports for your company only',
+                'kiteline.write': 'Create and update records for your company (with user confirmation)',
               },
             },
           },

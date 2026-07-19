@@ -195,7 +195,7 @@ function requirePermission(ctx, key, minRole) {
 }
 
 function requireConfirm(method, body) {
-  if (!['POST', 'PUT', 'DELETE'].includes(method)) return { ok: true };
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return { ok: true };
   if (body && body.confirm === true) return { ok: true };
   return {
     ok: false,

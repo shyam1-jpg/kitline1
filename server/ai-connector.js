@@ -32,6 +32,205 @@ function filterSite(arr, siteId) {
   return arr.filter((r) => inSite(r, siteId));
 }
 
+/** Optional dietary profiles a business may enable — never forced globally. */
+const DIETARY_OPTIONS = [
+  'vegetarian', 'vegan', 'jain', 'ekadashi', 'halal', 'kosher',
+  'gluten-free', 'dairy-free', 'nut-free', 'none',
+];
+
+const BUSINESS_TYPES = [
+  'hotel', 'restaurant', 'catering', 'commercial_kitchen', 'school',
+  'college', 'care_home', 'retreat_centre', 'cafe', 'bakery',
+  'event_venue', 'other_hospitality',
+];
+
+function textMatch(q, ...parts) {
+  const needle = String(q || '').trim().toLowerCase();
+  if (!needle) return true;
+  const hay = parts
+    .flatMap((p) => {
+      if (p == null) return [];
+      if (Array.isArray(p)) return p.map(String);
+      if (typeof p === 'object') return [JSON.stringify(p)];
+      return [String(p)];
+    })
+    .join(' ')
+    .toLowerCase();
+  return hay.includes(needle);
+}
+
+function ensureOrgDietary(org) {
+  const o = org || {};
+  const dietary = o.dietary && typeof o.dietary === 'object' ? o.dietary : {};
+  const enabled = Array.isArray(dietary.enabled)
+    ? dietary.enabled.map((x) => String(x).toLowerCase()).filter((x) => DIETARY_OPTIONS.includes(x))
+    : [];
+  return {
+    enabled,
+    defaultProfile: dietary.defaultProfile && DIETARY_OPTIONS.includes(String(dietary.defaultProfile).toLowerCase())
+      ? String(dietary.defaultProfile).toLowerCase()
+      : null,
+    notes: String(dietary.notes || '').slice(0, 500),
+    options: DIETARY_OPTIONS,
+    note: 'Dietary rules are configured per company. They are not applied to every Kiteline customer.',
+  };
+}
+
+function workspacePayload(state, ctx) {
+  const org = (state && state.org) || {};
+  const siteType = ((state.sites || []).find((s) => s.id === (ctx && ctx.state && ctx.state.currentSite)) || {}).type;
+  return {
+    name: org.name || null,
+    plan: org.plan || null,
+    currency: org.currency || 'GBP',
+    businessTypes: BUSINESS_TYPES,
+    businessType: org.businessType || siteType || 'other_hospitality',
+    products: org.products || {},
+    channels: org.channels || {},
+    dietary: ensureOrgDietary(org),
+    sites: (state.sites || []).filter((s) => !ctx || ctx.siteIds.includes(s.id)).map((s) => ({
+      id: s.id,
+      name: s.name,
+      type: s.type || null,
+      city: s.city || null,
+    })),
+    scope: 'This AI token only sees data for the logged-in company workspace.',
+  };
+}
+
+function searchCatalog(state, siteId, q) {
+  const recipes = filterSite(state.recipes || [], siteId).filter((r) =>
+    textMatch(q, r.name, r.category, r.allergens, r.ingredients));
+  const menus = filterSite(state.menus || [], siteId).filter((m) =>
+    textMatch(q, m.name, m.title, m.status, m.items));
+  const dishes = [];
+  filterSite(state.menus || [], siteId).forEach((m) => {
+    (m.items || []).forEach((item) => {
+      if (textMatch(q, item.name, item.title, item.category, item.allergens)) {
+        dishes.push({
+          id: item.id || null,
+          name: item.name || item.title,
+          menuId: m.id,
+          menuName: m.name || m.title,
+          allergens: item.allergens || [],
+          site: m.site,
+        });
+      }
+    });
+  });
+  const stock = filterSite(state.batches || [], siteId).filter((b) =>
+    textMatch(q, b.name, b.product, b.sku, b.lot, b.supplier));
+  const assets = filterSite(state.assets || [], siteId).filter((a) =>
+    textMatch(q, a.name, a.type, a.sku));
+  const suppliers = filterSite(state.suppliers || [], siteId).filter((s) =>
+    textMatch(q, s.name, s.contact, s.email, s.phone, s.categories, s.notes));
+  return {
+    q: q || '',
+    counts: {
+      recipes: recipes.length,
+      menus: menus.length,
+      dishes: dishes.length,
+      stock: stock.length + assets.length,
+      suppliers: suppliers.length,
+    },
+    recipes: recipes.slice(0, 50),
+    menus: menus.slice(0, 30),
+    dishes: dishes.slice(0, 50),
+    stock: { batches: stock.slice(0, 50), assets: assets.slice(0, 50) },
+    suppliers: suppliers.slice(0, 50),
+  };
+}
+
+function nutritionReport(state, siteId) {
+  const recipes = filterSite(state.recipes || [], siteId);
+  const dishes = recipes.map((r) => {
+    const n = r.nutrition || r.nutritionals || null;
+    return {
+      id: r.id,
+      name: r.name,
+      servings: r.servings || null,
+      allergens: r.allergens || [],
+      nutrition: n,
+      hasNutritionData: !!(n && typeof n === 'object' && Object.keys(n).length),
+      site: r.site,
+    };
+  });
+  return {
+    generatedAt: new Date().toISOString(),
+    site: siteId,
+    dishesWithNutrition: dishes.filter((d) => d.hasNutritionData).length,
+    dishesTotal: dishes.length,
+    dishes,
+    note: 'Nutrition fields are optional per recipe. Allergen data remains available via /api/ai/allergens.',
+  };
+}
+
+function buildShoppingList(state, siteId, opts) {
+  const optsSafe = opts || {};
+  const items = [];
+  const seen = new Set();
+
+  function addItem(name, qty, unit, source, supplier) {
+    const key = String(name || '').trim().toLowerCase();
+    if (!key) return;
+    if (seen.has(key)) {
+      const existing = items.find((i) => i.key === key);
+      if (existing && qty != null) existing.qty = (Number(existing.qty) || 0) + (Number(qty) || 0);
+      return;
+    }
+    seen.add(key);
+    items.push({
+      key,
+      name: String(name).trim(),
+      qty: qty != null ? qty : null,
+      unit: unit || null,
+      source: source || null,
+      supplier: supplier || null,
+    });
+  }
+
+  filterSite(state.batches || [], siteId).forEach((b) => {
+    const qty = Number(b.qty != null ? b.qty : b.quantity);
+    const min = Number(b.minQty != null ? b.minQty : b.reorderLevel);
+    const low = Number.isFinite(min) ? qty <= min : (Number.isFinite(qty) && qty <= 2);
+    if (low || optsSafe.includeAllStock) {
+      addItem(b.name || b.product, Math.max(1, (min || 5) - (qty || 0)), b.unit, 'stock', b.supplier);
+    }
+  });
+
+  if (optsSafe.menuId || optsSafe.fromMenus) {
+    const menus = filterSite(state.menus || [], siteId).filter((m) =>
+      !optsSafe.menuId || m.id === optsSafe.menuId);
+    menus.forEach((m) => {
+      (m.items || []).forEach((item) => {
+        const recipe = (state.recipes || []).find((r) =>
+          r.id === item.recipeId || (r.name || '').toLowerCase() === String(item.name || '').toLowerCase());
+        ((recipe && recipe.ingredients) || item.ingredients || []).forEach((ing) => {
+          if (typeof ing === 'string') addItem(ing, null, null, `menu:${m.name || m.id}`, null);
+          else addItem(ing.name || ing.item, ing.qty || ing.quantity, ing.unit, `menu:${m.name || m.id}`, ing.supplier);
+        });
+      });
+    });
+  }
+
+  if (optsSafe.recipeId) {
+    const recipe = filterSite(state.recipes || [], siteId).find((r) => r.id === optsSafe.recipeId);
+    ((recipe && recipe.ingredients) || []).forEach((ing) => {
+      if (typeof ing === 'string') addItem(ing, null, null, `recipe:${recipe.name}`, null);
+      else addItem(ing.name || ing.item, ing.qty || ing.quantity, ing.unit, `recipe:${recipe.name}`, ing.supplier);
+    });
+  }
+
+  const suppliers = filterSite(state.suppliers || [], siteId);
+  return {
+    generatedAt: new Date().toISOString(),
+    site: siteId,
+    itemCount: items.length,
+    items,
+    suggestedSuppliers: suppliers.slice(0, 20).map((s) => ({ id: s.id, name: s.name })),
+  };
+}
+
 function resolveSiteId(ctx, query, body) {
   const requested = (query.site || (body && body.site) || '').trim();
   const allowed = ctx.siteIds;
@@ -146,11 +345,14 @@ function buildReport(state, siteId) {
   const haccp = haccpLogs(state, siteId);
   const waste = filterSite(state.waste || [], siteId);
   const labels = filterSite(state.labels || [], siteId);
+  const recipes = filterSite(state.recipes || [], siteId);
+  const recipeFoodCost = recipes.reduce((n, r) => n + (Number(r.cost) || 0), 0);
+  const wasteCost = waste.reduce((n, w) => n + (Number(w.cost) || 0), 0);
   return {
     generatedAt: new Date().toISOString(),
     site: siteId,
     summary: {
-      recipes: filterSite(state.recipes || [], siteId).length,
+      recipes: recipes.length,
       menus: filterSite(state.menus || [], siteId).length,
       temperatureCompliance: temps.sensors.length
         ? Math.round((temps.sensors.filter((s) => s.temp >= s.min && s.temp <= s.max).length / temps.sensors.length) * 100)
@@ -160,6 +362,24 @@ function buildReport(state, siteId) {
       wasteEntries7d: waste.length,
       labelsActive: labels.filter((l) => !l.used).length,
       haccpChecks: haccp.complianceChecks.length,
+      recipeFoodCostTotal: Math.round(recipeFoodCost * 100) / 100,
+      wasteCostTotal: Math.round(wasteCost * 100) / 100,
+      currency: (state.org && state.org.currency) || 'GBP',
+    },
+    cost: {
+      currency: (state.org && state.org.currency) || 'GBP',
+      recipeFoodCostTotal: Math.round(recipeFoodCost * 100) / 100,
+      wasteCostTotal: Math.round(wasteCost * 100) / 100,
+      topCostRecipes: recipes
+        .slice()
+        .sort((a, b) => (Number(b.cost) || 0) - (Number(a.cost) || 0))
+        .slice(0, 10)
+        .map((r) => ({ id: r.id, name: r.name, cost: Number(r.cost) || 0, servings: r.servings || 1 })),
+    },
+    compliance: {
+      temperature: temps,
+      haccp,
+      openAlerts: filterSite(state.alerts || [], siteId).filter((a) => a.status === 'open').length,
     },
     temperature: temps,
     haccp,
@@ -184,8 +404,65 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
       role: aiAuth.resolveRole(ctx.state, ctx.user.email),
       permissions: ctx.permissions,
       sites: (ctx.state.sites || []).filter((s) => ctx.siteIds.includes(s.id)),
+      workspace: workspacePayload(ctx.state, ctx),
       token: { id: ctx.entry.id, label: ctx.entry.label },
+      platform: {
+        product: 'Kiteline',
+        description: 'Multipurpose business and hospitality-management platform — not limited to one cuisine, diet, or business type.',
+      },
     });
+  }
+
+  if (name === 'workspace') {
+    if (method === 'GET') {
+      auditAi(db, ip, ctx, 'workspace_read', meta);
+      return apiSend(200, { workspace: workspacePayload(ctx.state, ctx) });
+    }
+    if (method === 'PATCH' || method === 'POST') {
+      const role = aiAuth.resolveRole(ctx.state, ctx.user.email);
+      if (!aiAuth.roleAtLeast(role, 'Admin')) {
+        return apiSend(403, { error: 'Only Admins can update company workspace settings' });
+      }
+      const conf = aiAuth.requireConfirm(method, body);
+      if (!conf.ok) return apiSend(409, conf);
+      const data = body.data || body;
+      const next = JSON.parse(JSON.stringify(ctx.state));
+      next.org = next.org || {};
+      if (data.businessType && BUSINESS_TYPES.includes(String(data.businessType))) {
+        next.org.businessType = String(data.businessType);
+      }
+      if (data.name) next.org.name = String(data.name).slice(0, 120);
+      if (data.dietary && typeof data.dietary === 'object') {
+        const enabled = Array.isArray(data.dietary.enabled)
+          ? data.dietary.enabled.map((x) => String(x).toLowerCase()).filter((x) => DIETARY_OPTIONS.includes(x))
+          : ensureOrgDietary(next.org).enabled;
+        next.org.dietary = {
+          enabled,
+          defaultProfile: data.dietary.defaultProfile
+            ? String(data.dietary.defaultProfile).toLowerCase()
+            : null,
+          notes: String(data.dietary.notes || '').slice(0, 500),
+        };
+        if (next.org.dietary.defaultProfile && !DIETARY_OPTIONS.includes(next.org.dietary.defaultProfile)) {
+          next.org.dietary.defaultProfile = null;
+        }
+      }
+      saveState(db, ctx, next);
+      writeDb(db);
+      auditAi(db, ip, ctx, 'workspace_update', meta);
+      return apiSend(200, { ok: true, workspace: workspacePayload(next, ctx) });
+    }
+  }
+
+  if (name === 'search') {
+    if (!aiAuth.hasPermission(ctx, 'read_recipes')
+      && !aiAuth.hasPermission(ctx, 'manage_stock')
+      && !aiAuth.hasPermission(ctx, 'manage_suppliers')) {
+      return apiSend(403, { error: 'AI permission denied: read_recipes, manage_stock, or manage_suppliers' });
+    }
+    const q = (query.q || query.query || (body && (body.q || body.query)) || '').trim();
+    auditAi(db, ip, ctx, 'search', meta);
+    return apiSend(200, searchCatalog(ctx.state, siteId, q));
   }
 
   if (name === 'sites') {
@@ -202,8 +479,13 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
     if (method === 'GET') {
       const perm = aiAuth.requirePermission(ctx, 'read_recipes');
       if (!perm.ok) return apiSend(403, { error: perm.error });
+      const q = (query.q || query.query || '').trim();
+      let recipes = filterSite(ctx.state.recipes || [], siteId);
+      if (q) {
+        recipes = recipes.filter((r) => textMatch(q, r.name, r.category, r.allergens, r.ingredients));
+      }
       auditAi(db, ip, ctx, 'recipes_read', meta);
-      return apiSend(200, { recipes: filterSite(ctx.state.recipes || [], siteId), warning: siteRes.warning });
+      return apiSend(200, { recipes, q: q || undefined, warning: siteRes.warning });
     }
     if (method === 'POST') {
       const perm = aiAuth.requirePermission(ctx, 'create_draft_recipes', 'Staff');
@@ -236,8 +518,11 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
     if (method === 'GET') {
       const perm = aiAuth.requirePermission(ctx, 'read_recipes');
       if (!perm.ok) return apiSend(403, { error: perm.error });
+      const q = (query.q || query.query || '').trim();
+      let menus = filterSite(ctx.state.menus || [], siteId);
+      if (q) menus = menus.filter((m) => textMatch(q, m.name, m.title, m.status, m.items));
       auditAi(db, ip, ctx, 'menus_read', meta);
-      return apiSend(200, { menus: filterSite(ctx.state.menus || [], siteId) });
+      return apiSend(200, { menus, q: q || undefined });
     }
     if (method === 'POST') {
       const permKey = body.publish ? 'publish_menus' : 'create_menu_drafts';
@@ -270,6 +555,26 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
     if (!perm.ok) return apiSend(403, { error: perm.error });
     auditAi(db, ip, ctx, 'allergens_read', meta);
     return apiSend(200, allergenReport(ctx.state, siteId));
+  }
+
+  if (name === 'nutrition') {
+    const perm = aiAuth.requirePermission(ctx, 'read_allergen_data');
+    if (!perm.ok) return apiSend(403, { error: perm.error });
+    auditAi(db, ip, ctx, 'nutrition_read', meta);
+    return apiSend(200, nutritionReport(ctx.state, siteId));
+  }
+
+  if (name === 'shopping-list' || name === 'ordering-list') {
+    if (method === 'GET' || method === 'POST') {
+      if (!aiAuth.hasPermission(ctx, 'manage_stock')
+        && !aiAuth.hasPermission(ctx, 'manage_suppliers')
+        && !aiAuth.hasPermission(ctx, 'read_recipes')) {
+        return apiSend(403, { error: 'AI permission denied: manage_stock, manage_suppliers, or read_recipes' });
+      }
+      const opts = Object.assign({}, query, (body && (body.data || body)) || {});
+      auditAi(db, ip, ctx, 'shopping_list', meta);
+      return apiSend(200, buildShoppingList(ctx.state, siteId, opts));
+    }
   }
 
   if (name === 'temperature-logs') {
@@ -393,11 +698,15 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
       if (!aiAuth.hasPermission(ctx, 'read_recipes') && !aiAuth.hasPermission(ctx, 'manage_stock')) {
         return apiSend(403, { error: 'AI permission denied: read_recipes or manage_stock' });
       }
+      const q = (query.q || query.query || '').trim();
+      let batches = filterSite(ctx.state.batches || [], siteId);
+      let assets = filterSite(ctx.state.assets || [], siteId);
+      if (q) {
+        batches = batches.filter((b) => textMatch(q, b.name, b.product, b.sku, b.lot, b.supplier));
+        assets = assets.filter((a) => textMatch(q, a.name, a.type, a.sku));
+      }
       auditAi(db, ip, ctx, 'stock_read', meta);
-      return apiSend(200, {
-        batches: filterSite(ctx.state.batches || [], siteId),
-        assets: filterSite(ctx.state.assets || [], siteId),
-      });
+      return apiSend(200, { batches, assets, q: q || undefined });
     }
   }
 
@@ -405,8 +714,11 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
     if (!aiAuth.hasPermission(ctx, 'read_recipes') && !aiAuth.hasPermission(ctx, 'manage_suppliers')) {
       return apiSend(403, { error: 'AI permission denied: read_recipes or manage_suppliers' });
     }
+    const q = (query.q || query.query || '').trim();
+    let suppliers = filterSite(ctx.state.suppliers || [], siteId);
+    if (q) suppliers = suppliers.filter((s) => textMatch(q, s.name, s.contact, s.email, s.phone, s.categories, s.notes));
     auditAi(db, ip, ctx, 'suppliers_read', meta);
-    return apiSend(200, { suppliers: filterSite(ctx.state.suppliers || [], siteId) });
+    return apiSend(200, { suppliers, q: q || undefined });
   }
 
   if (name === 'orders') {
@@ -445,11 +757,23 @@ async function handleResource(method, name, ctx, db, ip, query, body, apiSend, w
       return apiSend(200, {
         summaryOnly: true,
         message: 'Enable export_reports permission on the AI token for full inspection export.',
-        report: buildReport(ctx.state, siteId),
+        report: Object.assign(buildReport(ctx.state, siteId), {
+          allergens: allergenReport(ctx.state, siteId),
+          nutrition: nutritionReport(ctx.state, siteId),
+          workspace: workspacePayload(ctx.state, ctx),
+        }),
       });
     }
     auditAi(db, ip, ctx, 'reports_export', meta);
-    return apiSend(200, { export: true, report: buildReport(ctx.state, siteId) });
+    return apiSend(200, {
+      export: true,
+      report: Object.assign(buildReport(ctx.state, siteId), {
+        allergens: allergenReport(ctx.state, siteId),
+        nutrition: nutritionReport(ctx.state, siteId),
+        shoppingList: buildShoppingList(ctx.state, siteId, { includeAllStock: false }),
+        workspace: workspacePayload(ctx.state, ctx),
+      }),
+    });
   }
 
   return apiSend(404, { error: 'Unknown AI resource' });
@@ -470,8 +794,10 @@ async function handleApi(opts) {
     await apiSend(200, {
       ok: true,
       service: 'kiteline-ai',
-      version: '1.0.0',
+      version: '1.1.0',
+      product: 'Kiteline multipurpose hospitality platform',
       auth: 'AI token (kl_ai_…) via Bearer or x-api-key — not user passwords',
+      tenantScoped: true,
     });
     return true;
   }
@@ -501,8 +827,9 @@ async function handleApi(opts) {
         defaults: aiAuth.defaultPermissions(),
         howToConnect: {
           step1: 'Create a token here (POST) while signed in with your normal Kiteline session',
-          step2: 'In ChatGPT → GPT Actions, import schema from /api/ai/openapi.json',
+          step2: 'In ChatGPT → GPT Actions, import schema from https://kiteline.uk/api/ai/openapi.json',
           step3: 'Set Authentication to API key or Bearer with your kl_ai_… token',
+          step4: 'Each token is locked to your company workspace — ChatGPT cannot see other customers',
         },
       });
       return true;
@@ -561,14 +888,7 @@ async function handleApi(opts) {
   }
 
   if (!resource) {
-    await apiSend(200, {
-      service: 'kiteline-ai',
-      endpoints: [
-        'me', 'sites', 'recipes', 'menus', 'allergens', 'temperature-logs', 'haccp-logs',
-        'cleaning-checks', 'fridge-freezer-units', 'labels', 'stock', 'suppliers',
-        'orders', 'waste', 'rota', 'reports',
-      ],
-    });
+    await apiSend(200, mcpInfo());
     return true;
   }
 
@@ -579,13 +899,37 @@ async function handleApi(opts) {
 function mcpInfo() {
   return {
     name: 'kiteline',
-    version: '1.0.0',
-    status: 'stub',
-    description: 'Kiteline MCP connector — use REST /api/ai for GPT Actions today.',
+    version: '1.1.0',
+    status: 'ready',
+    description:
+      'Kiteline secure AI connector for hotels, restaurants, catering, commercial kitchens, '
+      + 'schools, care homes, retreat centres, cafés, bakeries, event venues and other hospitality businesses. '
+      + 'Each company has a private workspace. Dietary rules are configurable per business and never forced globally.',
     openapi: '/api/ai/openapi.json',
     health: '/api/ai/health',
+    oauth: '/api/ai/oauth',
     docs: 'https://kiteline.uk',
+    chatgpt: {
+      importSchema: 'https://kiteline.uk/api/ai/openapi.json',
+      auth: 'Bearer or x-api-key with kl_ai_… token from Settings → Connect ChatGPT',
+    },
+    tools: [
+      { name: 'search', path: '/api/ai/search', methods: ['GET'], summary: 'Search recipes, dishes, menus, stock and suppliers' },
+      { name: 'recipes', path: '/api/ai/recipes', methods: ['GET', 'POST'], summary: 'Search and manage recipes / products / dishes' },
+      { name: 'menus', path: '/api/ai/menus', methods: ['GET', 'POST'], summary: 'Create and manage menus' },
+      { name: 'stock', path: '/api/ai/stock', methods: ['GET'], summary: 'Search stock batches and assets' },
+      { name: 'suppliers', path: '/api/ai/suppliers', methods: ['GET'], summary: 'Search suppliers' },
+      { name: 'shopping-list', path: '/api/ai/shopping-list', methods: ['GET', 'POST'], summary: 'Generate shopping and ordering lists' },
+      { name: 'temperature-logs', path: '/api/ai/temperature-logs', methods: ['GET', 'POST'], summary: 'Read and add temperature records' },
+      { name: 'allergens', path: '/api/ai/allergens', methods: ['GET'], summary: 'Allergen report' },
+      { name: 'nutrition', path: '/api/ai/nutrition', methods: ['GET'], summary: 'Nutrition report' },
+      { name: 'rota', path: '/api/ai/rota', methods: ['GET'], summary: 'Staff rota and operational records' },
+      { name: 'reports', path: '/api/ai/reports', methods: ['GET'], summary: 'Business, cost and compliance reports' },
+      { name: 'workspace', path: '/api/ai/workspace', methods: ['GET', 'PATCH'], summary: 'Company settings and dietary configuration' },
+      { name: 'haccp-logs', path: '/api/ai/haccp-logs', methods: ['GET', 'POST'], summary: 'HACCP / compliance records' },
+      { name: 'me', path: '/api/ai/me', methods: ['GET'], summary: 'Current company workspace for this AI token' },
+    ],
   };
 }
 
-module.exports = { handleApi, mcpInfo };
+module.exports = { handleApi, mcpInfo, DIETARY_OPTIONS, BUSINESS_TYPES };

@@ -489,7 +489,7 @@ function send(res, code, obj, headers, req) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': cors,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
   }), headers || {}));
   res.end(body);
 }
@@ -592,7 +592,7 @@ async function handleApi(req, res, url) {
     return;
   }
 
-  const body = (req.method === 'POST' || req.method === 'PUT') ? await readBody(req) : {};
+  const body = (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') ? await readBody(req) : {};
 
   // GET /api/vedanta/reports/status — where data is stored + email schedule
   if (route === '/vedanta/reports/status' && req.method === 'GET') {
@@ -1351,7 +1351,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(204, security.securityHeaders({
       'Access-Control-Allow-Origin': security.corsOrigin(req, isProd),
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
-      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     }));
     return res.end();
   }
