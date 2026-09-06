@@ -101,7 +101,7 @@
   <!-- Bust stale service-worker / app shell when build changes -->
   <script>
   (function () {
-    var build = '2026-09-06-ai-brigade-v2';
+    var build = '2026-09-06-ai-brigade-v3-chatgpt-repair';
     try {
       if (localStorage.getItem('kiteline.build') !== build) {
         localStorage.setItem('kiteline.build', build);
@@ -133,6 +133,7 @@
   <script src="/js/views.js?v=26"></script>
   <script src="/js/compliance-views.js?v=4"></script>
   <script src="/js/ai-brigade.js?v=2"></script>
+  <script src="/js/ai-self-repair.js?v=1"></script>
   <script src="/js/ai-brigade-persistence.js?v=1"></script>
   <script src="/js/app.js?v=32"></script>
   <script src="/js/ai-brigade-nav.js?v=1"></script>
