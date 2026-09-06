@@ -1,0 +1,1 @@
+{"resource":"https://kiteline.uk/mcp","authorization_servers":["https://kiteline.uk"],"scopes_supported":["kiteline.read","kiteline.write"],"bearer_methods_supported":["header"],"resource_documentation":"https://kiteline.uk/mcp"}

@@ -1,0 +1,485 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const STORE_FILE = path.join(DATA_DIR, 'vedanta-ordering-store.json');
+const SEED_FILE = path.join(DATA_DIR, 'vedanta-ordering-seed.json');
+const UPLOAD_DIR = path.join(DATA_DIR, 'vedanta-ordering-uploads');
+
+const sessions = new Map();
+
+function hashPin(pin) {
+  const salt = 'vedanta-ordering-pin';
+  return crypto.scryptSync(String(pin), salt, 32).toString('hex');
+}
+
+function defaultUsers() {
+  return [
+    {
+      id: 1,
+      login_id: 'kitchen',
+      pin_hash: hashPin('1234'),
+      display_name: 'Kitchen',
+      department: 'Kitchen',
+      role: 'admin',
+      active: 1,
+    },
+    {
+      id: 2,
+      login_id: 'restaurant',
+      pin_hash: hashPin('2345'),
+      display_name: 'Restaurant',
+      department: 'Restaurant',
+      role: 'department',
+      active: 1,
+    },
+    {
+      id: 3,
+      login_id: 'foh',
+      pin_hash: hashPin('3456'),
+      display_name: 'Front of House',
+      department: 'Front of House',
+      role: 'department',
+      active: 1,
+    },
+  ];
+}
+
+function syncDepartmentUsers(store) {
+  const defaults = defaultUsers();
+  defaults.forEach((user) => {
+    const existing = store.users.find((u) => u.login_id === user.login_id);
+    if (existing) {
+      existing.display_name = user.display_name;
+      existing.department = user.department;
+      existing.role = user.role;
+      existing.active = 1;
+    } else {
+      store.users.push({ ...user, id: Math.max(0, ...store.users.map((u) => u.id)) + 1 });
+    }
+  });
+  const admin = store.users.find((u) => u.login_id === 'admin');
+  if (admin && admin.role === 'admin') admin.role = 'department';
+  store.nextIds = store.nextIds || { stock_check: 1, order: 1, user: 4 };
+  if (store.nextIds.user < 4) store.nextIds.user = 4;
+}
+
+function emptyStore() {
+  const store = {
+    users: defaultUsers(),
+    suppliers: [],
+    products: [],
+    stock_checks: [],
+    stock_check_items: [],
+    orders: [],
+    order_items: [],
+    nextIds: { stock_check: 1, order: 1, user: 4 },
+    updatedAt: null,
+  };
+  return store;
+}
+
+function readStore() {
+  try {
+    if (!fs.existsSync(STORE_FILE)) {
+      const store = emptyStore();
+      if (fs.existsSync(SEED_FILE)) {
+        const seed = JSON.parse(fs.readFileSync(SEED_FILE, 'utf8'));
+        store.suppliers = seed.suppliers || [];
+        store.products = (seed.products || []).map((p) => ({ ...p, active: 1 }));
+      }
+      syncDepartmentUsers(store);
+      writeStore(store);
+      return store;
+    }
+    const store = { ...emptyStore(), ...JSON.parse(fs.readFileSync(STORE_FILE, 'utf8')) };
+    syncDepartmentUsers(store);
+    writeStore(store);
+    return store;
+  } catch {
+    return emptyStore();
+  }
+}
+
+function writeStore(store) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  store.updatedAt = new Date().toISOString();
+  fs.writeFileSync(STORE_FILE, JSON.stringify(store, null, 2));
+  return store;
+}
+
+function parseCookies(req) {
+  const raw = req.headers.cookie || '';
+  const out = {};
+  raw.split(';').forEach((part) => {
+    const i = part.indexOf('=');
+    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+  });
+  return out;
+}
+
+function getSessionUser(req, store) {
+  const sid = parseCookies(req).vedanta_ordering_sid;
+  if (!sid || !sessions.has(sid)) return null;
+  const userId = sessions.get(sid);
+  return store.users.find((u) => u.id === userId && u.active) || null;
+}
+
+function setSessionCookie(res, sid) {
+  const secure = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+  res.setHeader(
+    'Set-Cookie',
+    `vedanta_ordering_sid=${sid}; Path=/; HttpOnly; SameSite=Lax${secure ? '; Secure' : ''}`
+  );
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', 'vedanta_ordering_sid=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+}
+
+function latestStockMap(store) {
+  const completed = [...store.stock_checks]
+    .filter((sc) => sc.completed)
+    .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  const map = {};
+  for (const sc of completed) {
+    store.stock_check_items
+      .filter((i) => i.stock_check_id === sc.id)
+      .forEach((i) => {
+        if (!map[i.product_id]) map[i.product_id] = { quantity_counted: i.quantity_counted, created_at: sc.created_at, stock_check_id: sc.id };
+      });
+  }
+  return map;
+}
+
+function productsWithStock(store) {
+  const stockMap = latestStockMap(store);
+  return store.products
+    .filter((p) => p.active)
+    .map((p) => {
+      const stock = stockMap[p.id];
+      return {
+        ...p,
+        supplier_name: (store.suppliers.find((s) => s.id === p.supplier_id) || {}).name,
+        supplier_slug: (store.suppliers.find((s) => s.id === p.supplier_id) || {}).slug,
+        current_stock: stock ? stock.quantity_counted : null,
+        last_stock_check: stock ? stock.created_at : null,
+        needs_order: stock != null && stock.quantity_counted <= p.reorder_level,
+      };
+    });
+}
+
+function requireUser(req, res, store) {
+  const user = getSessionUser(req, store);
+  if (!user) {
+    res.writeHead(401, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Login required' }));
+    return null;
+  }
+  return user;
+}
+
+function json(res, code, obj) {
+  res.writeHead(code, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(obj));
+}
+
+function parseMultipart(buf, boundary) {
+  const parts = {};
+  const delim = Buffer.from('--' + boundary);
+  let start = buf.indexOf(delim) + delim.length;
+  while (start < buf.length) {
+    const next = buf.indexOf(delim, start);
+    const chunk = buf.slice(start, next > 0 ? next : buf.length);
+    const headerEnd = chunk.indexOf('\r\n\r\n');
+    if (headerEnd < 0) break;
+    const header = chunk.slice(0, headerEnd).toString('utf8');
+    const content = chunk.slice(headerEnd + 4, chunk.length - 2);
+    const nameMatch = header.match(/name="([^"]+)"/);
+    const fileMatch = header.match(/filename="([^"]+)"/);
+    if (!nameMatch) break;
+    const name = nameMatch[1];
+    if (fileMatch) parts[name] = { filename: fileMatch[1], data: content };
+    else parts[name] = content.toString('utf8');
+    if (next < 0) break;
+    start = next + delim.length;
+  }
+  return parts;
+}
+
+function readRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (c) => {
+      chunks.push(c);
+      if (chunks.reduce((n, b) => n + b.length, 0) > 12e6) req.destroy();
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+async function handleRoute(req, res, route, method, rawBody, contentType) {
+  const store = readStore();
+  const user = getSessionUser(req, store);
+  let body = {};
+  if (method === 'POST' || method === 'PUT') {
+    if ((contentType || '').includes('multipart/form-data')) {
+      const boundary = (contentType.split('boundary=')[1] || '').trim();
+      body = parseMultipart(rawBody, boundary);
+    } else {
+      try {
+        body = JSON.parse(rawBody.toString('utf8') || '{}');
+      } catch {
+        body = {};
+      }
+    }
+  }
+
+  if (route === '/auth/login' && method === 'POST') {
+    const loginId = (body.login_id || '').trim().toLowerCase();
+    const pin = String(body.pin || '');
+    const found = store.users.find((u) => u.login_id === loginId && u.active);
+    if (!found || found.pin_hash !== hashPin(pin)) {
+      return json(res, 401, { error: 'Invalid login ID or PIN' });
+    }
+    const sid = crypto.randomBytes(24).toString('hex');
+    sessions.set(sid, found.id);
+    setSessionCookie(res, sid);
+    return json(res, 200, {
+      id: found.id,
+      login_id: found.login_id,
+      display_name: found.display_name,
+      department: found.department,
+      role: found.role,
+    });
+  }
+
+  if (route === '/auth/logout' && method === 'POST') {
+    const sid = parseCookies(req).vedanta_ordering_sid;
+    if (sid) sessions.delete(sid);
+    clearSessionCookie(res);
+    return json(res, 200, { ok: true });
+  }
+
+  if (route === '/auth/me' && method === 'GET') {
+    if (!user) return json(res, 200, { authenticated: false });
+    return json(res, 200, {
+      authenticated: true,
+      id: user.id,
+      login_id: user.login_id,
+      display_name: user.display_name,
+      department: user.department,
+      role: user.role,
+    });
+  }
+
+  if (route === '/ethos' && method === 'GET') {
+    return json(res, 200, { summary: '' });
+  }
+
+  if (route === '/suppliers' && method === 'GET') {
+    if (!requireUser(req, res, store)) return;
+    return json(res, 200, store.suppliers);
+  }
+
+  if (route === '/products' && method === 'GET') {
+    if (!requireUser(req, res, store)) return;
+    return json(res, 200, productsWithStock(store));
+  }
+
+  if (route === '/stock-checks' && method === 'GET') {
+    if (!requireUser(req, res, store)) return;
+    const checks = store.stock_checks.map((sc) => ({
+      ...sc,
+      item_count: store.stock_check_items.filter((i) => i.stock_check_id === sc.id).length,
+    }));
+    checks.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+    return json(res, 200, checks.slice(0, 50));
+  }
+
+  const stockMatch = route.match(/^\/stock-checks\/(\d+)$/);
+  if (stockMatch && method === 'GET') {
+    if (!requireUser(req, res, store)) return;
+    const id = Number(stockMatch[1]);
+    const sc = store.stock_checks.find((x) => x.id === id);
+    if (!sc) return json(res, 404, { error: 'Not found' });
+    const items = store.stock_check_items
+      .filter((i) => i.stock_check_id === id)
+      .map((i) => {
+        const p = store.products.find((pr) => pr.id === i.product_id) || {};
+        return { ...i, product_name: p.name, unit: p.unit, reorder_level: p.reorder_level };
+      });
+    return json(res, 200, { ...sc, items });
+  }
+
+  if (route === '/stock-checks' && method === 'POST') {
+    const u = requireUser(req, res, store);
+    if (!u) return;
+    let photo_path = null;
+    if (body.photo && body.photo.data && body.photo.filename) {
+      if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+      const ext = path.extname(body.photo.filename).toLowerCase() || '.jpg';
+      photo_path = crypto.randomBytes(12).toString('hex') + ext;
+      fs.writeFileSync(path.join(UPLOAD_DIR, photo_path), body.photo.data);
+    }
+    const id = store.nextIds.stock_check++;
+    const sc = {
+      id,
+      staff_name: u.display_name,
+      photo_path,
+      notes: (body.notes || '').trim(),
+      created_at: new Date().toISOString(),
+      completed: 0,
+      user_id: u.id,
+      department: u.department,
+    };
+    store.stock_checks.unshift(sc);
+    writeStore(store);
+    return json(res, 201, sc);
+  }
+
+  const stockItemMatch = route.match(/^\/stock-checks\/(\d+)\/items$/);
+  if (stockItemMatch && method === 'POST') {
+    if (!requireUser(req, res, store)) return;
+    const checkId = Number(stockItemMatch[1]);
+    const productId = Number(body.product_id);
+    const qty = Number(body.quantity_counted);
+    const existing = store.stock_check_items.find((i) => i.stock_check_id === checkId && i.product_id === productId);
+    if (existing) existing.quantity_counted = qty;
+    else store.stock_check_items.push({ stock_check_id: checkId, product_id: productId, quantity_counted: qty });
+    writeStore(store);
+    return json(res, 200, { ok: true });
+  }
+
+  const stockCompleteMatch = route.match(/^\/stock-checks\/(\d+)\/complete$/);
+  if (stockCompleteMatch && method === 'POST') {
+    if (!requireUser(req, res, store)) return;
+    const checkId = Number(stockCompleteMatch[1]);
+    const sc = store.stock_checks.find((x) => x.id === checkId);
+    if (!sc) return json(res, 404, { error: 'Not found' });
+    if (!sc.photo_path) return json(res, 400, { error: 'Photo required before completing stock check' });
+    sc.completed = 1;
+    writeStore(store);
+    return json(res, 200, sc);
+  }
+
+  if (route === '/orders/pending-count' && method === 'GET') {
+    if (!requireUser(req, res, store)) return;
+    const count = store.orders.filter((o) => o.status === 'pending').length;
+    return json(res, 200, { count });
+  }
+
+  if (route === '/orders' && method === 'GET') {
+    if (!requireUser(req, res, store)) return;
+    const orders = store.orders.map((o) => {
+      const supplier = store.suppliers.find((s) => s.id === o.supplier_id) || {};
+      return { ...o, supplier_name: supplier.name, item_count: store.order_items.filter((i) => i.order_id === o.id).length };
+    });
+    orders.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+    return json(res, 200, orders);
+  }
+
+  const orderMatch = route.match(/^\/orders\/(\d+)$/);
+  if (orderMatch && method === 'GET') {
+    if (!requireUser(req, res, store)) return;
+    const id = Number(orderMatch[1]);
+    const order = store.orders.find((o) => o.id === id);
+    if (!order) return json(res, 404, { error: 'Not found' });
+    const supplier = store.suppliers.find((s) => s.id === order.supplier_id) || {};
+    const items = store.order_items
+      .filter((i) => i.order_id === id)
+      .map((i) => {
+        const p = store.products.find((pr) => pr.id === i.product_id) || {};
+        return { ...i, product_name: p.name, product_code: p.product_code, unit: p.unit, pack_size: p.pack_size };
+      });
+    return json(res, 200, { ...order, supplier_name: supplier.name, items });
+  }
+
+  if (route === '/orders' && method === 'POST') {
+    const u = requireUser(req, res, store);
+    if (!u) return;
+    const supplierId = Number(body.supplier_id);
+    const stockCheckId = Number(body.stock_check_id);
+    const sc = store.stock_checks.find((x) => x.id === stockCheckId && x.completed);
+    if (!sc) return json(res, 400, { error: 'Completed stock check required' });
+    const id = store.nextIds.order++;
+    const order = {
+      id,
+      supplier_id: supplierId,
+      stock_check_id: stockCheckId,
+      requested_by: u.display_name,
+      status: 'pending',
+      notes: body.notes || '',
+      created_at: new Date().toISOString(),
+      user_id: u.id,
+      department: u.department,
+    };
+    store.orders.unshift(order);
+    (body.items || []).forEach((item) => {
+      const productId = Number(item.product_id);
+      const stockItem = store.stock_check_items.find((i) => i.stock_check_id === stockCheckId && i.product_id === productId);
+      store.order_items.push({
+        order_id: id,
+        product_id: productId,
+        quantity_ordered: Number(item.quantity_ordered),
+        stock_before: stockItem ? stockItem.quantity_counted : 0,
+      });
+    });
+    writeStore(store);
+    return json(res, 201, order);
+  }
+
+  const ackMatch = route.match(/^\/orders\/(\d+)\/acknowledge$/);
+  if (ackMatch && method === 'POST') {
+    const u = requireUser(req, res, store);
+    if (!u) return;
+    const id = Number(ackMatch[1]);
+    const order = store.orders.find((o) => o.id === id);
+    if (!order) return json(res, 404, { error: 'Not found' });
+    order.status = 'acknowledged';
+    order.acknowledged_at = new Date().toISOString();
+    order.acknowledged_by = u.display_name;
+    writeStore(store);
+    return json(res, 200, order);
+  }
+
+  const placeMatch = route.match(/^\/orders\/(\d+)\/place$/);
+  if (placeMatch && method === 'POST') {
+    const u = requireUser(req, res, store);
+    if (!u) return;
+    const id = Number(placeMatch[1]);
+    const order = store.orders.find((o) => o.id === id);
+    if (!order) return json(res, 404, { error: 'Not found' });
+    order.status = 'placed';
+    order.placed_at = new Date().toISOString();
+    order.placed_by = u.display_name;
+    writeStore(store);
+    return json(res, 200, order);
+  }
+
+  if (route === '/admin/users' && method === 'GET') {
+    const u = requireUser(req, res, store);
+    if (!u || u.role !== 'admin') return json(res, 403, { error: 'Admin access required' });
+    return json(res, 200, store.users.map(({ pin_hash, ...rest }) => rest));
+  }
+
+  return json(res, 404, { error: 'Not found' });
+}
+
+function handleApi(req, res, url) {
+  const prefix = '/api/vedanta-ordering';
+  if (!url.pathname.startsWith(prefix)) return false;
+  const route = url.pathname.slice(prefix.length) || '/';
+  const method = req.method;
+  const contentType = req.headers['content-type'] || '';
+  readRequestBody(req)
+    .then((rawBody) => handleRoute(req, res, route, method, rawBody, contentType))
+    .catch(() => json(res, 500, { error: 'Request failed' }));
+  return true;
+}
+
+module.exports = { handleApi, UPLOAD_DIR, readStore, writeStore };
