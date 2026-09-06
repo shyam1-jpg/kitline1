@@ -3,7 +3,9 @@
 const crypto = require('crypto');
 
 const TOKEN_PREFIX = 'kl_ai_';
+const MCP_RESOURCE = (process.env.AI_MCP_RESOURCE || 'https://kiteline.uk/mcp').replace(/\/$/, '');
 const RANK = { Staff: 1, Manager: 2, Admin: 3 };
+const READ_PERMISSION_KEYS = new Set(['read_recipes', 'read_allergen_data', 'read_temperature_logs', 'read_haccp_records']);
 
 const PERMISSION_KEYS = [
   'read_recipes',
@@ -109,15 +111,20 @@ function createToken(db, email, opts) {
   const raw = issueToken();
   const id = uid();
   const store = ensureStore(db);
+  const options = opts || {};
   store[id] = {
     id,
     hash: hashToken(raw),
     hint: raw.slice(0, 12) + '…',
     email: user.email,
     tenantId: user.tenantId,
-    label: String((opts && opts.label) || 'ChatGPT').slice(0, 80),
-    siteIds: Array.isArray(opts && opts.siteIds) ? opts.siteIds.filter(Boolean) : null,
-    permissions: defaultPermissions(opts && opts.permissions),
+    label: String(options.label || 'ChatGPT').slice(0, 80),
+    siteIds: Array.isArray(options.siteIds) ? options.siteIds.filter(Boolean) : null,
+    permissions: defaultPermissions(options.permissions),
+    oauth: options.oauth === true,
+    resource: options.resource ? String(options.resource).replace(/\/$/, '') : null,
+    scopes: Array.isArray(options.scopes) ? Array.from(new Set(options.scopes.map(String).filter(Boolean))) : [],
+    expiresAt: Number.isFinite(Number(options.expiresAt)) ? Number(options.expiresAt) : null,
     createdAt: new Date().toISOString(),
     lastUsed: null,
   };
@@ -133,6 +140,10 @@ function publicTokenEntry(entry) {
     email: entry.email,
     siteIds: entry.siteIds,
     permissions: entry.permissions,
+    oauth: !!entry.oauth,
+    scopes: entry.scopes || [],
+    resource: entry.resource || null,
+    expiresAt: entry.expiresAt ? new Date(entry.expiresAt).toISOString() : null,
     createdAt: entry.createdAt,
     lastUsed: entry.lastUsed,
   };
@@ -152,7 +163,7 @@ function revokeToken(db, email, tokenId) {
   const user = db.users[em];
   const store = ensureStore(db);
   const entry = store[tokenId];
-  if (!entry || entry.email !== em || entry.tenantId !== user.tenantId) {
+  if (!user || !entry || entry.email !== em || entry.tenantId !== user.tenantId) {
     throw new Error('Token not found');
   }
   delete store[tokenId];
@@ -169,6 +180,13 @@ function resolveAiAuth(db, req) {
   const store = ensureStore(db);
   const entry = Object.values(store).find((t) => t.hash === h);
   if (!entry) return null;
+  if (entry.expiresAt && Date.now() > Number(entry.expiresAt)) {
+    if (entry.id) delete store[entry.id];
+    return null;
+  }
+  if (entry.oauth && entry.resource && String(entry.resource).replace(/\/$/, '') !== MCP_RESOURCE) {
+    return null;
+  }
   entry.lastUsed = new Date().toISOString();
   const user = db.users[(entry.email || '').toLowerCase()];
   if (!user || user.tenantId !== entry.tenantId) return null;
@@ -176,7 +194,13 @@ function resolveAiAuth(db, req) {
 }
 
 function hasPermission(ctx, key) {
-  return !!(ctx && ctx.entry && ctx.entry.permissions && ctx.entry.permissions[key]);
+  if (!(ctx && ctx.entry && ctx.entry.permissions && ctx.entry.permissions[key])) return false;
+  if (ctx.entry.oauth) {
+    const scopes = new Set(ctx.entry.scopes || []);
+    if (!scopes.has('kiteline.read')) return false;
+    if (!READ_PERMISSION_KEYS.has(key) && !scopes.has('kiteline.write')) return false;
+  }
+  return true;
 }
 
 function roleAtLeast(role, min) {
@@ -206,6 +230,7 @@ function requireConfirm(method, body) {
 
 module.exports = {
   TOKEN_PREFIX,
+  MCP_RESOURCE,
   PERMISSION_KEYS,
   defaultPermissions,
   isAiToken,
