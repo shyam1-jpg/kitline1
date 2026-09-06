@@ -502,6 +502,7 @@ module.exports = {
   TRIAL_MAX_USERS,
   resolvePlanId,
   isConfigured,
+  isOwner,
   planCatalog,
   planById,
   createCheckout,
