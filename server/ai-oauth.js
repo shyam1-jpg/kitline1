@@ -26,7 +26,7 @@ const CODE_MS = 5 * 60 * 1000;
 const TOKEN_MS = 90 * 24 * 60 * 60 * 1000;
 const RESOURCE = 'https://kiteline.uk/mcp';
 const ISSUER = 'https://kiteline.uk';
-const TOKEN_ENDPOINT = 'https://kiteline.uk/api/vedanta-ordering/oauth/token';
+const TOKEN_ENDPOINT = 'https://kiteline.uk/api/ai/oauth/token';
 const REGISTRATION_ENDPOINT = 'https://kiteline.uk/api/ai/oauth/register';
 const AUTHORIZATION_ENDPOINT = 'https://kiteline.uk/api/ai/oauth/authorize';
 const PROTECTED_RESOURCE_METADATA = 'https://kiteline.uk/api/ai/oauth/resource-metadata';
@@ -134,7 +134,7 @@ function authorizationServerMetadata(req) {
   return {
     issuer: base,
     authorization_endpoint: `${base}/api/ai/oauth/authorize`,
-    token_endpoint: base === ISSUER ? TOKEN_ENDPOINT : `${base}/api/vedanta-ordering/oauth/token`,
+    token_endpoint: base === ISSUER ? TOKEN_ENDPOINT : `${base}/api/ai/oauth/token`,
     registration_endpoint: `${base}/api/ai/oauth/register`,
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code'],
@@ -425,7 +425,7 @@ function publicConfig(req) {
     issuer: base,
     resource: base === ISSUER ? RESOURCE : `${base}/mcp`,
     authorizationUrl: `${base}/api/ai/oauth/authorize`,
-    tokenUrl: base === ISSUER ? TOKEN_ENDPOINT : `${base}/api/vedanta-ordering/oauth/token`,
+    tokenUrl: base === ISSUER ? TOKEN_ENDPOINT : `${base}/api/ai/oauth/token`,
     registrationUrl: `${base}/api/ai/oauth/register`,
     protectedResourceMetadata: `${base}/api/ai/oauth/resource-metadata`,
     authorizationServerMetadata: `${base}/api/ai/oauth/authorization-server-metadata`,

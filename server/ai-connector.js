@@ -844,10 +844,10 @@ async function handleApi(opts) {
     await apiSend(200, {
       ok: true,
       service: 'kiteline-ai',
-      version: '1.2.1',
+      version: aiMcp.discovery().version,
       product: 'Kiteline multipurpose hospitality platform',
       mcp: 'https://kiteline.uk/mcp',
-      auth: 'AI token (kl_ai_…) via Bearer or x-api-key — not user passwords',
+      auth: 'OAuth 2.1 + PKCE for ChatGPT MCP; legacy AI tokens for API clients',
       tenantScoped: true,
     });
     return true;
