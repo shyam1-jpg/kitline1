@@ -41,6 +41,7 @@ const recipeAiAccess = require('./recipe-ai-access');
 const tenants = require('./tenants');
 const aiConnector = require('./ai-connector');
 const aiMcp = require('./ai-mcp');
+const aiOauth = require('./ai-oauth');
 const academyStore = require('./academy/store');
 const academyHandlers = require('./academy/handlers');
 const vedantaOrdering = require('./vedanta-ordering');
@@ -498,7 +499,14 @@ function readBody(req) {
   return new Promise((resolve) => {
     let data = '';
     req.on('data', c => { data += c; if (data.length > 30e6) req.destroy(); });
-    req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch { resolve({}); } });
+    req.on('end', () => {
+      const pathname = new URL(req.url, 'http://localhost').pathname;
+      const contentType = String(req.headers['content-type'] || '').toLowerCase();
+      if (pathname === '/api/ai/oauth/token' && contentType.includes('application/x-www-form-urlencoded')) {
+        return resolve(Object.fromEntries(new URLSearchParams(data)));
+      }
+      try { resolve(data ? JSON.parse(data) : {}); } catch { resolve({}); }
+    });
   });
 }
 function readRawBody(req) {
@@ -583,7 +591,6 @@ function safeJoin(base, target) {
 
 /* ---------------- API routes ---------------- */
 async function handleApi(req, res, url) {
-  const db = readDb();
   const apiSend = (code, obj, extra) => send(res, code, obj, extra, req);
   const ip = security.clientIp(req);
   const route = url.pathname.replace(/^\/api/, '');
@@ -594,6 +601,9 @@ async function handleApi(req, res, url) {
   }
 
   const body = (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') ? await readBody(req) : {};
+  // Read after the request body: an in-flight request must not overwrite
+  // OAuth clients/codes created while it was waiting for incoming bytes.
+  const db = readDb();
 
   // GET /api/vedanta/reports/status — where data is stored + email schedule
   if (route === '/vedanta/reports/status' && req.method === 'GET') {
@@ -1348,6 +1358,9 @@ async function handleApi(req, res, url) {
 /* ---------------- static + routing ---------------- */
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  if (url.pathname === '/mcp' && req.method === 'OPTIONS') {
+    return aiMcp.handleHttp({ req, res, method: req.method });
+  }
   if (req.method === 'OPTIONS') {
     res.writeHead(204, security.securityHeaders({
       'Access-Control-Allow-Origin': security.corsOrigin(req, isProd),
@@ -1358,6 +1371,17 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    const resourceMetadata = url.pathname === '/.well-known/oauth-protected-resource'
+      || url.pathname === '/.well-known/oauth-protected-resource/mcp';
+    const authorizationMetadata = url.pathname === '/.well-known/oauth-authorization-server';
+    if (resourceMetadata || authorizationMetadata) {
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return send(res, 405, { error: 'method_not_allowed' }, { Allow: 'GET, HEAD' }, req);
+      }
+      return send(res, 200, resourceMetadata
+        ? aiOauth.protectedResourceMetadata(req)
+        : aiOauth.authorizationServerMetadata(req), { 'Cache-Control': 'no-store' }, req);
+    }
     // Health check (for uptime monitors / load balancers)
     if (url.pathname === '/health' || url.pathname === '/api/health') {
       return send(res, 200, { ok: true, service: 'kiteline', build: APP_BUILD, uptime: Math.round(process.uptime()), now: new Date().toISOString() }, null, req);
@@ -1386,13 +1410,13 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith('/api/')) return await handleApi(req, res, url);
 
     if (url.pathname === '/mcp') {
-      const db = readDb();
       const ip = security.clientIp(req);
       let body = {};
       if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
         body = await readBody(req);
       }
-      return aiMcp.handleHttp({
+      const db = readDb();
+      return await aiMcp.handleHttp({
         req,
         res,
         method: req.method,

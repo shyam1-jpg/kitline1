@@ -158,7 +158,8 @@ function writeRaw(res, req, status, payload, extraHeaders) {
   const cors = mcpCorsOrigin(req);
   const headers = Object.assign({
     'Access-Control-Allow-Origin': cors,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, Accept, Mcp-Session-Id',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, Accept, Mcp-Session-Id, MCP-Protocol-Version',
+    'Access-Control-Expose-Headers': 'Mcp-Session-Id, WWW-Authenticate',
     'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
     'Cache-Control': 'no-store',
   }, extraHeaders || {});
