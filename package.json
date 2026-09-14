@@ -28,6 +28,6 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^9.1.1"
   }
 }

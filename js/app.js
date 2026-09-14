@@ -404,6 +404,7 @@
           read_recipes: 'Read recipes',
           read_allergen_data: 'Read allergen data',
           read_temperature_logs: 'Read temperature logs',
+          add_temperature_logs: 'Add temperature logs (requires confirmation for each entry)',
           read_haccp_records: 'Read HACCP records',
           create_draft_recipes: 'Create draft recipes',
           create_menu_drafts: 'Create menu drafts',
@@ -412,7 +413,7 @@
           `<label class="flex gap-2 py-1 text-sm"><input type="checkbox" data-oauth-perm="${k}" ${info.permissions && info.permissions[k] ? 'checked' : ''} class="accent-brand-600">${escapeHtml(label)}</label>`
         ).join('');
         const layer = modal('Connect ChatGPT to Kiteline', `
-          <p class="text-sm text-ink-600 mb-3"><b>ChatGPT</b> is requesting access to your Kiteline workspace. Only approve if you started this from your Custom GPT.</p>
+          <p class="text-sm text-ink-600 mb-3"><b>ChatGPT</b> is requesting access to your Kiteline workspace. Only approve if you started this connection from ChatGPT.</p>
           <p class="text-xs text-ink-400 mb-3">Scope: ${escapeHtml(info.scope || 'kiteline')}</p>
           <div class="mb-4">${permHtml}</div>
           <div class="flex gap-2">
