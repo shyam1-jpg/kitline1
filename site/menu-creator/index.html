@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
 <title>Menu Creator</title>
-<meta name="menu-creator-build" content="fresh-v7" />
+<meta name="menu-creator-build" content="fresh-v8" />
 <style>
   :root{
     --bg:#101714;
@@ -323,8 +323,8 @@
     text-transform:none !important;letter-spacing:.01em;line-height:1.45;
     color:#3c463f;max-width:520px;margin:0 auto 4px;
   }
-  .dish-contains{font-size:var(--t-meta);letter-spacing:.05em;color:var(--gold);text-transform:uppercase;font-weight:700;margin-top:2px;}
-  .dish-diet{font-size:var(--t-meta);letter-spacing:.05em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-top:1px;}
+  .dish-contains{font-size:var(--t-meta);letter-spacing:.02em;color:var(--gold);text-transform:none !important;font-weight:600;margin-top:2px;}
+  .dish-diet{font-size:var(--t-meta);letter-spacing:.02em;color:var(--accent);text-transform:none !important;font-weight:600;margin-top:1px;}
 
   /* allergen info block (same page, below dishes) */
   .info-block{
@@ -748,7 +748,7 @@
     .menu-logo-text{font-size:16px !important;margin-bottom:4px !important;}
     .dish-name{font-size:16px !important;letter-spacing:.14em !important;text-transform:uppercase !important;}
     .dish-desc{font-size:10px !important;font-style:italic !important;text-transform:none !important;line-height:1.5 !important;}
-    .dish-contains,.dish-diet{font-size:8px !important;}
+    .dish-contains,.dish-diet{font-size:8px !important;text-transform:none !important;letter-spacing:.02em !important;}
     .info-title{font-size:13px !important;}
     .info-sub,.info-body p,.info-list span{font-size:8.5px !important;}
     .page.tpl-classic .menu-logo-text{color:#2f6b4f !important;}
@@ -777,7 +777,7 @@
   <!-- ===================== EDITOR ===================== -->
   <aside class="editor">
     <div class="brand"><span class="dot"></span> Menu Creator</div>
-    <p class="sub">Fresh print engine. Dish names stay CAPITAL. Descriptions stay small letters.</p>
+    <p class="sub">Dish names stay CAPITAL. Descriptions and allergens stay small letters.</p>
 
     <div class="group type-box">
       <label>Print size</label>
@@ -786,7 +786,7 @@
         <button type="button" class="type-btn on" data-scale="standard">Standard</button>
         <button type="button" class="type-btn" data-scale="large">Large</button>
       </div>
-      <div class="hint">Names = CAPITALS. Descriptions = small letters. Size only changes how big they print.</div>
+      <div class="hint">Names = CAPITALS. Descriptions and allergens = small letters. Size only changes how big they print.</div>
     </div>
 
     <div class="group archive-box">
@@ -1978,12 +1978,12 @@ $("appendBtn").onclick = ()=>{
 function wordTpl(tpl){
   const t=tpl||data.template||"classic";
   const map={
-    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:12pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#3c463f;",allg:"text-align:center;font-size:7pt;color:#b08a3e;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#2f6b4f;text-transform:uppercase;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
-    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:12pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:13pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-style:italic;font-size:8pt;color:#444;padding-left:11pt;",allg:"font-size:7pt;color:#111;text-transform:uppercase;font-weight:bold;padding-left:11pt;",diet:"font-size:7pt;color:#555;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
-    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:12pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#c4b89a;",allg:"text-align:center;font-size:7pt;color:#c9a84c;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#8fbc8f;text-transform:uppercase;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
-    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:15pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#4a6048;",allg:"text-align:center;font-size:7pt;color:#5a7d5a;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#3d5c3d;text-transform:uppercase;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
-    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:12pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#333;",allg:"text-align:center;font-size:7pt;color:#1a1a1a;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#8b4513;text-transform:uppercase;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
-    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:15pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#6b5344;",allg:"text-align:center;font-size:7pt;color:#8b5a2b;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#5c7a3a;text-transform:uppercase;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"}
+    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:12pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#3c463f;",allg:"text-align:center;font-size:7pt;color:#b08a3e;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#2f6b4f;text-transform:none;font-weight:600;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
+    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:12pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:13pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-style:italic;font-size:8pt;color:#444;padding-left:11pt;",allg:"font-size:7pt;color:#111;text-transform:none;font-weight:600;padding-left:11pt;",diet:"font-size:7pt;color:#555;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
+    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:12pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#c4b89a;",allg:"text-align:center;font-size:7pt;color:#c9a84c;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#8fbc8f;text-transform:none;font-weight:600;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
+    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:15pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#4a6048;",allg:"text-align:center;font-size:7pt;color:#5a7d5a;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#3d5c3d;text-transform:none;font-weight:600;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
+    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:12pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#333;",allg:"text-align:center;font-size:7pt;color:#1a1a1a;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#8b4513;text-transform:none;font-weight:600;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
+    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:15pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#6b5344;",allg:"text-align:center;font-size:7pt;color:#8b5a2b;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#5c7a3a;text-transform:none;font-weight:600;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"}
   };
   return map[t]||map.classic;
 }
@@ -2135,15 +2135,16 @@ function normalizeDish(d){
 }
 function containsLine(a){
   if(!a||!a.length) return "";
-  const list=a.filter(x=>x&&x.toLowerCase()!=="none").map(x=>String(x).toUpperCase());
-  if(!list.length) return "Contains: NONE";
+  const list=a.filter(x=>x&&x.toLowerCase()!=="none").map(x=>String(x).toLowerCase());
+  if(!list.length) return "Contains: none";
   if(list.length===1) return "Contains: "+list[0];
   return "Contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
 }
 function dietLine(d){
   if(!d||!d.length) return "";
-  if(d.length===1) return "Suitable for "+d[0];
-  return "Suitable for "+d.slice(0,-1).join(", ")+" and "+d[d.length-1];
+  const list=d.map(x=>String(x).toLowerCase());
+  if(list.length===1) return "Suitable for "+list[0];
+  return "Suitable for "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
 }
 
 function fitPages(){
