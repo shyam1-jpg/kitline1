@@ -14,20 +14,23 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
 <title>Menu Creator</title>
+<meta name="menu-creator-build" content="fresh-v7" />
 <style>
   :root{
-    --bg:#f4f1ea;
-    --panel:#ffffff;
+    --bg:#101714;
+    --panel:#18211c;
+    --editor-ink:#f4f0e6;
+    --editor-muted:#9aa89f;
     --ink:#1f2a24;
     --muted:#6b7770;
     --accent:#2f6b4f;
     --accent-soft:#e7f0ea;
-    --line:#e2ddd2;
+    --line:#2b3b33;
     --gold:#b08a3e;
     --danger:#c0492f;
     --radius:14px;
-    --shadow:0 10px 30px rgba(31,42,36,.08);
-    --serif:"Georgia","Times New Roman",serif;
+    --shadow:0 18px 50px rgba(0,0,0,.35);
+    --serif:"Palatino Linotype","Palatino","Iowan Old Style",Georgia,"Times New Roman",serif;
     --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -36,7 +39,7 @@
     margin:0;
     font-family:var(--sans);
     background:var(--bg);
-    color:var(--ink);
+    color:var(--editor-ink);
     overflow-x:hidden;
   }
 
@@ -52,34 +55,47 @@
     padding:22px;
     overflow-y:auto;
     height:100vh;
+    color:var(--editor-ink);
   }
   .preview-wrap{
-    padding:32px;
+    padding:28px;
     overflow-y:auto;
     height:100vh;
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:28px;
+    gap:24px;
+    background:
+      radial-gradient(900px 400px at 50% 0, rgba(201,162,74,.12), transparent 60%),
+      #121a16;
   }
 
   /* ---------- Editor styling ---------- */
   .brand{
     display:flex;align-items:center;gap:10px;
-    font-weight:700;font-size:18px;margin-bottom:4px;
+    font-weight:700;font-size:20px;margin-bottom:4px;
+    letter-spacing:.02em;
   }
-  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);}
-  .sub{color:var(--muted);font-size:13px;margin:0 0 18px;}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--gold);}
+  .sub{color:var(--editor-muted);font-size:13px;margin:0 0 18px;line-height:1.45;}
+
+  .type-box{background:#101714;border:1px solid var(--line);padding:14px;border-radius:12px;}
+  .type-scale{display:flex;gap:8px;}
+  .type-btn{
+    flex:1;border:1px solid var(--line);background:#18211c;color:var(--editor-ink);
+    border-radius:10px;padding:10px 8px;font-size:13px;font-weight:700;cursor:pointer;
+  }
+  .type-btn.on{background:var(--gold);color:#1f2a24;border-color:var(--gold);}
 
   .group{margin-bottom:22px;}
   .group > label{
     display:block;font-size:12px;font-weight:700;letter-spacing:.05em;
-    text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+    text-transform:uppercase;color:var(--editor-muted);margin-bottom:8px;
   }
-  input[type=text], textarea, select{
+  input[type=text], textarea, select, input[type=date]{
     width:100%;padding:10px 12px;border:1px solid var(--line);
     border-radius:10px;font-size:14px;font-family:var(--sans);
-    background:#fbfaf7;color:var(--ink);
+    background:#101714;color:var(--editor-ink);
   }
   textarea{resize:vertical;min-height:64px;line-height:1.5;}
   input:focus,textarea:focus,select:focus{
@@ -94,13 +110,13 @@
     font-size:14px;font-weight:600;font-family:var(--sans);transition:.15s;
   }
   .btn-primary{background:var(--accent);color:#fff;}
-  .btn-primary:hover{background:#26573f;}
-  .btn-ghost{background:var(--accent-soft);color:var(--accent);}
-  .btn-ghost:hover{background:#d8e7df;}
-  .btn-line{background:transparent;border:1px solid var(--line);color:var(--ink);}
-  .btn-line:hover{background:#f4f1ea;}
-  .btn-danger{background:transparent;color:var(--danger);border:1px solid #eccfc8;}
-  .btn-danger:hover{background:#fbeae6;}
+  .btn-primary:hover{background:#2f7353;}
+  .btn-ghost{background:var(--accent-soft);color:#cfe8d9;}
+  .btn-ghost:hover{background:#2d4538;}
+  .btn-line{background:transparent;border:1px solid var(--line);color:var(--editor-ink);}
+  .btn-line:hover{background:#223029;}
+  .btn-danger{background:transparent;color:var(--danger);border:1px solid #5a332c;}
+  .btn-danger:hover{background:#3a221e;}
   .btn-block{width:100%;}
   .btn-sm{padding:6px 10px;font-size:12.5px;}
 
@@ -118,20 +134,20 @@
   /* dish list in editor */
   .dish-card{
     border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;
-    background:#fdfcf9;
+    background:#101714;
   }
-  .dish-card h4{margin:0 0 4px;font-size:14px;}
-  .dish-card .meta{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.4;}
+  .dish-card h4{margin:0 0 4px;font-size:14px;color:var(--editor-ink);text-transform:uppercase;}
+  .dish-card .meta{font-size:12px;color:var(--editor-muted);margin-bottom:10px;line-height:1.4;}
   .dish-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
   .allergen-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
   .chip{
-    border:1px solid var(--line);background:#fff;border-radius:999px;
+    border:1px solid var(--line);background:#101714;color:var(--editor-ink);border-radius:999px;
     padding:6px 12px;font-size:12.5px;cursor:pointer;user-select:none;transition:.12s;
   }
   .chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
 
-  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  .hint{font-size:12px;color:var(--editor-muted);margin-top:6px;line-height:1.5;}
 
   .divider{height:1px;background:var(--line);margin:22px 0;}
 
@@ -145,6 +161,18 @@
     position:relative;
     border:1px solid #ece7da;
     overflow:hidden;
+    --t-title:24px;
+    --t-logo:16px;
+    --t-dish:13.5px;
+    --t-desc:10.5px;
+    --t-meta:8.5px;
+    --t-info:15px;
+  }
+  .page.type-compact{
+    --t-title:20px;--t-logo:14px;--t-dish:12px;--t-desc:9.5px;--t-meta:8px;--t-info:13px;
+  }
+  .page.type-large{
+    --t-title:28px;--t-logo:18px;--t-dish:15.5px;--t-desc:12px;--t-meta:9.5px;--t-info:17px;
   }
   /* ---------- Template: Classic Gold (default) ---------- */
   .page.tpl-classic::before{
@@ -159,10 +187,10 @@
   .page.tpl-modern{background:#fafafa;padding:52px 64px;}
   .page.tpl-modern::before{display:none;}
   .page.tpl-modern .menu-head{border-bottom:1px solid #111;text-align:left;padding-bottom:10px;}
-  .page.tpl-modern .menu-title{font-family:var(--sans);font-size:28px;letter-spacing:.22em;font-weight:300;}
+  .page.tpl-modern .menu-title{font-family:var(--sans);font-size:var(--t-title);letter-spacing:.22em;font-weight:300;}
   .page.tpl-modern .menu-logo-text{font-family:var(--sans);color:#111;font-weight:700;letter-spacing:.12em;}
-  .page.tpl-modern .dish{text-align:left;margin-bottom:18px;padding-left:14px;border-left:3px solid #111;}
-  .page.tpl-modern .dish-desc{margin:0;max-width:none;font-style:normal;color:#444;}
+  .page.tpl-modern .dish{text-align:left;margin-bottom:14px;padding-left:14px;border-left:3px solid #111;}
+  .page.tpl-modern .dish-desc{margin:0;max-width:none;color:#444;}
   .page.tpl-modern .dish-contains{color:#111;}
   .page.tpl-modern .dish-diet{color:#555;}
   .page.tpl-modern .dish-sep{display:none;}
@@ -208,7 +236,7 @@
     background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%235a7d5a' d='M32 4c-8 16-4 28 0 36 4-8 8-20 0-36zm0 36c-12 4-20 12-24 24 12-4 20-12 24-24zm0 0c12 4 20 12 24 24-12-4-20-12-24-24z'/%3E%3C/svg%3E") center/contain no-repeat;
   }
   .page.tpl-botanical .menu-head{border-bottom:none;padding-bottom:8px;}
-  .page.tpl-botanical .menu-title{color:#3d5c3d;font-size:26px;}
+  .page.tpl-botanical .menu-title{color:#3d5c3d;font-size:var(--t-title);}
   .page.tpl-botanical .menu-title::after{content:"";display:block;width:80px;height:2px;background:#5a7d5a;margin:8px auto 0;}
   .page.tpl-botanical .menu-logo-text{color:#5a7d5a;}
   .page.tpl-botanical .dish-contains{color:#5a7d5a;}
@@ -228,9 +256,9 @@
                linear-gradient(90deg,#1a1a1a,#1a1a1a) right/6px 100% no-repeat;
   }
   .page.tpl-artdeco .menu-head{border-bottom:4px double #1a1a1a;padding-bottom:16px;}
-  .page.tpl-artdeco .menu-title{font-size:32px;letter-spacing:.28em;color:#1a1a1a;font-weight:700;}
+  .page.tpl-artdeco .menu-title{font-size:var(--t-title);letter-spacing:.28em;color:#1a1a1a;font-weight:700;}
   .page.tpl-artdeco .menu-logo-text{color:#1a1a1a;letter-spacing:.2em;font-weight:700;}
-  .page.tpl-artdeco .dish-name{letter-spacing:.14em;font-size:15px;}
+  .page.tpl-artdeco .dish-name{letter-spacing:.16em;}
   .page.tpl-artdeco .dish-contains{color:#1a1a1a;font-weight:700;}
   .page.tpl-artdeco .dish-diet{color:#8b4513;}
   .page.tpl-artdeco .dish-sep{width:100%;max-width:120px;height:2px;background:#1a1a1a;margin:14px auto 0;}
@@ -249,7 +277,7 @@
   .page.tpl-rustic .menu-head{border-bottom:2px wavy #8b5a2b;padding-bottom:12px;}
   .page.tpl-rustic .menu-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;letter-spacing:.1em;}
   .page.tpl-rustic .menu-logo-text{color:#8b5a2b;font-family:"Palatino Linotype",Palatino,serif;}
-  .page.tpl-rustic .dish-name{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;text-transform:none;letter-spacing:.02em;}
+  .page.tpl-rustic .dish-name{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;}
   .page.tpl-rustic .dish-desc{color:#6b5344;}
   .page.tpl-rustic .dish-contains{color:#8b5a2b;}
   .page.tpl-rustic .dish-diet{color:#5c7a3a;}
@@ -278,37 +306,41 @@
   .menu-logo-slot{min-height:0;margin-bottom:6px;}
   .menu-logo-slot:empty{display:none;}
   .menu-logo{max-height:74px;max-width:220px;margin:0 auto 10px;display:block;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .menu-logo-text{font-family:var(--serif);font-size:20px;color:var(--accent);letter-spacing:.04em;margin-bottom:4px;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .menu-logo-text{font-family:var(--serif);font-size:var(--t-logo);color:var(--accent);letter-spacing:.04em;margin-bottom:4px;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .menu-title{
-    font-family:var(--serif);font-size:30px;letter-spacing:.16em;
-    text-transform:uppercase;margin:4px 0 2px;
+    font-family:var(--serif);font-size:var(--t-title);letter-spacing:.16em;
+    text-transform:uppercase;margin:4px 0 2px;color:#1f2a24;
   }
-  .menu-sub{color:var(--muted);font-size:12px;letter-spacing:.18em;text-transform:uppercase;}
+  .menu-sub{color:#6b7770;font-size:11px;letter-spacing:.18em;text-transform:uppercase;}
 
-  .dish{margin-bottom:18px;text-align:center;}
+  .dish{margin-bottom:16px;text-align:center;}
   .dish-name{
-    font-family:var(--serif);font-size:16px;font-weight:700;letter-spacing:.02em;
-    text-transform:none;margin:0 0 4px;color:var(--ink);line-height:1.3;
+    font-family:var(--serif);font-size:var(--t-dish);font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase !important;margin:0 0 4px;color:#1f2a24;line-height:1.25;
   }
-  .dish-desc{font-size:12.5px;line-height:1.5;color:#3c463f;max-width:540px;margin:0 auto 4px;font-style:italic;}
-  .dish-contains{font-size:11px;letter-spacing:.06em;color:var(--gold);text-transform:uppercase;font-weight:700;margin-top:2px;}
-  .dish-diet{font-size:10.5px;letter-spacing:.04em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-top:2px;}
+  .dish-desc{
+    font-family:var(--serif);font-size:var(--t-desc);font-style:italic;font-weight:400;
+    text-transform:none !important;letter-spacing:.01em;line-height:1.45;
+    color:#3c463f;max-width:520px;margin:0 auto 4px;
+  }
+  .dish-contains{font-size:var(--t-meta);letter-spacing:.05em;color:var(--gold);text-transform:uppercase;font-weight:700;margin-top:2px;}
+  .dish-diet{font-size:var(--t-meta);letter-spacing:.05em;color:var(--accent);text-transform:uppercase;font-weight:600;margin-top:1px;}
 
   /* allergen info block (same page, below dishes) */
   .info-block{
     margin-top:22px;padding-top:14px;border-top:2px solid var(--gold);
   }
   .info-title{
-    font-family:var(--serif);font-size:18px;letter-spacing:.1em;text-transform:uppercase;
+    font-family:var(--serif);font-size:var(--t-info);letter-spacing:.1em;text-transform:uppercase;
     text-align:center;color:var(--accent);margin-bottom:2px;
   }
-  .info-sub{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
-  .info-body p{font-size:10.5px;line-height:1.45;color:#3c463f;margin:0 0 7px;}
+  .info-sub{text-align:center;color:var(--muted);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;}
+  .info-body p{font-size:8.5px;line-height:1.4;color:#3c463f;margin:0 0 6px;}
   .info-list{
     display:grid;grid-template-columns:repeat(3,1fr);gap:3px 16px;margin-top:10px;
     padding:12px 16px;background:var(--accent-soft);border-radius:10px;
   }
-  .info-list span{font-size:10.5px;display:flex;align-items:center;gap:6px;}
+  .info-list span{font-size:9.5px;display:flex;align-items:center;gap:6px;}
   .info-list span::before{content:"•";color:var(--gold);font-size:14px;}
   .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
   .menu-qr-wrap{text-align:center;margin-top:10px;padding-top:8px;}
@@ -321,10 +353,10 @@
   /* day tabs */
   .day-tabs{display:flex;flex-wrap:wrap;gap:6px;}
   .day-tab{
-    border:1px solid var(--line);background:#fff;border-radius:8px;
+    border:1px solid var(--line);background:#101714;color:var(--editor-ink);border-radius:8px;
     padding:6px 11px;font-size:12.5px;cursor:pointer;transition:.12s;
   }
-  .day-tab:hover{background:#f4f1ea;}
+  .day-tab:hover{background:#223029;}
   .day-tab.on{background:var(--accent);color:#fff;border-color:var(--accent);}
   .day-tab small{opacity:.7;margin-left:2px;}
 
@@ -335,7 +367,7 @@
   /* toolbar above preview */
   .toolbar{
     display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-    position:sticky;top:0;z-index:5;
+    position:sticky;top:0;z-index:5;color:var(--editor-ink);
   }
   .toolbar .grow{flex:1;}
 
@@ -458,7 +490,8 @@
   .ebook-hint{position:absolute;bottom:16px;color:#8a958d;font-size:11px;letter-spacing:.06em;}
 
   /* ---------- Menu Library ---------- */
-  .archive-box{background:#fff8e8;padding:14px;border-radius:12px;border:1px solid #e8d9b0;}
+  .archive-box{background:#fff8e8;padding:14px;border-radius:12px;border:1px solid #e8d9b0;color:#5c4a12;}
+  .archive-box label,.archive-box .hint,.archive-box .archive-status{color:#6b5344;}
   .meal-tabs{display:flex;gap:8px;margin-top:8px;}
   .meal-tab{
     flex:1;text-align:center;border:1px solid var(--line);background:#fff;border-radius:10px;
@@ -712,7 +745,12 @@
       margin-left:auto !important;
       margin-right:auto !important;
     }
-    .menu-logo-text{font-size:20px !important;margin-bottom:4px !important;}
+    .menu-logo-text{font-size:16px !important;margin-bottom:4px !important;}
+    .dish-name{font-size:16px !important;letter-spacing:.14em !important;text-transform:uppercase !important;}
+    .dish-desc{font-size:10px !important;font-style:italic !important;text-transform:none !important;line-height:1.5 !important;}
+    .dish-contains,.dish-diet{font-size:8px !important;}
+    .info-title{font-size:13px !important;}
+    .info-sub,.info-body p,.info-list span{font-size:8.5px !important;}
     .page.tpl-classic .menu-logo-text{color:#2f6b4f !important;}
     .page.tpl-modern .menu-logo-text{color:#111 !important;}
     .page.tpl-luxury .menu-logo-text{color:#c9a84c !important;}
@@ -739,7 +777,17 @@
   <!-- ===================== EDITOR ===================== -->
   <aside class="editor">
     <div class="brand"><span class="dot"></span> Menu Creator</div>
-    <p class="sub">Add dishes, set allergens, then print or save as PDF.</p>
+    <p class="sub">Fresh print engine. Dish names stay CAPITAL. Descriptions stay small letters.</p>
+
+    <div class="group type-box">
+      <label>Print size</label>
+      <div class="type-scale" id="typeScale">
+        <button type="button" class="type-btn" data-scale="compact">Small</button>
+        <button type="button" class="type-btn on" data-scale="standard">Standard</button>
+        <button type="button" class="type-btn" data-scale="large">Large</button>
+      </div>
+      <div class="hint">Names = CAPITALS. Descriptions = small letters. Size only changes how big they print.</div>
+    </div>
 
     <div class="group archive-box">
       <label>📚 Menu Library — save by date</label>
@@ -822,7 +870,7 @@
     <div class="group">
       <label>Add / edit a dish</label>
       <input type="text" id="dName" placeholder="Dish name" />
-      <textarea id="dDesc" placeholder="Description" style="margin-top:8px"></textarea>
+      <textarea id="dDesc" placeholder="Description" style="margin-top:8px;min-height:88px"></textarea>
 
       <div class="hint">Allergens (tap to toggle, or type custom below):</div>
       <div class="allergen-pick" id="allergenPick"></div>
@@ -966,7 +1014,7 @@ const TEMPLATES={
 };
 function makeDefault(){
   return { logoText:"", logoImg:null, infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS,
-           template:"classic", menus:[ newMenu("Day 1") ], currentId:null };
+           template:"classic", typeScale:"standard", menus:[ newMenu("Day 1") ], currentId:null };
 }
 function migrate(old){
   if(!old) return null;
@@ -981,8 +1029,9 @@ let data = migrate(loadRaw()) || makeDefault();
 if(!data.currentId || !data.menus.some(m=>m.id===data.currentId)) data.currentId = data.menus[0].id;
 if(["", OLD_INFO_ALLERGENS, "Soya, Sulphur Dioxide"].includes((data.infoAllergens||"").trim())){ data.infoAllergens = DEFAULT_INFO_ALLERGENS; }
 if(!data.template) data.template="classic";
+if(!data.typeScale) data.typeScale="standard";
 
-const SHARED = ["logoText","logoImg","infoText","infoAllergens","template"];
+const SHARED = ["logoText","logoImg","infoText","infoAllergens","template","typeScale"];
 function menuQrUrl(){
   let u = (MENU_QR_URL || "").trim();
   if(!u) return "";
@@ -1014,7 +1063,7 @@ function loadMenuBank(){
 }
 function saveMenuBank(){ localStorage.setItem(BANK_LS, JSON.stringify(menuBank)); }
 function bankItemId(label, meal){ return "bank_"+String(label||"menu").replace(/\W+/g,"_").toLowerCase()+"_"+meal; }
-function mergeMenuBank(items){
+function mergeMenuBank(items, deferSave){
   if(!items||!items.length) return 0;
   const have=new Set(menuBank.map(b=>b.id));
   let n=0;
@@ -1025,7 +1074,7 @@ function mergeMenuBank(items){
     menuBank.push({id, label:it.label||it.snap.title||"Menu", meal:it.meal||"dinner", snap:it.snap, source:it.source||""});
     have.add(id); n++;
   });
-  if(n) saveMenuBank();
+  if(n && !deferSave) saveMenuBank();
   return n;
 }
 async function assignBankToDate(bankId, date, meal){
@@ -1293,9 +1342,9 @@ async function loadFromArchive(date, meal, quiet){
   return true;
 }
 async function importArchiveBundle(bundle, replace){
-  const recs=(bundle&&bundle.records)||(Array.isArray(bundle)?bundle:[]);
+  let recs=(bundle&&bundle.records)||(Array.isArray(bundle)?bundle:[]);
   const bankItems=(bundle&&bundle.bank)||[];
-  let bn=mergeMenuBank(bankItems);
+  let bn=mergeMenuBank(bankItems, true);
   if(!recs.length && bankItems.length){
     recs=bankItems.map(it=>{
       const meal=it.meal||"dinner";
@@ -1308,12 +1357,15 @@ async function importArchiveBundle(bundle, replace){
   }
   if(!recs.length && !bn){ alert("No menus found in that file."); return 0; }
   let n=0;
+  const extra=[];
   for(const rec of recs){
     if(replace || !(await dbGet(rec.id))){ await dbPut(rec); n++; }
-    mergeMenuBank([{id:bankItemId(rec.snap?.title||rec.id,rec.meal),label:rec.snap?.sub||rec.date,meal:rec.meal,snap:rec.snap,source:rec.source}]);
+    extra.push({id:bankItemId(rec.snap?.title||rec.id,rec.meal),label:rec.snap?.sub||rec.date,meal:rec.meal,snap:rec.snap,source:rec.source});
   }
+  bn += mergeMenuBank(extra, true);
+  if(bn) saveMenuBank();
   await refreshArchiveIndex();
-  if(bankItems.length) renderBank();
+  if(bankItems.length && $("libOverlay")?.classList.contains("open")) renderBank();
   const first=recs[0];
   if(first){ archiveCtx={date:first.date,meal:first.meal}; $("archiveDate").value=first.date; setMealTab(first.meal); }
   $("archiveStatus").textContent=(bn?bn+" menu(s) in bank. ":"")+(n?n+" on calendar.":"")+(bundle.startDate?" Starting "+bundle.startDate:"");
@@ -1623,14 +1675,20 @@ $("saveDish").onclick = ()=>{
   const custom = $("dCustom").value.split(",").map(s=>s.trim()).filter(Boolean);
   const all = [...allergens.filter(a=>a!=="None"), ...custom];
   const finalAllergens = all.length ? all : (selectedAllergens.has("None") ? ["None"] : []);
-  const dish = { name: formatDishName(name), desc: cleanDishText($("dDesc").value.trim()), allergens:finalAllergens, diet:[...selectedDiets] };
+  const peeled = peelDishMeta($("dDesc").value);
+  const dish = {
+    name: formatDishName(name),
+    desc: peeled.desc,
+    allergens: mergeUnique(finalAllergens, peeled.allergens),
+    diet: mergeUnique(selectedDiets, peeled.diet)
+  };
   if(editIndex>=0) state.dishes[editIndex]=dish; else state.dishes.push(dish);
   resetForm(); save(); render();
 };
 $("cancelEdit").onclick = resetForm;
 
 function editDish(i){
-  const d = state.dishes[i];
+  const d = normalizeDish(state.dishes[i]);
   $("dName").value=d.name; $("dDesc").value=d.desc;
   selectedAllergens = new Set();
   selectedDiets = new Set(d.diet||[]);
@@ -1837,7 +1895,7 @@ function parseBulk(text){
   const letters = s => s.replace(/[^a-zA-Z]/g,"");
   const isCaps = s => { const L=letters(s); return L.length>=2 && s.toUpperCase()===s && /[A-Z]/.test(s); };
   const newDish = ()=>({name:"",desc:"",allergens:[],diet:[]});
-  const push = ()=>{ if(cur && cur.name) dishes.push(cur); cur=null; expectName=true; };
+  const push = ()=>{ if(cur && cur.name) dishes.push(normalizeDish(cur)); cur=null; expectName=true; };
 
   for(const line of rawLines){
     const raw = line.replace(/\s+/g," ").trim();
@@ -1920,12 +1978,12 @@ $("appendBtn").onclick = ()=>{
 function wordTpl(tpl){
   const t=tpl||data.template||"classic";
   const map={
-    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#2f6b4f;text-transform:uppercase;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
-    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:14pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-size:9.5pt;color:#444;padding-left:11pt;",allg:"font-size:8pt;color:#111;text-transform:uppercase;font-weight:bold;padding-left:11pt;",diet:"font-size:8pt;color:#555;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
-    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:15pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#c4b89a;",allg:"text-align:center;font-size:8pt;color:#c9a84c;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8fbc8f;text-transform:uppercase;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
-    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:19pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:15pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#4a6048;",allg:"text-align:center;font-size:8pt;color:#5a7d5a;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d5c3d;text-transform:uppercase;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
-    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:15pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-size:9.5pt;color:#333;",allg:"text-align:center;font-size:8pt;color:#1a1a1a;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8b4513;text-transform:uppercase;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
-    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:19pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:15pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:12pt;font-weight:bold;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#6b5344;",allg:"text-align:center;font-size:8pt;color:#8b5a2b;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#5c7a3a;text-transform:uppercase;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"}
+    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:12pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#3c463f;",allg:"text-align:center;font-size:7pt;color:#b08a3e;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#2f6b4f;text-transform:uppercase;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
+    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:12pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:13pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-style:italic;font-size:8pt;color:#444;padding-left:11pt;",allg:"font-size:7pt;color:#111;text-transform:uppercase;font-weight:bold;padding-left:11pt;",diet:"font-size:7pt;color:#555;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
+    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:12pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#c4b89a;",allg:"text-align:center;font-size:7pt;color:#c9a84c;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#8fbc8f;text-transform:uppercase;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
+    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:15pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#4a6048;",allg:"text-align:center;font-size:7pt;color:#5a7d5a;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#3d5c3d;text-transform:uppercase;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
+    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:12pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#333;",allg:"text-align:center;font-size:7pt;color:#1a1a1a;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#8b4513;text-transform:uppercase;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
+    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:15pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:8pt;color:#6b5344;",allg:"text-align:center;font-size:7pt;color:#8b5a2b;text-transform:uppercase;font-weight:bold;",diet:"text-align:center;font-size:7pt;color:#5c7a3a;text-transform:uppercase;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"}
   };
   return map[t]||map.classic;
 }
@@ -1938,10 +1996,10 @@ function buildWordPage(m, snap, idx, tpl){
   const logo=snap||data;
   const logoHead=logo.logoImg?`<p style="text-align:center;margin:0 0 4pt;"><img src="${logo.logoImg}" alt="logo" style="display:block;margin:0 auto;max-height:78px;max-width:220px;"/></p>`
     :(logo.logoText?`<p style="text-align:center;${s.logo}margin:0 0 4pt;">${esc(logo.logoText)}</p>`:"");
-  const dishes=(m.dishes||[]);
+  const dishes=(m.dishes||[]).map(normalizeDish);
   const dishesHTML=dishes.map(d=>`
-    <p style="${s.dish}margin:9pt 0 2pt;">${esc(formatDishName(d.name))}</p>
-    ${d.desc?`<p style="${s.desc}margin:0 0 3pt;">${esc(cleanDishText(d.desc))}</p>`:""}
+    <p style="${s.dish}margin:9pt 0 2pt;">${esc(d.name)}</p>
+    ${d.desc?`<p style="${s.desc}margin:0 0 3pt;">${esc(d.desc)}</p>`:""}
     ${d.allergens?.length?`<p style="${s.allg}margin:0;"><b>${esc(containsLine(d.allergens))}</b></p>`:""}
     ${d.diet?.length?`<p style="${s.diet}margin:0;">${esc(dietLine(d.diet))}</p>`:""}
   `).join("");
@@ -2021,7 +2079,60 @@ function qrHTMLWord(url){
 }
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function cleanDishText(s){ return (s||"").replace(/\*+/g,"").replace(/\s+/g," ").trim(); }
-function formatDishName(s){ return cleanDishText(s); }
+function formatDishName(s){ return cleanDishText(s).toUpperCase(); }
+function formatDishDesc(s){
+  const t=cleanDishText(s);
+  if(!t) return "";
+  const letters=t.replace(/[^A-Za-z]/g,"");
+  const caps=(letters.match(/[A-Z]/g)||[]).length;
+  const mostlyCaps=letters.length>=2 && caps/letters.length>=0.7;
+  if(!mostlyCaps) return t;
+  return t.toLowerCase().replace(/(^|[.!?]\s+)([a-z])/g,(m,p,c)=>p+c.toUpperCase());
+}
+function mergeUnique(a,b){
+  const seen=new Set(), out=[];
+  for(const x of [...(a||[]), ...(b||[])]){
+    const k=String(x||"").toLowerCase();
+    if(!k || seen.has(k)) continue;
+    seen.add(k); out.push(x);
+  }
+  return out;
+}
+function peelDishMeta(text){
+  let desc=String(text||"");
+  const allergens=[], diet=[];
+  desc=desc.replace(/(?:^|[.\s])contains\s*:\s*([^.]*)/ig, (full, list)=>{
+    const found=parseAllergens(list);
+    if(!found.length) return full;
+    found.forEach(a=>allergens.push(a));
+    return " ";
+  });
+  desc=desc.replace(/(?:^|[.\s])suitable\s+for\s*:?\s*([^.]*)/ig, (full, list)=>{
+    const found=parseDiets(list);
+    if(!found.length) return full;
+    found.forEach(d=>diet.push(d));
+    return " ";
+  });
+  const dietWord="vegetarian|vegan|gluten[\\s-]?free|dairy[\\s-]?free|halal|nut[\\s-]?free";
+  const tail=new RegExp("(?:^|[\\s,.;/|\\-]+)((?:"+dietWord+")(?:\\s*(?:,|&|and)\\s*(?:"+dietWord+"))*)\\s*$","i");
+  let m, guard=0;
+  while(guard++<8 && (m=desc.match(tail))){
+    const next=desc.slice(0, m.index);
+    if(next.length>=desc.length) break;
+    parseDiets(m[1]).forEach(d=>diet.push(d));
+    desc=next;
+  }
+  return { desc:formatDishDesc(desc), allergens:mergeUnique(allergens), diet:mergeUnique(diet) };
+}
+function normalizeDish(d){
+  const meta=peelDishMeta(d&&d.desc);
+  return {
+    name: formatDishName((d&&d.name)||""),
+    desc: formatDishDesc(meta.desc),
+    allergens: mergeUnique(d&&d.allergens, meta.allergens),
+    diet: mergeUnique(d&&d.diet, meta.diet)
+  };
+}
 function containsLine(a){
   if(!a||!a.length) return "";
   const list=a.filter(x=>x&&x.toLowerCase()!=="none").map(x=>String(x).toUpperCase());
@@ -2083,13 +2194,16 @@ function renderTabs(){
 
 function pageHTML(m){
   const dishes = m.dishes.length
-    ? m.dishes.map((d,i)=>`
+    ? m.dishes.map((raw)=>{
+        const d=normalizeDish(raw);
+        return `
         <div class="dish">
-          <div class="dish-name">${esc(formatDishName(d.name))}</div>
-          ${d.desc?`<div class="dish-desc">${esc(cleanDishText(d.desc))}</div>`:""}
+          <div class="dish-name">${esc(d.name)}</div>
+          ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
           ${d.allergens&&d.allergens.length?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
           ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
-        </div>`).join("")
+        </div>`;
+      }).join("")
     : `<div class="empty-note">No dishes yet — add one on the left, or click “Load sample”.</div>`;
   const infoBody = (data.infoText||"").split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
   const items = (data.infoAllergens||"").split(",").map(s=>s.trim()).filter(Boolean);
@@ -2114,7 +2228,7 @@ function render(){
   // preview: one page per day
   const pages = $("pagesOut");
   pages.innerHTML = data.menus.map(m=>
-    `<section class="page${tplClass()}${m.id===data.currentId?' current':''}" data-id="${m.id}">
+    `<section class="page${tplClass()} type-${data.typeScale||'standard'}${m.id===data.currentId?' current':''}" data-id="${m.id}">
        ${menuHeaderHTML(m)}
        <div class="page-inner">${pageHTML(m)}</div>
        <div class="page-foot">${esc(data.logoText || m.title || "")}</div>
@@ -2130,7 +2244,7 @@ function render(){
   const list = $("dishList");
   list.innerHTML = m.dishes.length? m.dishes.map((d,i)=>`
       <div class="dish-card">
-        <h4>${esc(d.name)}</h4>
+        <h4>${esc(formatDishName(d.name))}</h4>
         <div class="meta">${esc(containsLine(d.allergens)||"No allergens set")}${d.diet&&d.diet.length?" · "+esc(dietLine(d.diet)):""}</div>
         <div class="dish-actions">
           <button class="btn btn-ghost btn-sm" onclick="editDish(${i})">Edit</button>
@@ -2147,6 +2261,13 @@ function syncInputs(){
   $("logoText").value=state.logoText||"";
   $("infoText").value=state.infoText||"";
   $("infoAllergens").value=state.infoAllergens||"";
+}
+function buildTypeScale(){
+  const wrap=$("typeScale"); if(!wrap) return;
+  wrap.querySelectorAll(".type-btn").forEach(btn=>{
+    btn.classList.toggle("on", btn.dataset.scale===(data.typeScale||"standard"));
+    btn.onclick=()=>{ data.typeScale=btn.dataset.scale; save(); buildTypeScale(); render(); };
+  });
 }
 function buildTplGrid(){
   const g=$("tplGrid"); if(!g) return;
@@ -2192,7 +2313,7 @@ function makePageEl(slide, anim){
     el.style.width="794px"; el.style.height="1123px";
     el.innerHTML=ebCoverHTML();
   } else {
-    el.className="page ebook-page"+tplClass();
+    el.className="page ebook-page"+tplClass()+" type-"+(data.typeScale||"standard");
     el.style.cursor="default";
     el.innerHTML=`${menuHeaderHTML(slide.m)}
                   <div class="page-inner">${pageHTML(slide.m)}</div>
@@ -2374,13 +2495,18 @@ if("serviceWorker" in navigator && !isFileProtocol){
 }
 
 /* ---------------- Init ---------------- */
+try{
+  (data.menus||[]).forEach(m=>{
+    m.dishes=(m.dishes||[]).map(d=>{ try{ return normalizeDish(d); }catch(e){ return d; } });
+  });
+}catch(e){}
 buildChips();
 buildTplGrid();
+buildTypeScale();
 syncInputs();
 render();
 detectArchiveStorage().then(async ()=>{
   loadMenuBank();
-  if(!menuBank.length) await loadPcMenuBundle(true);
   const el=$("archiveStatus");
   if(el && menuBank.length) el.textContent=menuBank.length+" menus ready — Browse all → All menus";
   return refreshArchiveIndex();

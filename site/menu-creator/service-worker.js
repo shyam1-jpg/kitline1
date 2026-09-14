@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-creator-kiteline-v1";
+const CACHE_NAME = "menu-creator-kiteline-v7";
 const ASSETS = [
   "/menu-creator/",
   "/menu-creator/index.html",
