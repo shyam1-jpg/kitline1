@@ -1,5 +1,5 @@
-const CACHE_NAME = "menu-creator-kiteline-v13";
-const APP_BUILD = "v13";
+const CACHE_NAME = "menu-creator-kiteline-v14";
+const APP_BUILD = "v14";
 const ASSETS = [
   "/menu-creator/",
   "/menu-creator/index.html",
