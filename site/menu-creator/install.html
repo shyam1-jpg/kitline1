@@ -60,7 +60,7 @@ if(isIOS){
   hint.textContent = "Tip: Use Chrome for the easiest Install app button.";
 }
 if("serviceWorker" in navigator && location.protocol !== "file:"){
-  navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/",updateViaCache:"none"}).catch(() => {});
 }
 </script>
 </body>

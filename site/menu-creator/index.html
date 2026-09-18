@@ -6,6 +6,9 @@
 <meta name="description" content="Menu Creator — design printable restaurant menus offline. Paste menus, save to library, print or export to Word." />
 <meta name="application-name" content="Menu Creator" />
 <meta name="theme-color" content="#2f6b4f" />
+<meta name="menu-creator-build" content="v11" />
+<link rel="preload" as="image" href="assets/vedanta-logo.png" />
+<meta http-equiv="Cache-Control" content="no-store" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Menu Creator" />
@@ -14,23 +17,20 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
 <title>Menu Creator</title>
-<meta name="menu-creator-build" content="fresh-v9" />
 <style>
   :root{
-    --bg:#101714;
-    --panel:#18211c;
-    --editor-ink:#f4f0e6;
-    --editor-muted:#9aa89f;
+    --bg:#f4f1ea;
+    --panel:#ffffff;
     --ink:#1f2a24;
     --muted:#6b7770;
     --accent:#2f6b4f;
     --accent-soft:#e7f0ea;
-    --line:#2b3b33;
+    --line:#e2ddd2;
     --gold:#b08a3e;
     --danger:#c0492f;
     --radius:14px;
-    --shadow:0 18px 50px rgba(0,0,0,.35);
-    --serif:"Palatino Linotype","Palatino","Iowan Old Style",Georgia,"Times New Roman",serif;
+    --shadow:0 10px 30px rgba(31,42,36,.08);
+    --serif:"Georgia","Times New Roman",serif;
     --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -39,7 +39,7 @@
     margin:0;
     font-family:var(--sans);
     background:var(--bg);
-    color:var(--editor-ink);
+    color:var(--ink);
     overflow-x:hidden;
   }
 
@@ -55,47 +55,34 @@
     padding:22px;
     overflow-y:auto;
     height:100vh;
-    color:var(--editor-ink);
   }
   .preview-wrap{
-    padding:28px;
+    padding:32px;
     overflow-y:auto;
     height:100vh;
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:24px;
-    background:
-      radial-gradient(900px 400px at 50% 0, rgba(201,162,74,.12), transparent 60%),
-      #121a16;
+    gap:28px;
   }
 
   /* ---------- Editor styling ---------- */
   .brand{
     display:flex;align-items:center;gap:10px;
-    font-weight:700;font-size:20px;margin-bottom:4px;
-    letter-spacing:.02em;
+    font-weight:700;font-size:18px;margin-bottom:4px;
   }
-  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--gold);}
-  .sub{color:var(--editor-muted);font-size:13px;margin:0 0 18px;line-height:1.45;}
-
-  .type-box{background:#101714;border:1px solid var(--line);padding:14px;border-radius:12px;}
-  .type-scale{display:flex;gap:8px;}
-  .type-btn{
-    flex:1;border:1px solid var(--line);background:#18211c;color:var(--editor-ink);
-    border-radius:10px;padding:10px 8px;font-size:13px;font-weight:700;cursor:pointer;
-  }
-  .type-btn.on{background:var(--gold);color:#1f2a24;border-color:var(--gold);}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 18px;}
 
   .group{margin-bottom:22px;}
   .group > label{
     display:block;font-size:12px;font-weight:700;letter-spacing:.05em;
-    text-transform:uppercase;color:var(--editor-muted);margin-bottom:8px;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px;
   }
-  input[type=text], textarea, select, input[type=date]{
+  input[type=text], textarea, select{
     width:100%;padding:10px 12px;border:1px solid var(--line);
     border-radius:10px;font-size:14px;font-family:var(--sans);
-    background:#101714;color:var(--editor-ink);
+    background:#fbfaf7;color:var(--ink);
   }
   textarea{resize:vertical;min-height:64px;line-height:1.5;}
   input:focus,textarea:focus,select:focus{
@@ -110,13 +97,13 @@
     font-size:14px;font-weight:600;font-family:var(--sans);transition:.15s;
   }
   .btn-primary{background:var(--accent);color:#fff;}
-  .btn-primary:hover{background:#2f7353;}
-  .btn-ghost{background:var(--accent-soft);color:#cfe8d9;}
-  .btn-ghost:hover{background:#2d4538;}
-  .btn-line{background:transparent;border:1px solid var(--line);color:var(--editor-ink);}
-  .btn-line:hover{background:#223029;}
-  .btn-danger{background:transparent;color:var(--danger);border:1px solid #5a332c;}
-  .btn-danger:hover{background:#3a221e;}
+  .btn-primary:hover{background:#26573f;}
+  .btn-ghost{background:var(--accent-soft);color:var(--accent);}
+  .btn-ghost:hover{background:#d8e7df;}
+  .btn-line{background:transparent;border:1px solid var(--line);color:var(--ink);}
+  .btn-line:hover{background:#f4f1ea;}
+  .btn-danger{background:transparent;color:var(--danger);border:1px solid #eccfc8;}
+  .btn-danger:hover{background:#fbeae6;}
   .btn-block{width:100%;}
   .btn-sm{padding:6px 10px;font-size:12.5px;}
 
@@ -125,7 +112,7 @@
     display:flex;align-items:center;gap:12px;
   }
   .logo-prev{
-    width:64px;height:64px;border-radius:12px;border:1px dashed var(--line);
+    width:120px;height:48px;border-radius:12px;border:1px dashed var(--line);
     display:flex;align-items:center;justify-content:center;overflow:hidden;
     background:#fbfaf7;color:var(--muted);font-size:11px;text-align:center;flex:0 0 auto;
   }
@@ -134,20 +121,20 @@
   /* dish list in editor */
   .dish-card{
     border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;
-    background:#101714;
+    background:#fdfcf9;
   }
-  .dish-card h4{margin:0 0 4px;font-size:14px;color:var(--editor-ink);text-transform:uppercase;}
-  .dish-card .meta{font-size:12px;color:var(--editor-muted);margin-bottom:10px;line-height:1.4;}
+  .dish-card h4{margin:0 0 4px;font-size:14px;}
+  .dish-card .meta{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.4;}
   .dish-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
   .allergen-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
   .chip{
-    border:1px solid var(--line);background:#101714;color:var(--editor-ink);border-radius:999px;
+    border:1px solid var(--line);background:#fff;border-radius:999px;
     padding:6px 12px;font-size:12.5px;cursor:pointer;user-select:none;transition:.12s;
   }
   .chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
 
-  .hint{font-size:12px;color:var(--editor-muted);margin-top:6px;line-height:1.5;}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;}
 
   .divider{height:1px;background:var(--line);margin:22px 0;}
 
@@ -161,18 +148,6 @@
     position:relative;
     border:1px solid #ece7da;
     overflow:hidden;
-    --t-title:24px;
-    --t-logo:16px;
-    --t-dish:13.5px;
-    --t-desc:10.5px;
-    --t-meta:8.5px;
-    --t-info:15px;
-  }
-  .page.type-compact{
-    --t-title:20px;--t-logo:14px;--t-dish:12px;--t-desc:9.5px;--t-meta:8px;--t-info:13px;
-  }
-  .page.type-large{
-    --t-title:28px;--t-logo:18px;--t-dish:15.5px;--t-desc:12px;--t-meta:9.5px;--t-info:17px;
   }
   /* ---------- Template: Classic Gold (default) ---------- */
   .page.tpl-classic::before{
@@ -187,10 +162,10 @@
   .page.tpl-modern{background:#fafafa;padding:52px 64px;}
   .page.tpl-modern::before{display:none;}
   .page.tpl-modern .menu-head{border-bottom:1px solid #111;text-align:left;padding-bottom:10px;}
-  .page.tpl-modern .menu-title{font-family:var(--sans);font-size:var(--t-title);letter-spacing:.22em;font-weight:300;}
+  .page.tpl-modern .menu-title{font-family:var(--sans);font-size:28px;letter-spacing:.22em;font-weight:300;}
   .page.tpl-modern .menu-logo-text{font-family:var(--sans);color:#111;font-weight:700;letter-spacing:.12em;}
-  .page.tpl-modern .dish{text-align:left;margin-bottom:14px;padding-left:14px;border-left:3px solid #111;}
-  .page.tpl-modern .dish-desc{margin:0;max-width:none;color:#444;}
+  .page.tpl-modern .dish{text-align:left;margin-bottom:18px;padding-left:14px;border-left:3px solid #111;}
+  .page.tpl-modern .dish-desc{margin:0;max-width:none;font-style:normal;color:#444;text-transform:none;}
   .page.tpl-modern .dish-contains{color:#111;}
   .page.tpl-modern .dish-diet{color:#555;}
   .page.tpl-modern .dish-sep{display:none;}
@@ -236,7 +211,7 @@
     background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%235a7d5a' d='M32 4c-8 16-4 28 0 36 4-8 8-20 0-36zm0 36c-12 4-20 12-24 24 12-4 20-12 24-24zm0 0c12 4 20 12 24 24-12-4-20-12-24-24z'/%3E%3C/svg%3E") center/contain no-repeat;
   }
   .page.tpl-botanical .menu-head{border-bottom:none;padding-bottom:8px;}
-  .page.tpl-botanical .menu-title{color:#3d5c3d;font-size:var(--t-title);}
+  .page.tpl-botanical .menu-title{color:#3d5c3d;font-size:26px;}
   .page.tpl-botanical .menu-title::after{content:"";display:block;width:80px;height:2px;background:#5a7d5a;margin:8px auto 0;}
   .page.tpl-botanical .menu-logo-text{color:#5a7d5a;}
   .page.tpl-botanical .dish-contains{color:#5a7d5a;}
@@ -256,9 +231,9 @@
                linear-gradient(90deg,#1a1a1a,#1a1a1a) right/6px 100% no-repeat;
   }
   .page.tpl-artdeco .menu-head{border-bottom:4px double #1a1a1a;padding-bottom:16px;}
-  .page.tpl-artdeco .menu-title{font-size:var(--t-title);letter-spacing:.28em;color:#1a1a1a;font-weight:700;}
+  .page.tpl-artdeco .menu-title{font-size:32px;letter-spacing:.28em;color:#1a1a1a;font-weight:700;}
   .page.tpl-artdeco .menu-logo-text{color:#1a1a1a;letter-spacing:.2em;font-weight:700;}
-  .page.tpl-artdeco .dish-name{letter-spacing:.16em;}
+  .page.tpl-artdeco .dish-name{letter-spacing:.14em;font-size:15px;}
   .page.tpl-artdeco .dish-contains{color:#1a1a1a;font-weight:700;}
   .page.tpl-artdeco .dish-diet{color:#8b4513;}
   .page.tpl-artdeco .dish-sep{width:100%;max-width:120px;height:2px;background:#1a1a1a;margin:14px auto 0;}
@@ -277,8 +252,8 @@
   .page.tpl-rustic .menu-head{border-bottom:2px wavy #8b5a2b;padding-bottom:12px;}
   .page.tpl-rustic .menu-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;letter-spacing:.1em;}
   .page.tpl-rustic .menu-logo-text{color:#8b5a2b;font-family:"Palatino Linotype",Palatino,serif;}
-  .page.tpl-rustic .dish-name{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;}
-  .page.tpl-rustic .dish-desc{color:#6b5344;}
+  .page.tpl-rustic .dish-name{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;letter-spacing:.02em;}
+  .page.tpl-rustic .dish-desc{color:#6b5344;text-transform:none;}
   .page.tpl-rustic .dish-contains{color:#8b5a2b;}
   .page.tpl-rustic .dish-diet{color:#5c7a3a;}
   .page.tpl-rustic .dish-sep{width:60px;height:2px;background:#d4b896;margin:12px auto 0;border-radius:2px;}
@@ -286,8 +261,210 @@
   .page.tpl-rustic .info-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;}
   .page.tpl-rustic .info-list{background:#f5ebe0;}
 
+  /* Course / meal headings (Breakfast, Lunch, Starter…) when pasted as their own line */
+  .section-title{
+    font-family:var(--serif);font-size:12.5px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;text-align:center;color:var(--accent);
+    margin:18px 0 10px;
+  }
+  .menu-section:first-child .section-title{margin-top:0;}
+  .dishes-wrap.has-sections .dish-sep{max-width:80px;}
+
+  /* ---------- Template: Wellness / Deep Health ---------- */
+  .page.tpl-wellness{background:#f7f5f0;padding:58px 72px 64px;border-color:#e4ddd2;}
+  .page.tpl-wellness::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:10px;z-index:0;pointer-events:none;
+    background:linear-gradient(90deg,#c5d4ce,#e8ddd0,#c5d4ce);
+  }
+  .page.tpl-wellness::after{
+    content:"";position:absolute;inset:28px;border:1px solid rgba(94,128,120,.38);
+    pointer-events:none;z-index:0;
+  }
+  .page.tpl-wellness .menu-head{border-bottom:none;padding-bottom:6px;margin-bottom:32px;}
+  .page.tpl-wellness .menu-title{
+    font-family:var(--sans);font-weight:300;letter-spacing:.28em;font-size:24px;color:#3d534e;
+  }
+  .page.tpl-wellness .menu-title::after{
+    content:"";display:block;width:9px;height:9px;margin:14px auto 0;
+    border:1px solid #5e8078;border-radius:50%;
+  }
+  .page.tpl-wellness .menu-logo-text{font-family:var(--sans);color:#5e8078;letter-spacing:.18em;font-size:13px;font-weight:600;}
+  .page.tpl-wellness .menu-sub{color:#7a8883;letter-spacing:.2em;}
+  .page.tpl-wellness .dish{margin-bottom:22px;}
+  .page.tpl-wellness .dish-name{
+    font-family:var(--sans);font-size:13.5px;font-weight:600;letter-spacing:.16em;color:#2c3936;
+  }
+  .page.tpl-wellness .dish-desc{font-style:normal;color:#5c6b66;max-width:520px;}
+  .page.tpl-wellness .dish-contains{color:#5e8078;}
+  .page.tpl-wellness .dish-diet{color:#3d534e;}
+  .page.tpl-wellness .dish-sep{width:22px;background:#c5d4ce;}
+  .page.tpl-wellness .info-block{border-top:1px solid #c5d4ce;padding-top:16px;}
+  .page.tpl-wellness .info-title{font-family:var(--sans);font-weight:500;letter-spacing:.18em;color:#3d534e;font-size:13px;}
+  .page.tpl-wellness .info-list{background:#eef2ef;border-radius:0;}
+  .page.tpl-wellness .section-title{font-family:var(--sans);letter-spacing:.22em;color:#5e8078;font-weight:600;}
+  .page.tpl-wellness .menu-qr-caption{color:#7a8883;}
+  .page.tpl-wellness .page-foot{bottom:32px;}
+
+  /* ---------- Template: Fine Dining / Tasting ---------- */
+  .page.tpl-tasting{background:#fbf8f2;padding:52px 60px 58px;border-color:#e6dccb;}
+  .page.tpl-tasting::before{
+    content:"";position:absolute;inset:18px;
+    border:1px solid #8c3a32;pointer-events:none;z-index:0;
+  }
+  .page.tpl-tasting::after{
+    content:"";position:absolute;inset:22px;
+    border:1px solid rgba(140,58,50,.28);pointer-events:none;z-index:0;
+  }
+  .page.tpl-tasting .menu-head{border-bottom:none;padding-bottom:4px;margin-bottom:8px;}
+  .page.tpl-tasting .menu-title{
+    font-size:28px;letter-spacing:.32em;color:#1c1917;font-weight:400;
+  }
+  .page.tpl-tasting .menu-title::after{
+    content:"";display:block;width:64px;height:1px;background:#8c3a32;margin:14px auto 0;
+  }
+  .page.tpl-tasting .menu-logo-text{color:#8c3a32;letter-spacing:.12em;}
+  .page.tpl-tasting .menu-sub{color:#8a7a6e;}
+  .page.tpl-tasting .dishes-wrap,.page.tpl-tasting .menu-section{counter-reset:course;}
+  .page.tpl-tasting .dish{
+    counter-increment:course;
+    display:grid;grid-template-columns:52px 1fr;column-gap:12px;
+    text-align:left;margin-bottom:20px;padding-bottom:4px;
+  }
+  .page.tpl-tasting .dish::before{
+    content:counter(course, upper-roman);
+    grid-row:1 / span 5;align-self:start;
+    font-family:var(--serif);font-size:12px;letter-spacing:.14em;color:#8c3a32;
+    padding-top:3px;
+  }
+  .page.tpl-tasting .dish-name{grid-column:2;font-size:15px;letter-spacing:.12em;color:#1c1917;}
+  .page.tpl-tasting .dish-desc{grid-column:2;margin:0;max-width:none;font-style:italic;color:#5a5148;}
+  .page.tpl-tasting .dish-contains{grid-column:2;color:#8c3a32;}
+  .page.tpl-tasting .dish-diet{grid-column:2;color:#5a5148;}
+  .page.tpl-tasting .dish-sep{display:none;}
+  .page.tpl-tasting .section-title{
+    text-align:left;color:#8c3a32;letter-spacing:.22em;font-size:11px;
+    border-bottom:1px solid #e6dccb;padding-bottom:6px;margin:8px 0 14px;
+  }
+  .page.tpl-tasting .info-block{border-top:1px solid #8c3a32;}
+  .page.tpl-tasting .info-title{color:#8c3a32;letter-spacing:.18em;font-size:15px;}
+  .page.tpl-tasting .info-list{background:#f3ece3;border-radius:0;}
+  .page.tpl-tasting .menu-qr-caption{color:#8a7a6e;}
+  .page.tpl-tasting .page-foot{bottom:28px;}
+
+  /* ---------- Template: Café / Brunch ---------- */
+  .page.tpl-brunch{background:#fff8ee;padding:40px 44px 52px;border-color:#ead9c6;}
+  .page.tpl-brunch::before{display:none;}
+  .page.tpl-brunch .menu-head{
+    text-align:left;border-bottom:none;background:#5c3a27;color:#fff8ee;
+    padding:16px 20px;border-radius:14px;margin-bottom:22px;
+  }
+  .page.tpl-brunch .menu-title{
+    font-family:"Palatino Linotype",Palatino,serif;color:#fff8ee;
+    letter-spacing:.08em;font-size:26px;
+  }
+  .page.tpl-brunch .menu-logo-text{color:#f0c9a0;font-family:"Palatino Linotype",Palatino,serif;}
+  .page.tpl-brunch .menu-sub,.page.tpl-brunch .menu-head .menu-sub{color:#f0c9a0 !important;}
+  .page.tpl-brunch .dishes-wrap{column-count:2;column-gap:28px;}
+  .page.tpl-brunch .dishes-wrap.has-sections{
+    column-count:unset;display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;
+  }
+  .page.tpl-brunch .menu-section,.page.tpl-brunch .dish{break-inside:avoid;-webkit-column-break-inside:avoid;}
+  .page.tpl-brunch .dish{
+    text-align:left;margin-bottom:12px;padding-bottom:10px;
+    border-bottom:1px dotted #e0c8b0;
+  }
+  .page.tpl-brunch .dish-name{
+    font-family:"Palatino Linotype",Palatino,serif;font-size:14px;letter-spacing:.04em;color:#5c3a27;
+  }
+  .page.tpl-brunch .dish-desc{margin:0;max-width:none;font-style:normal;color:#6b5344;font-size:12px;}
+  .page.tpl-brunch .dish-contains{color:#c46a3a;}
+  .page.tpl-brunch .dish-diet{color:#5c7a3a;}
+  .page.tpl-brunch .dish-sep{display:none;}
+  .page.tpl-brunch .section-title{
+    text-align:left;color:#c46a3a;letter-spacing:.14em;font-size:11.5px;
+    font-family:"Palatino Linotype",Palatino,serif;margin:0 0 8px;
+  }
+  .page.tpl-brunch .info-block{border-top:none;background:#f7eadc;padding:12px 14px;border-radius:12px;}
+  .page.tpl-brunch .info-title{font-family:"Palatino Linotype",Palatino,serif;color:#5c3a27;text-align:left;}
+  .page.tpl-brunch .info-sub{text-align:left;}
+  .page.tpl-brunch .info-list{background:#fff;border-radius:8px;}
+
+  /* ---------- Template: Retreat meal board ---------- */
+  .page.tpl-retreat{background:#f4efe6;padding:36px 34px 48px;border-color:#d7c4a3;}
+  .page.tpl-retreat::before{
+    content:"";position:absolute;inset:14px;
+    border:8px solid #355c4a;box-shadow:inset 0 0 0 2px #d7c4a3;
+    pointer-events:none;z-index:0;
+  }
+  .page.tpl-retreat .menu-head{
+    background:#355c4a;border-bottom:none;padding:14px 16px;margin:10px 12px 18px;border-radius:2px;
+  }
+  .page.tpl-retreat .menu-title{color:#f4efe6;font-size:22px;letter-spacing:.14em;}
+  .page.tpl-retreat .menu-logo-text{color:#e8d5a3;}
+  .page.tpl-retreat .menu-sub,.page.tpl-retreat .menu-head .menu-sub{color:#d5e0d9 !important;}
+  .page.tpl-retreat .dishes-wrap{padding:0 12px;}
+  .page.tpl-retreat .dishes-wrap.has-sections{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;padding:0 12px;
+  }
+  .page.tpl-retreat .menu-section{
+    background:#fffdf8;border:1px solid #d7c4a3;padding:12px 12px 8px;border-radius:4px;
+  }
+  .page.tpl-retreat .section-title{
+    background:#e8d5a3;color:#355c4a;font-size:11px;letter-spacing:.16em;
+    margin:-12px -12px 10px;padding:6px 8px;
+  }
+  .page.tpl-retreat .dish{text-align:left;margin-bottom:11px;}
+  .page.tpl-retreat .dish-name{font-size:12.5px;letter-spacing:.05em;color:#2a3d33;}
+  .page.tpl-retreat .dish-desc{font-size:11px;font-style:normal;margin:0;max-width:none;color:#5a6158;}
+  .page.tpl-retreat .dish-contains{color:#8a6a32;}
+  .page.tpl-retreat .dish-diet{color:#355c4a;}
+  .page.tpl-retreat .dish-sep{display:none;}
+  .page.tpl-retreat .info-block{
+    border-top:none;background:#fffdf8;margin:14px 12px 0;padding:12px 14px;border:1px solid #d7c4a3;
+  }
+  .page.tpl-retreat .info-title{color:#355c4a;font-size:15px;}
+  .page.tpl-retreat .info-list{background:#f4efe6;}
+  .page.tpl-retreat .menu-qr-caption{color:#5a6158;}
+  .page.tpl-retreat .page-foot{bottom:30px;color:#355c4a;}
+
+  /* ---------- Template: Festival / Banquet ---------- */
+  .page.tpl-banquet{background:#fffaf3;padding:40px 40px 52px;border-color:#e4d3b8;}
+  .page.tpl-banquet::before,
+  .page.tpl-banquet::after{
+    content:"";position:absolute;left:0;right:0;height:16px;z-index:0;pointer-events:none;
+    background:repeating-linear-gradient(90deg,#6e2430 0 16px,#c4a35a 16px 32px);
+  }
+  .page.tpl-banquet::before{top:0;}
+  .page.tpl-banquet::after{bottom:0;}
+  .page.tpl-banquet .menu-head{
+    border-bottom:2px solid #c4a35a;padding-bottom:10px;margin-bottom:14px;margin-top:6px;
+  }
+  .page.tpl-banquet .menu-title{font-size:26px;letter-spacing:.2em;color:#6e2430;}
+  .page.tpl-banquet .menu-logo-text{color:#6e2430;}
+  .page.tpl-banquet .menu-sub{color:#8a6a32;}
+  .page.tpl-banquet .dishes-wrap{column-count:2;column-gap:22px;}
+  .page.tpl-banquet .dishes-wrap.has-sections{
+    column-count:unset;display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;
+  }
+  .page.tpl-banquet .menu-section,.page.tpl-banquet .dish{break-inside:avoid;-webkit-column-break-inside:avoid;}
+  .page.tpl-banquet .section-title{
+    background:#6e2430;color:#fffaf3;font-size:11px;letter-spacing:.16em;
+    padding:5px 8px;margin:0 0 8px;
+  }
+  .page.tpl-banquet .dish{text-align:left;margin-bottom:9px;}
+  .page.tpl-banquet .dish-name{font-size:12.5px;letter-spacing:.06em;color:#3a241c;}
+  .page.tpl-banquet .dish-desc{font-size:11px;margin:0;max-width:none;font-style:normal;color:#5c4a3e;line-height:1.35;}
+  .page.tpl-banquet .dish-contains{color:#6e2430;font-size:10px;}
+  .page.tpl-banquet .dish-diet{color:#8a6a32;font-size:10px;}
+  .page.tpl-banquet .dish-sep{display:none;}
+  .page.tpl-banquet .info-block{border-top:2px solid #c4a35a;padding-top:10px;margin-top:14px;}
+  .page.tpl-banquet .info-title{color:#6e2430;font-size:15px;}
+  .page.tpl-banquet .info-list{background:#f7ead6;border-radius:0;}
+  .page.tpl-banquet .menu-qr-caption{color:#5c4a3e;}
+  .page.tpl-banquet .page-foot{bottom:28px;}
+
   /* template picker */
-  .tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+  .tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:420px;overflow:auto;padding-right:2px;}
   .tpl-card{
     border:2px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;
     background:#fbfaf7;transition:.15s;text-align:center;
@@ -305,58 +482,86 @@
   .menu-head{text-align:center;border-bottom:2px solid var(--gold);padding-bottom:14px;margin-bottom:20px;position:relative;z-index:2;}
   .menu-logo-slot{min-height:0;margin-bottom:6px;}
   .menu-logo-slot:empty{display:none;}
-  .menu-logo{max-height:74px;max-width:220px;margin:0 auto 10px;display:block;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .menu-logo-text{font-family:var(--serif);font-size:var(--t-logo);color:var(--accent);letter-spacing:.04em;margin-bottom:4px;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .menu-title{
-    font-family:var(--serif);font-size:var(--t-title);letter-spacing:.16em;
-    text-transform:uppercase;margin:4px 0 2px;color:#1f2a24;
+  .menu-logo{max-height:64px;max-width:360px;margin:0 auto 10px;display:block;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .menu-logo-text{font-family:var(--serif);font-size:20px;color:var(--accent);letter-spacing:.04em;margin-bottom:4px;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .menu-date{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    margin-top:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
-  .menu-sub{color:#6b7770;font-size:11px;letter-spacing:.18em;text-transform:uppercase;}
+  .page.tpl-modern .menu-logo{margin-left:0;margin-right:auto;}
+  .page.tpl-luxury .menu-date{color:#a89878;}
+  .page.tpl-brunch .menu-date{color:#f0c9a0;}
+  .page.tpl-retreat .menu-date{color:#d5e0d9;}
+  .page.tpl-luxury .menu-logo,
+  .page.tpl-brunch .menu-logo,
+  .page.tpl-retreat .menu-logo{
+    background:#fff;border-radius:8px;padding:6px 10px;
+  }
+  .menu-title{
+    font-family:var(--serif);font-size:30px;letter-spacing:.16em;
+    text-transform:uppercase;margin:4px 0 2px;
+  }
+  .menu-sub{color:var(--muted);font-size:12px;letter-spacing:.18em;text-transform:uppercase;}
 
-  .dish{margin-bottom:16px;text-align:center;}
+  /* Casing is applied in the text nodes (displayDishName / sentenceCase / containsLine).
+     Do not use text-transform here: Chrome/Skia print-to-PDF bakes it into extracted
+     characters and can leak .dish-name uppercase onto descriptions and Contains lines. */
+  .dish{margin-bottom:15px;text-align:center;text-transform:none;}
   .dish-name{
-    font-family:var(--serif);font-size:var(--t-dish);font-weight:700;letter-spacing:.12em;
-    text-transform:uppercase !important;margin:0 0 4px;color:#1f2a24;line-height:1.25;
+    font-family:var(--serif);font-size:16px;font-weight:700;letter-spacing:.07em;
+    text-transform:none;margin:0 0 3px;color:var(--ink);
   }
   .dish-desc{
-    font-family:var(--serif);font-size:var(--t-desc);font-style:italic;font-weight:400;
-    text-transform:lowercase !important;letter-spacing:0;line-height:1.45;
-    color:#3c463f;max-width:520px;margin:0 auto 4px;
+    font-size:12.5px;line-height:1.45;color:#3c463f;max-width:540px;margin:0 auto 3px;font-style:italic;
+    text-transform:none;font-weight:400;font-variant:normal;letter-spacing:normal;
   }
-  .dish-contains{font-size:var(--t-meta);letter-spacing:0;color:var(--gold);text-transform:lowercase !important;font-weight:600;margin-top:2px;}
-  .dish-diet{font-size:var(--t-meta);letter-spacing:0;color:var(--accent);text-transform:lowercase !important;font-weight:600;margin-top:1px;}
+  .dish-contains{
+    font-size:11px;letter-spacing:normal;color:var(--gold);
+    text-transform:none;font-weight:700;font-variant:normal;
+  }
+  .dish-diet{
+    font-size:10.5px;letter-spacing:normal;color:var(--accent);
+    text-transform:none;font-weight:700;margin-top:1px;font-variant:normal;
+  }
+  .dish-sep{width:42px;height:1px;background:var(--line);margin:11px auto 0;}
 
   /* allergen info block (same page, below dishes) */
   .info-block{
     margin-top:22px;padding-top:14px;border-top:2px solid var(--gold);
   }
   .info-title{
-    font-family:var(--serif);font-size:var(--t-info);letter-spacing:.1em;text-transform:uppercase;
+    font-family:var(--serif);font-size:18px;letter-spacing:.1em;text-transform:uppercase;
     text-align:center;color:var(--accent);margin-bottom:2px;
   }
-  .info-sub{text-align:center;color:var(--muted);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;}
-  .info-body p{font-size:8.5px;line-height:1.4;color:#3c463f;margin:0 0 6px;}
+  .info-sub{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
+  .info-body p{font-size:10.5px;line-height:1.45;color:#3c463f;margin:0 0 7px;}
   .info-list{
     display:grid;grid-template-columns:repeat(3,1fr);gap:3px 16px;margin-top:10px;
     padding:12px 16px;background:var(--accent-soft);border-radius:10px;
   }
-  .info-list span{font-size:9.5px;display:flex;align-items:center;gap:6px;}
+  .info-list span{font-size:10.5px;display:flex;align-items:center;gap:6px;}
   .info-list span::before{content:"•";color:var(--gold);font-size:14px;}
   .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
   .menu-qr-wrap{text-align:center;margin-top:10px;padding-top:8px;}
+  .menu-qr-row{display:flex;justify-content:center;align-items:flex-start;gap:32px;flex-wrap:wrap;}
+  .menu-qr-item{text-align:center;max-width:190px;}
+  .menu-qr-label{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin:0 0 6px;color:var(--ink);}
   .menu-qr-wrap img{display:block;margin:0 auto;background:#fff;}
   .menu-qr-caption{font-family:var(--serif);font-size:9px;text-align:center;color:var(--muted);margin:6px 0 0;letter-spacing:.04em;font-style:italic;line-height:1.45;}
   .page.tpl-luxury .menu-qr-caption{color:#c4b89a;}
+  .page.tpl-luxury .menu-qr-label{color:#f5e6c8;}
+  .page.tpl-brunch .menu-qr-label{color:#5c3a27;}
+  .page.tpl-retreat .menu-qr-label{color:#355c4a;}
 
   .empty-note{color:var(--muted);text-align:center;font-style:italic;padding:30px;}
 
   /* day tabs */
   .day-tabs{display:flex;flex-wrap:wrap;gap:6px;}
   .day-tab{
-    border:1px solid var(--line);background:#101714;color:var(--editor-ink);border-radius:8px;
+    border:1px solid var(--line);background:#fff;border-radius:8px;
     padding:6px 11px;font-size:12.5px;cursor:pointer;transition:.12s;
   }
-  .day-tab:hover{background:#223029;}
+  .day-tab:hover{background:#f4f1ea;}
   .day-tab.on{background:var(--accent);color:#fff;border-color:var(--accent);}
   .day-tab small{opacity:.7;margin-left:2px;}
 
@@ -367,7 +572,7 @@
   /* toolbar above preview */
   .toolbar{
     display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-    position:sticky;top:0;z-index:5;color:var(--editor-ink);
+    position:sticky;top:0;z-index:5;
   }
   .toolbar .grow{flex:1;}
 
@@ -490,8 +695,7 @@
   .ebook-hint{position:absolute;bottom:16px;color:#8a958d;font-size:11px;letter-spacing:.06em;}
 
   /* ---------- Menu Library ---------- */
-  .archive-box{background:#fff8e8;padding:14px;border-radius:12px;border:1px solid #e8d9b0;color:#5c4a12;}
-  .archive-box label,.archive-box .hint,.archive-box .archive-status{color:#6b5344;}
+  .archive-box{background:#fff8e8;padding:14px;border-radius:12px;border:1px solid #e8d9b0;}
   .meal-tabs{display:flex;gap:8px;margin-top:8px;}
   .meal-tab{
     flex:1;text-align:center;border:1px solid var(--line);background:#fff;border-radius:10px;
@@ -539,24 +743,10 @@
   .cal-day.other{opacity:.35;}
   .cal-day.today{outline:2px solid var(--accent);}
   .cal-day.sel{background:var(--accent-soft);border-color:var(--accent);}
-  .cal-day.drop-target{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft);}
-  .bank-hint{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.45;}
-  .bank-list{display:flex;flex-direction:column;gap:8px;}
-  .bank-card{
-    border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fbfaf7;
-    cursor:grab;display:flex;align-items:center;justify-content:space-between;gap:10px;
-  }
-  .bank-card:active{cursor:grabbing;}
-  .bank-card.dragging{opacity:.55;}
-  .bank-card b{display:block;font-size:14px;margin-bottom:2px;}
-  .bank-card small{font-size:12px;color:var(--muted);}
-  .bank-card .acts{display:flex;gap:6px;flex-wrap:wrap;}
-  .bank-meal{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);}
   .cal-dots{display:flex;gap:3px;margin-top:2px;}
   .cal-dot{width:5px;height:5px;border-radius:50%;}
   .cal-dot.lunch{background:#6b9fd4;}
   .cal-dot.dinner{background:var(--gold);}
-  .cal-dot.breakfast{background:#7cb87c;}
 
   .tree-year{margin-bottom:14px;}
   .tree-year > summary,.tree-month > summary,.tree-week > summary,.tree-day > summary{
@@ -594,6 +784,13 @@
   }
   .file-warn strong{display:block;margin-bottom:4px;}
   .file-warn a{color:var(--accent);font-weight:600;}
+  .build-stamp{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em;margin-left:8px;text-transform:none;}
+  .update-banner{
+    display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    background:#2f6b4f;color:#fff;padding:10px 16px;font-size:13.5px;line-height:1.4;
+  }
+  .update-banner.show{display:flex;}
+  .update-banner .btn{background:#fff;color:#2f6b4f;}
 
   @media (max-width:900px){
     .app{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
@@ -624,7 +821,7 @@
       background:#fff !important;overflow:visible !important;
     }
     /* hide all chrome — editor, toolbars, mobile UI, overlays */
-    .editor,.toolbar,.mobile-tabs,.file-warn,.lib-overlay,
+    .editor,.toolbar,.mobile-tabs,.file-warn,.update-banner,.lib-overlay,
     .ebook-overlay,.btn-install{display:none !important;}
     .app{display:block !important;grid-template-columns:1fr !important;min-height:0;}
     .preview-wrap{
@@ -710,6 +907,42 @@
       pointer-events:none;z-index:0;
       background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%235a7d5a' d='M32 4c-8 16-4 28 0 36 4-8 8-20 0-36zm0 36c-12 4-20 12-24 24 12-4 20-12 24-24zm0 0c12 4 20 12 24 24-12-4-20-12-24-24z'/%3E%3C/svg%3E") center/contain no-repeat !important;
     }
+    .page.tpl-wellness{background:#f7f5f0 !important;padding:50px 58px 56px !important;}
+    .page.tpl-wellness::before{
+      content:"" !important;position:absolute !important;top:0;left:0;right:0;height:10px;
+      background:linear-gradient(90deg,#c5d4ce,#e8ddd0,#c5d4ce) !important;
+    }
+    .page.tpl-wellness::after{
+      content:"" !important;position:absolute !important;inset:28px;
+      border:1px solid rgba(94,128,120,.38) !important;
+    }
+    .page.tpl-tasting{background:#fbf8f2 !important;padding:48px 52px 54px !important;}
+    .page.tpl-tasting::before{
+      content:"" !important;position:absolute !important;inset:18px;border:1px solid #8c3a32 !important;
+    }
+    .page.tpl-tasting::after{
+      content:"" !important;position:absolute !important;inset:22px;border:1px solid rgba(140,58,50,.28) !important;
+    }
+    .page.tpl-tasting .dish::before{content:counter(course, upper-roman) !important;color:#8c3a32 !important;}
+    .page.tpl-brunch{background:#fff8ee !important;padding:36px 40px 48px !important;}
+    .page.tpl-brunch .menu-head{background:#5c3a27 !important;color:#fff8ee !important;}
+    .page.tpl-brunch .menu-title{color:#fff8ee !important;}
+    .page.tpl-retreat{background:#f4efe6 !important;padding:32px 30px 44px !important;}
+    .page.tpl-retreat::before{
+      content:"" !important;position:absolute !important;inset:14px;
+      border:8px solid #355c4a !important;box-shadow:inset 0 0 0 2px #d7c4a3 !important;
+    }
+    .page.tpl-retreat .menu-head{background:#355c4a !important;}
+    .page.tpl-retreat .menu-title{color:#f4efe6 !important;}
+    .page.tpl-banquet{background:#fffaf3 !important;padding:36px 36px 48px !important;}
+    .page.tpl-banquet::before,
+    .page.tpl-banquet::after{
+      content:"" !important;position:absolute !important;left:0;right:0;height:16px;
+      background:repeating-linear-gradient(90deg,#6e2430 0 16px,#c4a35a 16px 32px) !important;
+    }
+    .page.tpl-banquet::before{top:0;}
+    .page.tpl-banquet::after{bottom:0;}
+    .section-title{text-transform:uppercase !important;}
     /* allergen block layout */
     .info-block{
       page-break-inside:avoid;break-inside:avoid;
@@ -738,36 +971,56 @@
       color-adjust:exact !important;
     }
     .menu-logo,.menu-head img{
-      max-height:74px !important;
-      max-width:220px !important;
+      max-height:64px !important;
+      max-width:360px !important;
       width:auto !important;
       height:auto !important;
       margin-left:auto !important;
       margin-right:auto !important;
     }
-    .menu-logo-text{font-size:16px !important;margin-bottom:4px !important;}
-    .dish-name{font-size:16px !important;letter-spacing:.14em !important;text-transform:uppercase !important;}
-    .dish-desc{font-size:10px !important;font-style:italic !important;text-transform:lowercase !important;letter-spacing:0 !important;line-height:1.5 !important;}
-    .dish-contains,.dish-diet{font-size:8px !important;text-transform:lowercase !important;letter-spacing:0 !important;}
-    .info-title{font-size:13px !important;}
-    .info-sub,.info-body p,.info-list span{font-size:8.5px !important;}
+    .page.tpl-modern .menu-logo{margin-left:0 !important;}
+    .menu-date{display:block !important;visibility:visible !important;}
+    .menu-qr-row{display:flex !important;justify-content:center !important;gap:28px !important;}
+    .menu-qr-item{display:block !important;}
+    .page.tpl-luxury .menu-logo,
+    .page.tpl-brunch .menu-logo,
+    .page.tpl-retreat .menu-logo{
+      background:#fff !important;border-radius:8px !important;padding:6px 10px !important;
+    }
+    .menu-logo-text{font-size:20px !important;margin-bottom:4px !important;}
     .page.tpl-classic .menu-logo-text{color:#2f6b4f !important;}
     .page.tpl-modern .menu-logo-text{color:#111 !important;}
     .page.tpl-luxury .menu-logo-text{color:#c9a84c !important;}
     .page.tpl-botanical .menu-logo-text{color:#5a7d5a !important;}
     .page.tpl-artdeco .menu-logo-text{color:#1a1a1a !important;}
     .page.tpl-rustic .menu-logo-text{color:#8b5a2b !important;}
+    .page.tpl-wellness .menu-logo-text{color:#5e8078 !important;}
+    .page.tpl-tasting .menu-logo-text{color:#8c3a32 !important;}
+    .page.tpl-brunch .menu-logo-text{color:#f0c9a0 !important;}
+    .page.tpl-retreat .menu-logo-text{color:#e8d5a3 !important;}
+    .page.tpl-banquet .menu-logo-text{color:#6e2430 !important;}
     .menu-qr-wrap img{max-width:none !important;background:#fff !important;}
     .page-foot{position:absolute !important;bottom:22px;left:0;right:0;}
+    /* Print/PDF: never transform dish text — the three roles are already cased in the DOM. */
+    .dish,.dish-name,.dish-desc,.dish-contains,.dish-diet{
+      text-transform:none !important;
+    }
+    .dish-desc{font-weight:400 !important;}
+    .dish-contains,.dish-diet{font-weight:700 !important;}
   }
 </style>
 </head>
 <body>
+<div class="update-banner" id="updateBanner">
+  <span><strong>Menu Creator was updated (build v11).</strong> If the Vedanta wordmark, date, or second QR is missing, this window is an old cached copy — click to reload a fresh page.</span>
+  <button type="button" class="btn" id="forceRefreshBtn">Refresh &amp; clear cache</button>
+</div>
 <div class="file-warn" id="fileWarn">
-  <strong>⚠ Opened as a file — calendar save may not work on Mac Safari.</strong>
-  Use the live link instead:
-  <a href="https://shyam1-jpg.github.io/menu-creator/" target="_blank" rel="noopener">shyam1-jpg.github.io/menu-creator</a>
-  (or run <code>npm start</code> in this folder and open <code>http://localhost:3000</code>).
+  <strong>⚠ Opened as a file — Print/PDF updates and the menu library need the local server.</strong>
+  Close any installed “Menu Creator” app window (it can keep an old cache). Then double-click
+  <code>Start Menu Creator.bat</code> or run <code>npm start</code> and open
+  <a href="http://127.0.0.1:4002/">http://127.0.0.1:4002/</a>
+  — not the github.io / Render links (those are not serving this repo yet).
 </div>
 <div class="mobile-tabs" id="mobileTabs">
   <button type="button" class="mobile-tab on" data-panel="editor">✏️ Edit</button>
@@ -776,24 +1029,13 @@
 <div class="app">
   <!-- ===================== EDITOR ===================== -->
   <aside class="editor">
-    <div class="brand"><span class="dot"></span> Menu Creator</div>
-    <p class="sub">Dish names stay CAPITAL. Descriptions and allergens stay small letters.</p>
-
-    <div class="group type-box">
-      <label>Print size</label>
-      <div class="type-scale" id="typeScale">
-        <button type="button" class="type-btn" data-scale="compact">Small</button>
-        <button type="button" class="type-btn on" data-scale="standard">Standard</button>
-        <button type="button" class="type-btn" data-scale="large">Large</button>
-      </div>
-      <div class="hint">Names = CAPITALS. Descriptions and allergens = small letters. Print / Save PDF uses this too.</div>
-    </div>
+    <div class="brand"><span class="dot"></span> Menu Creator <small class="build-stamp" id="buildStamp">v11</small></div>
+    <p class="sub">Add dishes, set allergens, then print or save as PDF. For Vedanta layouts, open the <a href="vedanta-menu-creator.html">Vedanta Menu Creator</a>.</p>
 
     <div class="group archive-box">
       <label>📚 Menu Library — save by date</label>
       <input type="date" id="archiveDate" />
       <div class="meal-tabs" id="mealTabs">
-        <span class="meal-tab" data-meal="breakfast">Breakfast</span>
         <span class="meal-tab" data-meal="lunch">Lunch</span>
         <span class="meal-tab on" data-meal="dinner">Dinner</span>
       </div>
@@ -805,13 +1047,11 @@
       <div class="row" style="margin-top:8px">
         <button class="btn btn-ghost btn-sm" id="addCurrentToLibrary">Add current menu to library</button>
         <button class="btn btn-ghost btn-sm" id="importToLibrary">Import JSON to library</button>
-        <button class="btn btn-primary btn-sm" id="importAllMenus">Load all menus from PC</button>
         <input type="file" id="importLibraryFile" accept=".json,application/json" style="display:none" />
-        <input type="file" id="importBundleFile" accept=".json,application/json" style="display:none" />
       </div>
       <div class="archive-status" id="archiveStatus">Library: not saved yet for this date</div>
       <div class="archive-offer hidden" id="archiveOffer"></div>
-      <div class="hint">Menus auto-save to the calendar. <b>Browse all</b> → <b>All menus</b> to drag any menu onto any date, or click a calendar day to open.</div>
+      <div class="hint">Menus auto-save to the calendar as you type. Open <b>Browse all</b> → tap a day with a dot to load that menu.</div>
     </div>
 
     <div class="divider"></div>
@@ -845,6 +1085,7 @@
     <div class="group">
       <label>Menu style — pick a unique look</label>
       <div class="tpl-grid" id="tplGrid"></div>
+      <div class="hint">Retreat Board, Tasting, and Banquet group dishes under headings such as Breakfast / Lunch / Dinner or Starter / Main when those lines stand alone (no description).</div>
     </div>
 
     <div class="group">
@@ -853,16 +1094,28 @@
         <div class="logo-prev" id="logoPrev">No logo</div>
         <div style="flex:1">
           <input type="file" id="logoFile" accept="image/*" style="font-size:12px" />
-          <input type="text" id="logoText" placeholder="or type text, e.g. vedanta.org" style="margin-top:8px" />
+          <input type="text" id="logoText" placeholder="optional text logo (only if the image is hidden)" style="margin-top:8px" />
         </div>
       </div>
-      <button class="btn btn-line btn-sm" id="clearLogo" style="margin-top:8px">Remove logo</button>
+      <button class="btn btn-line btn-sm" id="clearLogo" style="margin-top:8px">Restore default logo</button>
+      <div class="hint">The Vedānta wordmark is built into every template. Upload a file to replace it; restore default to put it back.</div>
+    </div>
+
+    <div class="group">
+      <label>Menu date</label>
+      <select id="datePos">
+        <option value="bottom">Bottom footer (default)</option>
+        <option value="top">Top (under title)</option>
+        <option value="both">Top and bottom</option>
+        <option value="off">Off</option>
+      </select>
+      <div class="hint">Uses the library date above (today if unset) and prints automatically — you do not need to type it in the subtitle.</div>
     </div>
 
     <div class="group">
       <label>Menu title</label>
       <input type="text" id="menuTitle" placeholder="DINNER MENU" />
-      <input type="text" id="menuSub" placeholder="Optional subtitle (date, venue…)" style="margin-top:8px" />
+      <input type="text" id="menuSub" placeholder="Optional subtitle (venue…)" style="margin-top:8px" />
     </div>
 
     <div class="divider"></div>
@@ -870,7 +1123,7 @@
     <div class="group">
       <label>Add / edit a dish</label>
       <input type="text" id="dName" placeholder="Dish name" />
-      <textarea id="dDesc" placeholder="Description" style="margin-top:8px;min-height:88px"></textarea>
+      <textarea id="dDesc" placeholder="Description" style="margin-top:8px"></textarea>
 
       <div class="hint">Allergens (tap to toggle, or type custom below):</div>
       <div class="allergen-pick" id="allergenPick"></div>
@@ -952,14 +1205,12 @@
       <h2>Menu Library</h2>
       <div class="lib-tabs">
         <button class="lib-tab on" data-view="calendar">Calendar</button>
-        <button class="lib-tab" data-view="bank">All menus</button>
         <button class="lib-tab" data-view="tree">Year / Month / Week</button>
       </div>
       <button class="btn btn-line btn-sm" id="libClose">Close</button>
     </div>
     <div class="lib-body">
       <div id="libCalendarView"></div>
-      <div id="libBankView" style="display:none"></div>
       <div id="libTreeView" style="display:none"></div>
     </div>
     <div class="lib-foot">
@@ -976,23 +1227,29 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 /* ---------------- Data ---------------- */
 const ALLERGENS = ["Gluten","Dairy","Celery","Soy","Nuts","Peanuts","Sesame","Eggs","Fish","Crustaceans","Molluscs","Mustard","Lupin","Sulphur Dioxide","None"];
 const DIETS = ["Vegan","Vegetarian","Gluten-Free","Dairy-Free","Halal","Nut-Free"];
+const APP_BUILD = "v11";
 
+const DEFAULT_LOGO_SRC = "assets/vedanta-logo.png";
 const MENU_QR_URL = "https://pureprasadkitchen.com";
 const MENU_QR_CAPTION = "Scan the QR code \u2014 Recipe by Shyam Prasad, Head Chef";
+const MENU_QR_LABEL = "Recipes";
+const VEDANTA_QR_URL = "https://www.thevedanta.org/";
+const VEDANTA_QR_CAPTION = "The Vedanta \u2014 thevedanta.org";
+const VEDANTA_QR_LABEL = "The Vedanta";
 
 const DEFAULT_INFO = "We carefully select our ingredients and prepare all dishes with attention to allergens. However, please be aware that all food is prepared in a shared kitchen where cross-contamination may occur. While we take every precaution to minimize risk, we cannot guarantee the complete absence of allergens.\n\nIf you have a severe allergy or specific dietary requirement, please speak to a member of our team before serving yourself.\n\nYou can request more information on the allergens listed below.";
 const OLD_INFO_ALLERGENS = "Celery, Cereals containing Gluten, Crustaceans, Lupin, Milk, Mustard, Nuts, Peanuts, Sesame, Soya, Sulphur Dioxide";
 const DEFAULT_INFO_ALLERGENS = "";
 
 const SAMPLE = {
-  logoText:"vedanta.org", logoImg:null,
+  logoText:"", logoImg:DEFAULT_LOGO_SRC,
   title:"DINNER MENU", sub:"",
   dishes:[
-    {name:"HIGH PROTEIN LASAGNE WITH BELUGA LENTIL", desc:"layered pasta with tomato ragu, beluga lentils, spinach & plant-based cheese, baked to perfection", allergens:["Gluten","Dairy","Celery"]},
-    {name:"TUSCANY SALAD", desc:"mixed greens, cherry tomatoes, roasted pepper, kalamata olives & balsamic vinaigrette", allergens:["None"]},
-    {name:"MAPLE ROASTED SQUASH SALAD", desc:"arugula & baby kale, maple roasted squash, candied pecans & goat cheese, drizzled with apple cider vinaigrette", allergens:["Gluten","Dairy"]},
-    {name:"BLACKBERRY COCONUT TART WITH BANANA ICE CREAM", desc:"blackberry jam & coconut cream in a flaky tart shell, served with homemade banana ice cream", allergens:["Gluten","Dairy","Soy"]},
-    {name:"ASSORTED BREADS, BUTTER, CHEESES & FRUIT", desc:"fresh baked breads, creamy butter, artisan cheeses & seasonal fresh fruit", allergens:["Gluten","Dairy"]}
+    {name:"High Protein Lasagne with Beluga Lentil", desc:"Layered Pasta with Tomato Ragu, Beluga Lentils, Spinach & Plant-Based Cheese, baked to perfection", allergens:["Gluten","Dairy","Celery"]},
+    {name:"Tuscany Salad", desc:"Mixed Greens, Cherry Tomatoes, Roasted Pepper, Kalamata Olives & Balsamic Vinaigrette", allergens:["None"]},
+    {name:"Maple Roasted Squash Salad", desc:"Arugula & Baby Kale, Maple Roasted Squash, Candied Pecans & Goat Cheese, drizzled with Apple Cider Vinaigrette", allergens:["Gluten","Dairy"]},
+    {name:"Blackberry Coconut Tart with Banana Ice Cream", desc:"Blackberry Jam & Coconut Cream in a Flaky Tart Shell, served with Homemade Banana Ice Cream", allergens:["Gluten","Dairy","Soy"]},
+    {name:"Assorted Breads, Butter, Cheeses & Fruit", desc:"Fresh Baked Breads, Creamy Butter, Artisan Cheeses & Seasonal Fresh Fruit", allergens:["Gluten","Dairy"]}
   ],
   infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS
 };
@@ -1010,33 +1267,75 @@ const TEMPLATES={
   luxury:{name:"Luxury Dark",desc:"Dark navy with gold accents",swatch:"linear-gradient(135deg,#1a1f2e,#c9a84c)"},
   botanical:{name:"Botanical",desc:"Soft sage green, organic feel",swatch:"linear-gradient(135deg,#f7f9f4,#5a7d5a)"},
   artdeco:{name:"Art Deco",desc:"Bold 1920s geometric style",swatch:"linear-gradient(135deg,#fff8f0,#1a1a1a)"},
-  rustic:{name:"Rustic Warm",desc:"Warm farmhouse, dashed border",swatch:"linear-gradient(135deg,#faf6f0,#8b5a2b)"}
+  rustic:{name:"Rustic Warm",desc:"Warm farmhouse, dashed border",swatch:"linear-gradient(135deg,#faf6f0,#8b5a2b)"},
+  wellness:{name:"Deep Health",desc:"Calm spa linen, airy modern type",swatch:"linear-gradient(135deg,#f7f5f0,#5e8078)"},
+  tasting:{name:"Tasting Menu",desc:"Ivory courses with roman numerals",swatch:"linear-gradient(135deg,#fbf8f2,#8c3a32)"},
+  brunch:{name:"Café Brunch",desc:"Warm terracotta, two-column café",swatch:"linear-gradient(135deg,#fff8ee,#c46a3a)"},
+  retreat:{name:"Retreat Board",desc:"Breakfast / lunch / dinner day board",swatch:"linear-gradient(135deg,#f4efe6,#355c4a)"},
+  banquet:{name:"Festival Banquet",desc:"Dense maroon-gold feast layout",swatch:"linear-gradient(135deg,#fffaf3,#6e2430)"}
 };
 function makeDefault(){
-  return { logoText:"", logoImg:null, infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS,
-           template:"classic", typeScale:"standard", menus:[ newMenu("Day 1") ], currentId:null };
+  return { logoText:"", logoImg:DEFAULT_LOGO_SRC, datePos:"bottom",
+           infoText:DEFAULT_INFO, infoAllergens:DEFAULT_INFO_ALLERGENS,
+           template:"classic", menus:[ newMenu("Day 1") ], currentId:null };
 }
 function migrate(old){
   if(!old) return null;
-  if(old.menus) return old;
+  if(old.menus){
+    old.menus.forEach(m=>{ m.dishes = repairDishList(m.dishes); });
+    if(!old.logoImg) old.logoImg = DEFAULT_LOGO_SRC;
+    if(!old.datePos) old.datePos = "bottom";
+    return old;
+  }
   const d = makeDefault();
-  d.logoText=old.logoText||""; d.logoImg=old.logoImg||null;
+  d.logoText=old.logoText||""; d.logoImg=old.logoImg||DEFAULT_LOGO_SRC;
+  d.datePos=old.datePos||"bottom";
   d.infoText=old.infoText||DEFAULT_INFO; d.infoAllergens=old.infoAllergens||DEFAULT_INFO_ALLERGENS;
-  d.menus=[ Object.assign(newMenu("Day 1"), {title:old.title||"DINNER MENU", sub:old.sub||"", dishes:old.dishes||[]}) ];
+  d.menus=[ Object.assign(newMenu("Day 1"), {title:old.title||"DINNER MENU", sub:old.sub||"", dishes:repairDishList(old.dishes||[])}) ];
   return d;
 }
 let data = migrate(loadRaw()) || makeDefault();
 if(!data.currentId || !data.menus.some(m=>m.id===data.currentId)) data.currentId = data.menus[0].id;
 if(["", OLD_INFO_ALLERGENS, "Soya, Sulphur Dioxide"].includes((data.infoAllergens||"").trim())){ data.infoAllergens = DEFAULT_INFO_ALLERGENS; }
 if(!data.template) data.template="classic";
-if(!data.typeScale) data.typeScale="standard";
+if(!data.logoImg) data.logoImg = DEFAULT_LOGO_SRC;
+if(!data.datePos) data.datePos = "bottom";
 
-const SHARED = ["logoText","logoImg","infoText","infoAllergens","template","typeScale"];
-function menuQrUrl(){
-  let u = (MENU_QR_URL || "").trim();
+const SHARED = ["logoText","logoImg","infoText","infoAllergens","template","datePos"];
+let _defaultLogoDataUrl = null;
+function wordLogoSrc(src){
+  src = src || DEFAULT_LOGO_SRC;
+  if(src === DEFAULT_LOGO_SRC && _defaultLogoDataUrl) return _defaultLogoDataUrl;
+  return src;
+}
+function preloadDefaultLogo(){
+  if(_defaultLogoDataUrl) return;
+  fetch(DEFAULT_LOGO_SRC).then(r=>r.ok?r.blob():Promise.reject()).then(blob=>{
+    const r=new FileReader();
+    r.onload=()=>{ _defaultLogoDataUrl=r.result; };
+    r.readAsDataURL(blob);
+  }).catch(()=>{});
+}
+function absUrl(u){
+  u = (u || "").trim();
   if(!u) return "";
   if(!/^https?:\/\//i.test(u)) u = "https://" + u;
   return u;
+}
+function menuQrUrl(){ return absUrl(MENU_QR_URL); }
+function vedantaQrUrl(){ return absUrl(VEDANTA_QR_URL); }
+function effectiveLogoSrc(){
+  return state.logoImg || DEFAULT_LOGO_SRC;
+}
+function datePlacement(){
+  const p = data.datePos || "bottom";
+  return { top: p==="top"||p==="both", bottom: p==="bottom"||p==="both" };
+}
+function formattedMenuDate(){
+  const iso = (archiveCtx && archiveCtx.date) || todayISO();
+  const d = new Date(iso+"T12:00:00");
+  if(Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-GB",{ weekday:"long", day:"numeric", month:"long", year:"numeric" });
 }
 function tplClass(){ return " tpl-"+(data.template||"classic"); }
 function current(){ return data.menus.find(m=>m.id===data.currentId) || data.menus[0]; }
@@ -1055,45 +1354,6 @@ let archiveCtx={ date: todayISO(), meal:"dinner" };
 let archiveIndex=[];
 let libView="calendar", libCalYear, libCalMonth, libSelKey=null;
 let archiveTimer=null;
-let menuBank=[], dragBankId=null;
-
-const BANK_LS="menuCreatorBank_v1";
-function loadMenuBank(){
-  try{ menuBank=JSON.parse(localStorage.getItem(BANK_LS))||[]; }catch(e){ menuBank=[]; }
-}
-function saveMenuBank(){ localStorage.setItem(BANK_LS, JSON.stringify(menuBank)); }
-function bankItemId(label, meal){ return "bank_"+String(label||"menu").replace(/\W+/g,"_").toLowerCase()+"_"+meal; }
-function mergeMenuBank(items, deferSave){
-  if(!items||!items.length) return 0;
-  const have=new Set(menuBank.map(b=>b.id));
-  let n=0;
-  items.forEach(it=>{
-    if(!it||!it.snap) return;
-    const id=it.id||bankItemId(it.label,it.meal);
-    if(have.has(id)) return;
-    menuBank.push({id, label:it.label||it.snap.title||"Menu", meal:it.meal||"dinner", snap:it.snap, source:it.source||""});
-    have.add(id); n++;
-  });
-  if(n && !deferSave) saveMenuBank();
-  return n;
-}
-async function assignBankToDate(bankId, date, meal){
-  const item=menuBank.find(b=>b.id===bankId);
-  if(!item) return false;
-  const m=meal||item.meal||archiveCtx.meal||"dinner";
-  const d=new Date(date+"T12:00:00");
-  const rec={
-    id:archiveKey(date,m), date, meal:m,
-    year:d.getFullYear(), month:d.getMonth()+1, week:isoWeek(d),
-    dayLabel:dayName(date), savedAt:new Date().toISOString(),
-    snap:JSON.parse(JSON.stringify(item.snap))
-  };
-  await dbPut(rec);
-  archiveCtx={date,meal:m}; $("archiveDate").value=date; setMealTab(m);
-  applyArchiveSnapshot(rec.snap);
-  await refreshArchiveIndex();
-  return true;
-}
 
 function todayISO(d=new Date()){
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -1106,10 +1366,7 @@ function isoWeek(d){
   const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));
   return Math.ceil((((x-y)/86400000)+1)/7);
 }
-function mealLabel(meal){
-  if(meal==="breakfast") return "Breakfast";
-  return meal==="lunch"?"Lunch":"Dinner";
-}
+function mealLabel(meal){ return meal==="lunch"?"Lunch":"Dinner"; }
 function dayName(dateStr){
   return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(dateStr+"T12:00:00").getDay()];
 }
@@ -1248,7 +1505,8 @@ async function refreshArchiveIndex(){
 function snapshotForArchive(){
   const m=current();
   return {
-    logoText:data.logoText||"", logoImg:data.logoImg||null,
+    logoText:data.logoText||"", logoImg:data.logoImg||DEFAULT_LOGO_SRC,
+    datePos:data.datePos||"bottom",
     infoText:data.infoText||"", infoAllergens:data.infoAllergens||"",
     template:data.template||"classic",
     title:m.title||"", sub:m.sub||"",
@@ -1256,12 +1514,13 @@ function snapshotForArchive(){
   };
 }
 function applyArchiveSnapshot(snap){
-  data.logoText=snap.logoText||""; data.logoImg=snap.logoImg||null;
+  data.logoText=snap.logoText||""; data.logoImg=snap.logoImg||DEFAULT_LOGO_SRC;
+  data.datePos=snap.datePos||data.datePos||"bottom";
   data.infoText=snap.infoText||DEFAULT_INFO; data.infoAllergens=snap.infoAllergens||"";
   data.template=snap.template||data.template||"classic"; buildTplGrid();
   const m=current();
   m.title=snap.title||"DINNER MENU"; m.sub=snap.sub||"";
-  m.dishes=JSON.parse(JSON.stringify(snap.dishes||[]));
+  m.dishes=repairDishList(JSON.parse(JSON.stringify(snap.dishes||[])));
   resetForm(); syncInputs(); render();
   save();
 }
@@ -1271,7 +1530,8 @@ function projectToSnapshot(proj){
     return n>(best.dishes||[]).length?m:best;
   }, proj.menus?.[0]||{});
   return {
-    logoText:proj.logoText||"", logoImg:proj.logoImg||null,
+    logoText:proj.logoText||"", logoImg:proj.logoImg||DEFAULT_LOGO_SRC,
+    datePos:proj.datePos||"bottom",
     infoText:proj.infoText||DEFAULT_INFO, infoAllergens:proj.infoAllergens||"",
     template:proj.template||"classic",
     title:pick.title||"DINNER MENU", sub:pick.sub||"",
@@ -1286,7 +1546,7 @@ function hasEditorContent(){
   const m=current();
   if((m.dishes||[]).length) return true;
   if((m.sub||"").trim()) return true;
-  if(data.logoImg) return true;
+  if(data.logoImg && data.logoImg !== DEFAULT_LOGO_SRC) return true;
   const t=(m.title||"").trim();
   return t && t!=="DINNER MENU" && t!=="LUNCH MENU";
 }
@@ -1315,7 +1575,6 @@ async function saveToArchive(silent){
     snap:snapshotForArchive()
   };
   await dbPut(rec);
-  mergeMenuBank([{id:bankItemId(rec.snap.title||date,meal),label:date+" · "+mealLabel(meal),meal,snap:rec.snap,source:"calendar"}]);
   await refreshArchiveIndex();
   if(!silent){
     $("archiveStatus").textContent="Saved to library: "+date+" · "+mealLabel(meal);
@@ -1340,60 +1599,6 @@ async function loadFromArchive(date, meal, quiet){
   updateArchiveStatus();
   showArchiveOffer();
   return true;
-}
-async function importArchiveBundle(bundle, replace){
-  let recs=(bundle&&bundle.records)||(Array.isArray(bundle)?bundle:[]);
-  const bankItems=(bundle&&bundle.bank)||[];
-  let bn=mergeMenuBank(bankItems, true);
-  if(!recs.length && bankItems.length){
-    recs=bankItems.map(it=>{
-      const meal=it.meal||"dinner";
-      const day=+(String(it.label||"").match(/day\s*(\d+)/i)?.[1]||0);
-      const date=day?isoDateFromStart(bundle.startDate||todayISO(), day-1):null;
-      if(!date) return null;
-      const d=new Date(date+"T12:00:00");
-      return {id:date+"_"+meal,date,meal,year:d.getFullYear(),month:d.getMonth()+1,week:isoWeek(d),dayLabel:dayName(date),savedAt:new Date().toISOString(),snap:it.snap};
-    }).filter(Boolean);
-  }
-  if(!recs.length && !bn){ alert("No menus found in that file."); return 0; }
-  let n=0;
-  const extra=[];
-  for(const rec of recs){
-    if(replace || !(await dbGet(rec.id))){ await dbPut(rec); n++; }
-    extra.push({id:bankItemId(rec.snap?.title||rec.id,rec.meal),label:rec.snap?.sub||rec.date,meal:rec.meal,snap:rec.snap,source:rec.source});
-  }
-  bn += mergeMenuBank(extra, true);
-  if(bn) saveMenuBank();
-  await refreshArchiveIndex();
-  if(bankItems.length && $("libOverlay")?.classList.contains("open")) renderBank();
-  const first=recs[0];
-  if(first){ archiveCtx={date:first.date,meal:first.meal}; $("archiveDate").value=first.date; setMealTab(first.meal); }
-  $("archiveStatus").textContent=(bn?bn+" menu(s) in bank. ":"")+(n?n+" on calendar.":"")+(bundle.startDate?" Starting "+bundle.startDate:"");
-  return n+bn;
-}
-function isoDateFromStart(start, addDays){
-  const d=new Date((start||todayISO())+"T12:00:00");
-  d.setDate(d.getDate()+addDays);
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-async function loadPcMenuBundle(silent){
-  try{
-    const res=await fetch("/menu-creator/imports/menu-calendar-bundle.json?_="+Date.now());
-    if(!res.ok) throw new Error("Bundle not found — run: node scripts/gen-bundle.cjs");
-    const bundle=await res.json();
-    const bankFromRecords=(bundle.records||[]).map(r=>({
-      id:bankItemId(r.snap?.title||r.label||r.id,r.meal),
-      label:(r.snap?.sub||r.snap?.title||r.date)+" · "+mealLabel(r.meal),
-      meal:r.meal,snap:r.snap,source:r.source||"PC"
-    }));
-    bundle.bank=[...(bundle.bank||[]),...bankFromRecords];
-    const n=await importArchiveBundle(bundle, false);
-    if(!silent && n) alert("Loaded "+menuBank.length+" menus into your library.\n\n• All menus tab — drag a menu onto any calendar day\n• Or click Open, then Print\n\nGreen = breakfast, blue = lunch, gold = dinner");
-    return n;
-  }catch(err){
-    if(!silent) alert("Could not load menus from PC.\n\n"+(err.message||err)+"\n\nOn this PC run:\n  cd menu-creator\n  node scripts/gen-bundle.cjs");
-    return 0;
-  }
 }
 async function importProjectFileToLibrary(file){
   const text=await file.text();
@@ -1445,9 +1650,8 @@ function setMealTab(meal){
   archiveCtx.meal=meal;
   document.querySelectorAll(".meal-tab").forEach(t=> t.classList.toggle("on", t.dataset.meal===meal));
   const m=current();
-  if(meal==="breakfast" && (!m.title || /^(DINNER|LUNCH) MENU$/i.test(m.title))) m.title="BREAKFAST MENU";
-  if(meal==="lunch" && (!m.title || m.title==="DINNER MENU" || m.title==="BREAKFAST MENU")) m.title="LUNCH MENU";
-  if(meal==="dinner" && (!m.title || m.title==="LUNCH MENU" || m.title==="BREAKFAST MENU")) m.title="DINNER MENU";
+  if(meal==="lunch" && (!m.title || m.title==="DINNER MENU")) m.title="LUNCH MENU";
+  if(meal==="dinner" && (!m.title || m.title==="LUNCH MENU")) m.title="DINNER MENU";
   syncInputs(); render(); updateArchiveStatus();
 }
 
@@ -1468,45 +1672,12 @@ function setLibView(v){
   libView=v;
   document.querySelectorAll(".lib-tab").forEach(t=> t.classList.toggle("on", t.dataset.view===v));
   $("libCalendarView").style.display=v==="calendar"?"block":"none";
-  $("libBankView").style.display=v==="bank"?"block":"none";
   $("libTreeView").style.display=v==="tree"?"block":"none";
   renderLibView();
 }
 function renderLibView(){
   if(libView==="calendar") renderCalendar();
-  else if(libView==="bank") renderBank();
   else renderTree();
-}
-function renderBank(){
-  const wrap=$("libBankView");
-  if(!menuBank.length){
-    wrap.innerHTML='<div class="bank-hint">No menus in bank yet. Click <b>Load all menus from PC</b> in the editor, or save menus to the calendar.</div>';
-    return;
-  }
-  let html='<div class="bank-hint">Drag any menu onto a <b>Calendar</b> day (any month, any date). Or click <b>Open</b> to edit and print. Meal: '+mealLabel(archiveCtx.meal)+' is used when you drop.</div><div class="bank-list">';
-  menuBank.forEach(item=>{
-    const n=item.snap?.dishes?.length||0;
-    html+=`<div class="bank-card" draggable="true" data-id="${esc(item.id)}">
-      <div><span class="bank-meal">${mealLabel(item.meal)}</span><b>${esc(item.label)}</b><small>${n} dish${n===1?"":"es"}${item.source?" · "+esc(item.source):""}</small></div>
-      <div class="acts">
-        <button type="button" class="btn btn-primary btn-sm" data-act="open">Open</button>
-        <button type="button" class="btn btn-line btn-sm" data-act="today">Put on today</button>
-      </div></div>`;
-  });
-  html+="</div>";
-  wrap.innerHTML=html;
-  wrap.querySelectorAll(".bank-card").forEach(card=>{
-    card.addEventListener("dragstart", e=>{ dragBankId=card.dataset.id; card.classList.add("dragging"); e.dataTransfer.setData("text/plain", card.dataset.id); });
-    card.addEventListener("dragend", ()=>{ dragBankId=null; card.classList.remove("dragging"); document.querySelectorAll(".cal-day.drop-target").forEach(d=>d.classList.remove("drop-target")); });
-    card.querySelector('[data-act="open"]').onclick=()=>{
-      const item=menuBank.find(b=>b.id===card.dataset.id); if(!item) return;
-      setMealTab(item.meal||archiveCtx.meal); applyArchiveSnapshot(item.snap); closeLibrary();
-    };
-    card.querySelector('[data-act="today"]').onclick=async ()=>{
-      await assignBankToDate(card.dataset.id, todayISO(), archiveCtx.meal);
-      closeLibrary();
-    };
-  });
 }
 function renderCalendar(){
   const wrap=$("libCalendarView");
@@ -1530,30 +1701,20 @@ function renderCalendar(){
     const meals=byDate[iso]||[];
     html+=`<div class="cal-day${other?" other":""}${today?" today":""}${sel?" sel":""}" data-date="${iso}">
       <span>${d.getDate()}</span>
-      <div class="cal-dots">${meals.includes("breakfast")?'<span class="cal-dot breakfast"></span>':""}${meals.includes("lunch")?'<span class="cal-dot lunch"></span>':""}${meals.includes("dinner")?'<span class="cal-dot dinner"></span>':""}</div>
+      <div class="cal-dots">${meals.includes("lunch")?'<span class="cal-dot lunch"></span>':""}${meals.includes("dinner")?'<span class="cal-dot dinner"></span>':""}</div>
     </div>`;
   }
-  html+="</div><p class=\"bank-hint\" style=\"margin-top:10px\">Tip: open <b>All menus</b>, drag a menu here, or click a day with dots to open.</p>";
+  html+="</div>";
   wrap.innerHTML=html;
   $("calPrev").onclick=()=>{ libCalMonth--; if(libCalMonth<0){libCalMonth=11;libCalYear--;} renderCalendar(); };
   $("calNext").onclick=()=>{ libCalMonth++; if(libCalMonth>11){libCalMonth=0;libCalYear++;} renderCalendar(); };
   wrap.querySelectorAll(".cal-day").forEach(el=>{
-    el.addEventListener("dragover", e=>{ if(!dragBankId) return; e.preventDefault(); el.classList.add("drop-target"); });
-    el.addEventListener("dragleave", ()=> el.classList.remove("drop-target"));
-    el.addEventListener("drop", async e=>{
-      e.preventDefault(); el.classList.remove("drop-target");
-      const id=e.dataTransfer.getData("text/plain")||dragBankId;
-      if(!id) return;
-      await assignBankToDate(id, el.dataset.date, archiveCtx.meal);
-      renderCalendar();
-    });
     el.onclick=async ()=>{
       const date=el.dataset.date;
       archiveCtx.date=date; $("archiveDate").value=date;
       const meals=(byDate[date]||[]);
       if(meals.includes("dinner")) setMealTab("dinner");
       else if(meals.includes("lunch")) setMealTab("lunch");
-      else if(meals.includes("breakfast")) setMealTab("breakfast");
       if(meals.length){
         const meal=meals.includes(archiveCtx.meal)?archiveCtx.meal:meals[0];
         await loadFromArchive(date, meal, true);
@@ -1572,7 +1733,7 @@ function renderTree(){
     const y=tree[r.year]||(tree[r.year]={});
     const mo=y[r.month]||(y[r.month]={});
     const wk=mo[r.week]||(mo[r.week]={});
-    const dy=wk[r.date]||(wk[r.date]={breakfast:null,lunch:null,dinner:null});
+    const dy=wk[r.date]||(wk[r.date]={lunch:null,dinner:null});
     dy[r.meal]=r;
   });
   const years=Object.keys(tree).sort((a,b)=>b-a);
@@ -1588,7 +1749,7 @@ function renderTree(){
         Object.keys(tree[y][mo][wk]).sort().forEach(dt=>{
           const day=tree[y][mo][wk][dt];
           html+=`<details class="tree-day"><summary>${dayName(dt)} · ${dt}</summary>`;
-          ["breakfast","lunch","dinner"].forEach(meal=>{
+          ["lunch","dinner"].forEach(meal=>{
             const rec=day[meal]; if(!rec) return;
             const n=rec.snap.dishes?.length||0;
             html+=`<div class="tree-meal" data-id="${rec.id}">
@@ -1675,20 +1836,14 @@ $("saveDish").onclick = ()=>{
   const custom = $("dCustom").value.split(",").map(s=>s.trim()).filter(Boolean);
   const all = [...allergens.filter(a=>a!=="None"), ...custom];
   const finalAllergens = all.length ? all : (selectedAllergens.has("None") ? ["None"] : []);
-  const peeled = peelDishMeta($("dDesc").value);
-  const dish = {
-    name: formatDishName(name),
-    desc: peeled.desc,
-    allergens: mergeUnique(finalAllergens, peeled.allergens),
-    diet: mergeUnique(selectedDiets, peeled.diet)
-  };
+  const dish = { name, desc:$("dDesc").value.trim(), allergens:finalAllergens, diet:[...selectedDiets] };
   if(editIndex>=0) state.dishes[editIndex]=dish; else state.dishes.push(dish);
   resetForm(); save(); render();
 };
 $("cancelEdit").onclick = resetForm;
 
 function editDish(i){
-  const d = normalizeDish(state.dishes[i]);
+  const d = state.dishes[i];
   $("dName").value=d.name; $("dDesc").value=d.desc;
   selectedAllergens = new Set();
   selectedDiets = new Set(d.diet||[]);
@@ -1721,13 +1876,15 @@ $("logoFile").onchange = e=>{
   r.onload=()=>{ state.logoImg=r.result; save(); render(); };
   r.readAsDataURL(f);
 };
-$("clearLogo").onclick = ()=>{ state.logoImg=null; state.logoText=""; $("logoText").value=""; $("logoFile").value=""; save(); render(); };
+$("clearLogo").onclick = ()=>{ state.logoImg=DEFAULT_LOGO_SRC; state.logoText=""; $("logoText").value=""; $("logoFile").value=""; save(); render(); };
+
+$("datePos").onchange = e=>{ state.datePos=e.target.value||"bottom"; save(); render(); };
 
 $("loadSample").onclick = ()=>{
   data.logoText=SAMPLE.logoText; data.logoImg=SAMPLE.logoImg;
   data.infoText=SAMPLE.infoText; data.infoAllergens=SAMPLE.infoAllergens;
   const m=current(); m.title=SAMPLE.title; m.sub=SAMPLE.sub;
-  m.dishes=JSON.parse(JSON.stringify(SAMPLE.dishes));
+  m.dishes=repairDishList(JSON.parse(JSON.stringify(SAMPLE.dishes)));
   save(); resetForm(); syncInputs(); render();
 };
 $("resetAll").onclick = ()=>{
@@ -1780,7 +1937,6 @@ $("addCurrentToLibrary").onclick=()=>{
   saveToArchive(false).catch(()=>alert("Could not save to library."));
 };
 $("importToLibrary").onclick=()=> $("importLibraryFile").click();
-$("importAllMenus").onclick=()=>loadPcMenuBundle();
 $("importLibraryFile").onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
   try{
@@ -1895,7 +2051,13 @@ function parseBulk(text){
   const letters = s => s.replace(/[^a-zA-Z]/g,"");
   const isCaps = s => { const L=letters(s); return L.length>=2 && s.toUpperCase()===s && /[A-Z]/.test(s); };
   const newDish = ()=>({name:"",desc:"",allergens:[],diet:[]});
-  const push = ()=>{ if(cur && cur.name) dishes.push(normalizeDish(cur)); cur=null; expectName=true; };
+  const push = ()=>{
+    if(cur && cur.name){
+      if(cur.desc) cur.desc = sentenceCase(cur.desc);
+      dishes.push(cur);
+    }
+    cur=null; expectName=true;
+  };
 
   for(const line of rawLines){
     const raw = line.replace(/\s+/g," ").trim();
@@ -1927,16 +2089,26 @@ function parseBulk(text){
       expectName = true;
       continue;
     }
-    // a short standalone diet line (e.g. "Vegan")
-    if(cur && cur.name && !expectName && parseDiets(raw).length && raw.split(/\s+/).length<=3){
+    // a short standalone diet line (e.g. "Vegan"), including after a Contains line
+    if(cur && cur.name && parseDiets(raw).length && raw.split(/\s+/).length<=3){
       cur.diet = [...new Set([...(cur.diet||[]), ...parseDiets(raw)])]; continue;
     }
 
     // menu title (first MENU line at the very top)
     if(/menu\s*$/i.test(raw) && !title && !dishes.length && !cur){ title = raw; continue; }
 
-    // an ALL-CAPS line always starts a new dish (handles menus with no blank lines)
+    const looksLikeDescription = s => {
+      const words = s.split(/\s+/).filter(Boolean);
+      return /[.!?]$/.test(s) || words.length >= 8 || s.length >= 60;
+    };
+
+    // Short ALL-CAPS lines start a new dish when menus have no blank lines.
+    // Sentence-like ALL-CAPS lines are descriptions, not extra titles.
     if(isCaps(raw) && cur && cur.name && !expectName){
+      if(looksLikeDescription(raw)){
+        cur.desc = cur.desc ? cur.desc+" "+raw : raw;
+        continue;
+      }
       push(); cur = newDish(); cur.name = toTitle(raw); expectName = false; continue;
     }
 
@@ -1955,7 +2127,7 @@ function parseBulk(text){
 function applyParsed(r, replace){
   const m=current();
   if(r.title && (replace || !m.title)) m.title = r.title;
-  m.dishes = replace ? r.dishes : m.dishes.concat(r.dishes);
+  m.dishes = repairDishList(replace ? r.dishes : m.dishes.concat(r.dishes));
   if(replace && r.infoText) data.infoText = r.infoText;
   if(replace && r.infoAllergens) data.infoAllergens = r.infoAllergens;
   save(); resetForm(); syncInputs(); render();
@@ -1978,14 +2150,22 @@ $("appendBtn").onclick = ()=>{
 function wordTpl(tpl){
   const t=tpl||data.template||"classic";
   const map={
-    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:12pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:8pt;text-transform:lowercase;color:#3c463f;",allg:"text-align:center;font-size:7pt;color:#b08a3e;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#2f6b4f;text-transform:none;font-weight:600;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
-    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:12pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:13pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-style:italic;font-size:8pt;text-transform:lowercase;color:#444;padding-left:11pt;",allg:"font-size:7pt;color:#111;text-transform:none;font-weight:600;padding-left:11pt;",diet:"font-size:7pt;color:#555;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
-    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:12pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:8pt;text-transform:lowercase;color:#c4b89a;",allg:"text-align:center;font-size:7pt;color:#c9a84c;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#8fbc8f;text-transform:none;font-weight:600;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
-    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:15pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:8pt;text-transform:lowercase;color:#4a6048;",allg:"text-align:center;font-size:7pt;color:#5a7d5a;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#3d5c3d;text-transform:none;font-weight:600;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
-    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:12pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-style:italic;font-size:8pt;text-transform:lowercase;color:#333;",allg:"text-align:center;font-size:7pt;color:#1a1a1a;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#8b4513;text-transform:none;font-weight:600;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
-    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:15pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:13pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:8pt;text-transform:lowercase;color:#6b5344;",allg:"text-align:center;font-size:7pt;color:#8b5a2b;text-transform:none;font-weight:600;",diet:"text-align:center;font-size:7pt;color:#5c7a3a;text-transform:none;font-weight:600;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"}
+    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#2f6b4f;text-transform:lowercase;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
+    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:14pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-size:9.5pt;color:#444;padding-left:11pt;text-transform:none;",allg:"font-size:8pt;color:#111;text-transform:lowercase;font-weight:bold;padding-left:11pt;",diet:"font-size:8pt;color:#555;text-transform:lowercase;font-weight:bold;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
+    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:15pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#c4b89a;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#c9a84c;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8fbc8f;text-transform:lowercase;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
+    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:19pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:15pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#4a6048;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5a7d5a;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d5c3d;text-transform:lowercase;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
+    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:15pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-size:9.5pt;color:#333;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#1a1a1a;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8b4513;text-transform:lowercase;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
+    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:19pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:15pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#6b5344;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#8b5a2b;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#5c7a3a;text-transform:lowercase;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"},
+    wellness:{wrap:"border:1px solid #5e8078;padding:24pt 22pt;background:#f7f5f0;",bg:"",title:"text-align:center;font-family:Arial,sans-serif;font-size:16pt;letter-spacing:6px;font-weight:300;text-transform:uppercase;color:#3d534e;",logo:"font-family:Arial,sans-serif;font-size:11pt;color:#5e8078;text-align:center;letter-spacing:3px;",dish:"text-align:center;font-family:Arial,sans-serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#2c3936;",desc:"text-align:center;font-style:normal;font-size:9.5pt;color:#5c6b66;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5e8078;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d534e;text-transform:lowercase;font-weight:bold;",info:"color:#3d534e;",rule:"border-top:1px solid #c5d4ce;",section:"text-align:center;font-family:Arial,sans-serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#5e8078;font-weight:bold;"},
+    tasting:{wrap:"border:1px solid #8c3a32;padding:22pt 20pt;background:#fbf8f2;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:18pt;letter-spacing:7px;text-transform:uppercase;color:#1c1917;border-bottom:1px solid #8c3a32;",logo:"font-family:Georgia,serif;font-size:13pt;color:#8c3a32;text-align:center;",dish:"font-family:Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1c1917;",desc:"font-style:italic;font-size:9.5pt;color:#5a5148;text-transform:none;",allg:"font-size:8pt;color:#8c3a32;text-transform:lowercase;font-weight:bold;",diet:"font-size:8pt;color:#5a5148;text-transform:lowercase;font-weight:bold;",info:"color:#8c3a32;",rule:"border-top:1px solid #8c3a32;",section:"font-family:Georgia,serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#8c3a32;border-bottom:1px solid #e6dccb;padding-bottom:3pt;"},
+    brunch:{wrap:"padding:0;background:#fff8ee;",bg:"",title:"font-family:Palatino,Georgia,serif;font-size:18pt;color:#fff8ee;background:#5c3a27;padding:10pt 12pt;text-transform:uppercase;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#f0c9a0;background:#5c3a27;padding:8pt 12pt 0;",dish:"font-family:Palatino,Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;color:#5c3a27;",desc:"font-size:9pt;color:#6b5344;text-transform:none;",allg:"font-size:8pt;color:#c46a3a;text-transform:lowercase;font-weight:bold;",diet:"font-size:8pt;color:#5c7a3a;text-transform:lowercase;font-weight:bold;",info:"color:#5c3a27;",rule:"background:#f7eadc;padding:10pt;",section:"font-family:Palatino,Georgia,serif;font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#c46a3a;"},
+    retreat:{wrap:"border:6pt solid #355c4a;padding:16pt 14pt;background:#f4efe6;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;color:#f4efe6;background:#355c4a;padding:8pt;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#e8d5a3;text-align:center;background:#355c4a;padding:6pt 8pt 0;",dish:"font-family:Georgia,serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;color:#2a3d33;",desc:"font-size:9pt;color:#5a6158;text-transform:none;",allg:"font-size:8pt;color:#8a6a32;text-transform:lowercase;font-weight:bold;",diet:"font-size:8pt;color:#355c4a;text-transform:lowercase;font-weight:bold;",info:"color:#355c4a;",rule:"border:1px solid #d7c4a3;background:#fffdf8;padding:8pt;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#355c4a;background:#e8d5a3;padding:4pt;"},
+    banquet:{wrap:"border-top:8pt solid #6e2430;border-bottom:8pt solid #c4a35a;padding:16pt 14pt;background:#fffaf3;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:4px;text-transform:uppercase;color:#6e2430;border-bottom:2px solid #c4a35a;",logo:"font-family:Georgia,serif;font-size:13pt;color:#6e2430;text-align:center;",dish:"font-family:Georgia,serif;font-size:10pt;font-weight:bold;text-transform:uppercase;color:#3a241c;",desc:"font-size:8.5pt;color:#5c4a3e;text-transform:none;",allg:"font-size:7.5pt;color:#6e2430;text-transform:lowercase;font-weight:bold;",diet:"font-size:7.5pt;color:#8a6a32;text-transform:lowercase;font-weight:bold;",info:"color:#6e2430;",rule:"border-top:2px solid #c4a35a;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#fffaf3;background:#6e2430;padding:4pt;"}
   };
   return map[t]||map.classic;
+}
+function wordRoleStyle(style){
+  return String(style||"").replace(/text-transform\s*:\s*[^;]+;?/gi,"") + "text-transform:none;";
 }
 function buildWordPage(m, snap, idx, tpl){
   const s=wordTpl(tpl);
@@ -1994,27 +2174,41 @@ function buildWordPage(m, snap, idx, tpl){
     .map(p=>`<p style="font-size:8.5pt;line-height:1.35;${s.body||'color:#3c463f;'}margin:0 0 4pt;">${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
   const listHTML=items.length?`<p style="font-size:8.5pt;${s.body||'color:#3c463f;'}"><b>You can request more information on:</b> ${items.map(esc).join(" &bull; ")}</p>`:"";
   const logo=snap||data;
-  const logoHead=logo.logoImg?`<p style="text-align:center;margin:0 0 4pt;"><img src="${logo.logoImg}" alt="logo" style="display:block;margin:0 auto;max-height:78px;max-width:220px;"/></p>`
+  const logoSrc=wordLogoSrc(logo.logoImg||DEFAULT_LOGO_SRC);
+  const logoHead=logoSrc?`<p style="text-align:center;margin:0 0 4pt;"><img src="${logoSrc}" alt="The Vedanta" style="display:block;margin:0 auto;max-height:64px;max-width:260px;"/></p>`
     :(logo.logoText?`<p style="text-align:center;${s.logo}margin:0 0 4pt;">${esc(logo.logoText)}</p>`:"");
-  const dishes=(m.dishes||[]).map(normalizeDish);
-  const dishesHTML=dishes.map(d=>`
-    <p style="${s.dish}margin:9pt 0 2pt;">${esc(d.name)}</p>
-    ${d.desc?`<p style="${s.desc}margin:0 0 3pt;">${esc(d.desc)}</p>`:""}
-    ${d.allergens?.length?`<p style="${s.allg}margin:0;"><b>${esc(containsLine(d.allergens))}</b></p>`:""}
-    ${d.diet?.length?`<p style="${s.diet}margin:0;">${esc(dietLine(d.diet))}</p>`:""}
-  `).join("");
+  const datePos=logo.datePos||data.datePos||"bottom";
+  const dateLine=`<p style="text-align:center;font-size:9pt;letter-spacing:1.5pt;text-transform:uppercase;color:#6b7770;margin:4pt 0 0;">${esc(formattedMenuDate())}</p>`;
+  const dishes=repairDishList(m.dishes||[]);
+  const rom=["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX"];
+  const wordDish=(d,prefix)=>`
+    <p style="${wordRoleStyle(s.dish)}margin:9pt 0 2pt;">${esc(displayDishName(prefix?prefix+"  "+d.name:d.name))}</p>
+    ${d.desc?`<p style="${wordRoleStyle(s.desc)}margin:0 0 2pt;">${esc(sentenceCase(d.desc))}</p>`:""}
+    ${d.allergens?.length?`<p style="${wordRoleStyle(s.allg)}margin:0;font-weight:bold;">${esc(containsLine(d.allergens))}</p>`:""}
+    ${d.diet?.length?`<p style="${wordRoleStyle(s.diet)}margin:0;font-weight:bold;">${esc(dietLine(d.diet))}</p>`:""}
+  `;
+  const sectionStyle=s.section||"text-align:center;font-family:Georgia,serif;font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#2f6b4f;";
+  const groups=groupMenuDishes(dishes);
+  const hasSections=groups.some(g=>g.title);
+  const numberCourses=(tpl||data.template)==="tasting";
+  const dishesHTML=(!dishes.length?"":(hasSections?groups.map(g=>
+    (g.title?`<p style="${sectionStyle}margin:12pt 0 4pt;">${esc(g.title)}</p>`:"")+
+    g.items.map((d,i)=>wordDish(d, numberCourses?(rom[i+1]||String(i+1)):"" )).join("")
+  ).join(""):dishes.map((d,i)=>wordDish(d, numberCourses?(rom[i+1]||String(i+1)):"")).join("")));
   return `<div style="${idx?'page-break-before:always;':''}${s.bg||''}">
     <div style="${s.wrap}">
       ${logoHead}
       <h1 style="${s.title}padding-bottom:6pt;margin:0;">${esc(m.title||"DINNER MENU")}</h1>
       ${data.menus.length>1?`<p style="text-align:center;font-size:9pt;color:#6b7770;">${esc(m.label||"")}</p>`:""}
       ${m.sub?`<p style="text-align:center;font-size:9pt;color:#6b7770;">${esc(m.sub)}</p>`:""}
+      ${datePos==="top"||datePos==="both"?dateLine:""}
       ${dishesHTML}
       <div style="${s.rule}margin-top:14pt;padding-top:8pt;"></div>
       <h2 style="text-align:center;font-family:Georgia,serif;${s.info}font-size:13pt;margin:0 0 2pt;">Allergen Information</h2>
       <p style="text-align:center;color:#6b7770;font-size:8pt;margin:0 0 6pt;">Allergen &amp; Dietary Information</p>
       ${infoBody}${listHTML}
-      ${qrHTMLWord(menuQrUrl())}
+      ${qrHTMLWord()}
+      ${datePos==="bottom"||datePos==="both"?dateLine:""}
     </div></div>`;
 }
 
@@ -2038,25 +2232,33 @@ $("wordBtn").onclick = ()=>{
 
 /* ---------------- Render ---------------- */
 function logoHTML(){
-  if(state.logoImg) return `<img class="menu-logo" src="${state.logoImg}" alt="logo" decoding="sync" />`;
+  const src=effectiveLogoSrc();
+  if(src) return `<img class="menu-logo" src="${src}" alt="The Vedanta" decoding="sync" />`;
   if(state.logoText) return `<div class="menu-logo-text">${esc(state.logoText)}</div>`;
   return "";
 }
 function menuHeaderHTML(m){
   const dayTag = data.menus.length>1 ? `<div class="menu-sub" style="color:var(--accent);margin-top:4px;">${esc(m.label||"")}</div>` : "";
+  const pos = datePlacement();
   return `<div class="menu-head">
     <div class="menu-logo-slot" id="logoSlot">${logoHTML()}</div>
     <h1 class="menu-title">${esc(m.title||"DINNER MENU")}</h1>
     ${dayTag}
     ${m.sub?`<div class="menu-sub">${esc(m.sub)}</div>`:""}
+    ${pos.top?`<div class="menu-date">${esc(formattedMenuDate())}</div>`:""}
   </div>`;
+}
+function pageFootHTML(m){
+  const pos = datePlacement();
+  if(pos.bottom) return `<div class="page-foot menu-date">${esc(formattedMenuDate())}</div>`;
+  return `<div class="page-foot">${esc(data.logoText || m.title || "")}</div>`;
 }
 const QR_CELL_PX = 4;
 const QR_QUIET_MODULES = 4;
-let _qrImgCache = null;
+const _qrImgCache = Object.create(null);
 function qrData(url){
   const u=(url||"").trim(); if(!u) return null;
-  if(_qrImgCache && _qrImgCache.url===u) return _qrImgCache;
+  if(_qrImgCache[u]) return _qrImgCache[u];
   try{
     const qr=qrcode(0,"M");
     qr.addData(u,"Byte");
@@ -2065,78 +2267,109 @@ function qrData(url){
     const margin=QR_QUIET_MODULES*cell;
     const px=qr.getModuleCount()*cell+margin*2;
     const data={url:u, src:qr.createDataURL(cell,margin), px};
-    _qrImgCache=data;
+    _qrImgCache[u]=data;
     return data;
   }catch(e){ return null; }
 }
-function qrHTML(url){
+function qrItemHTML(url, label, caption, alt){
   const d=qrData(url); if(!d) return "";
-  return `<div class="menu-qr-wrap"><img src="${d.src}" width="${d.px}" height="${d.px}" alt="QR Code"><p class="menu-qr-caption">${esc(MENU_QR_CAPTION)}</p></div>`;
+  return `<div class="menu-qr-item">
+    <div class="menu-qr-label">${esc(label)}</div>
+    <img src="${d.src}" width="${d.px}" height="${d.px}" alt="${esc(alt||label)}">
+    <p class="menu-qr-caption">${esc(caption)}</p>
+  </div>`;
 }
-function qrHTMLWord(url){
+function qrHTML(){
+  const a=qrItemHTML(menuQrUrl(), MENU_QR_LABEL, MENU_QR_CAPTION, "Recipe QR Code");
+  const b=qrItemHTML(vedantaQrUrl(), VEDANTA_QR_LABEL, VEDANTA_QR_CAPTION, "The Vedanta QR Code");
+  if(!a && !b) return "";
+  return `<div class="menu-qr-wrap"><div class="menu-qr-row">${a}${b}</div></div>`;
+}
+function qrItemWord(url, label, caption){
   const d=qrData(url); if(!d) return "";
-  return `<div style="text-align:center;margin-top:10pt;"><img src="${d.src}" width="${d.px}" height="${d.px}" style="display:block;margin:0 auto;background:#fff;" alt="QR Code"/><p style="font-family:Georgia,'Times New Roman',serif;font-size:7.5pt;color:#6b7770;margin:5pt 0 0;font-style:italic;letter-spacing:.03em;line-height:1.4;">${esc(MENU_QR_CAPTION)}</p></div>`;
+  return `<td style="width:50%;text-align:center;vertical-align:top;padding:0 8pt;">
+    <p style="font-size:7.5pt;letter-spacing:1.2pt;text-transform:uppercase;font-weight:bold;margin:0 0 4pt;">${esc(label)}</p>
+    <img src="${d.src}" width="${d.px}" height="${d.px}" style="display:block;margin:0 auto;background:#fff;" alt="${esc(label)}"/>
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:7.5pt;color:#6b7770;margin:5pt 0 0;font-style:italic;letter-spacing:.03em;line-height:1.4;">${esc(caption)}</p>
+  </td>`;
+}
+function qrHTMLWord(){
+  const a=qrItemWord(menuQrUrl(), MENU_QR_LABEL, MENU_QR_CAPTION);
+  const b=qrItemWord(vedantaQrUrl(), VEDANTA_QR_LABEL, VEDANTA_QR_CAPTION);
+  if(!a && !b) return "";
+  return `<table style="width:100%;margin-top:10pt;border-collapse:collapse;"><tr>${a}${b}</tr></table>`;
 }
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-function cleanDishText(s){ return (s||"").replace(/\*+/g,"").replace(/\s+/g," ").trim(); }
-function formatDishName(s){ return cleanDishText(s).toUpperCase(); }
-function formatDishDesc(s){ return cleanDishText(s).toLowerCase(); }
-function mergeUnique(a,b){
-  const seen=new Set(), out=[];
-  for(const x of [...(a||[]), ...(b||[])]){
-    const k=String(x||"").toLowerCase();
-    if(!k || seen.has(k)) continue;
-    seen.add(k); out.push(x);
-  }
-  return out;
+function isAllCapsText(s){
+  const letters = String(s||"").replace(/[^A-Za-z]/g,"");
+  if(letters.length<2) return false;
+  const upper = letters.replace(/[^A-Z]/g,"").length;
+  return upper / letters.length >= 0.85 && /[A-Z]/.test(letters);
 }
-function peelDishMeta(text){
-  let desc=String(text||"");
-  const allergens=[], diet=[];
-  desc=desc.replace(/(?:^|[.\s])contains\s*:\s*([^.]*)/ig, (full, list)=>{
-    const found=parseAllergens(list);
-    if(!found.length) return full;
-    found.forEach(a=>allergens.push(a));
-    return " ";
-  });
-  desc=desc.replace(/(?:^|[.\s])suitable\s+for\s*:?\s*([^.]*)/ig, (full, list)=>{
-    const found=parseDiets(list);
-    if(!found.length) return full;
-    found.forEach(d=>diet.push(d));
-    return " ";
-  });
-  const dietWord="vegetarian|vegan|gluten[\\s-]?free|dairy[\\s-]?free|halal|nut[\\s-]?free";
-  const tail=new RegExp("(?:^|[\\s,.;/|\\-]+)((?:"+dietWord+")(?:\\s*(?:,|&|and)\\s*(?:"+dietWord+"))*)\\s*$","i");
-  let m, guard=0;
-  while(guard++<8 && (m=desc.match(tail))){
-    const next=desc.slice(0, m.index);
-    if(next.length>=desc.length) break;
-    parseDiets(m[1]).forEach(d=>diet.push(d));
-    desc=next;
-  }
-  return { desc:formatDishDesc(desc), allergens:mergeUnique(allergens), diet:mergeUnique(diet) };
+function displayDishName(s){
+  return String(s||"").replace(/\s+/g," ").trim().toUpperCase();
 }
-function normalizeDish(d){
-  const meta=peelDishMeta(d&&d.desc);
-  return {
-    name: formatDishName((d&&d.name)||""),
-    desc: formatDishDesc(meta.desc),
-    allergens: mergeUnique(d&&d.allergens, meta.allergens),
-    diet: mergeUnique(d&&d.diet, meta.diet)
-  };
+function sentenceCase(s){
+  s = String(s||"").replace(/\s+/g," ").trim();
+  if(!s) return "";
+  if(!isAllCapsText(s)) return s;
+  s = s.toLowerCase();
+  return s.replace(/(^|[.!?]\s+)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+}
+function looksLikeDescription(s){
+  const t = String(s||"").replace(/\s+/g," ").trim();
+  if(!t) return false;
+  const words = t.split(/\s+/).filter(Boolean);
+  return /[.!?]$/.test(t) || words.length >= 8 || t.length >= 60;
+}
+function repairDishList(dishes){
+  const out = [];
+  for(const raw of dishes||[]){
+    const d = {
+      name: String(raw.name||"").replace(/\s+/g," ").trim(),
+      desc: String(raw.desc||"").replace(/\s+/g," ").trim(),
+      allergens: Array.isArray(raw.allergens) ? raw.allergens.slice() : [],
+      diet: Array.isArray(raw.diet) ? raw.diet.slice() : []
+    };
+    if(/^contains\s*:/i.test(d.name) && out.length){
+      const prev = out[out.length-1];
+      const extra = parseAllergens(d.name.replace(/^contains\s*:?\s*/i,""));
+      prev.allergens = [...new Set([...(prev.allergens||[]), ...extra, ...d.allergens])];
+      if(d.desc) prev.desc = prev.desc ? prev.desc+" "+d.desc : d.desc;
+      if(d.diet.length) prev.diet = [...new Set([...(prev.diet||[]), ...d.diet])];
+      continue;
+    }
+    if(looksLikeDescription(d.name) && !d.desc && out.length && !isSectionHeading({name:d.name, desc:"", allergens:[], diet:[]}) && (isAllCapsText(d.name) || /[.!?]$/.test(d.name))){
+      const prev = out[out.length-1];
+      if(!looksLikeDescription(prev.name)){
+        prev.desc = prev.desc ? prev.desc+" "+d.name : d.name;
+        if(d.allergens.length) prev.allergens = [...new Set([...(prev.allergens||[]), ...d.allergens])];
+        if(d.diet.length) prev.diet = [...new Set([...(prev.diet||[]), ...d.diet])];
+        continue;
+      }
+    }
+    out.push(d);
+  }
+  return out.map(d => Object.assign(d, { desc: sentenceCase(d.desc) }));
+}
+function applyDomCasing(root){
+  const scope = root || document;
+  scope.querySelectorAll(".dish-name").forEach(el=>{ el.textContent = displayDishName(el.textContent); });
+  scope.querySelectorAll(".dish-desc").forEach(el=>{ el.textContent = sentenceCase(el.textContent); });
+  scope.querySelectorAll(".dish-contains,.dish-diet,.contains").forEach(el=>{ el.textContent = String(el.textContent||"").toLowerCase(); });
 }
 function containsLine(a){
   if(!a||!a.length) return "";
-  const list=a.filter(x=>x&&x.toLowerCase()!=="none").map(x=>String(x).toLowerCase());
-  if(!list.length) return "contains: none";
-  if(list.length===1) return "contains: "+list[0];
-  return "contains: "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+  const items = a.map(x=>String(x||"").toLowerCase());
+  if(items.length===1 && items[0]==="none") return "contains: none";
+  if(items.length===1) return "contains: "+items[0];
+  return "contains: "+items.slice(0,-1).join(", ")+" and "+items[items.length-1];
 }
 function dietLine(d){
   if(!d||!d.length) return "";
-  const list=d.map(x=>String(x).toLowerCase());
-  if(list.length===1) return "suitable for "+list[0];
-  return "suitable for "+list.slice(0,-1).join(", ")+" and "+list[list.length-1];
+  const items = d.map(x=>String(x||"").toLowerCase());
+  if(items.length===1) return "suitable for "+items[0];
+  return "suitable for "+items.slice(0,-1).join(", ")+" and "+items[items.length-1];
 }
 
 function fitPages(){
@@ -2166,6 +2399,9 @@ function fitPages(){
 }
 
 function preparePrint(){
+  (data.menus||[]).forEach(m=>{ m.dishes = repairDishList(m.dishes); });
+  render();
+  applyDomCasing(document);
   fitPages();
   document.querySelectorAll("#pagesOut .menu-logo").forEach(img=>{
     if(img.complete) return;
@@ -2185,49 +2421,87 @@ function renderTabs(){
   wrap.querySelectorAll(".day-tab").forEach(el=> el.onclick=()=>switchDay(el.dataset.id) );
 }
 
-function pageHTML(m){
-  const dishes = m.dishes.length
-    ? m.dishes.map((raw)=>{
-        const d=normalizeDish(raw);
-        return `
-        <div class="dish">
-          <div class="dish-name">${esc(d.name)}</div>
-          ${d.desc?`<div class="dish-desc">${esc(d.desc)}</div>`:""}
+function dishCardHTML(d, showSep){
+  return `<div class="dish">
+          <div class="dish-name">${esc(displayDishName(d.name))}</div>
+          ${d.desc?`<div class="dish-desc">${esc(sentenceCase(d.desc))}</div>`:""}
           ${d.allergens&&d.allergens.length?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
           ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
+          ${showSep?`<div class="dish-sep"></div>`:""}
         </div>`;
-      }).join("")
-    : `<div class="empty-note">No dishes yet — add one on the left, or click “Load sample”.</div>`;
+}
+function isSectionHeading(d){
+  const name = String(d.name||"").replace(/[:.\-–—|/]/g," ").replace(/\s+/g," ").trim();
+  if(!name || name.split(" ").length>4) return false;
+  const hasDesc = !!(d.desc && String(d.desc).trim());
+  const hasAllergen = Array.isArray(d.allergens) && d.allergens.length && !d.allergens.every(a=>/^none$/i.test(String(a)));
+  const hasDiet = Array.isArray(d.diet) && d.diet.length;
+  if(hasDesc || hasAllergen || hasDiet) return false;
+  return /^(breakfast|brunch|lunch|dinner|supper|tea|afternoon tea|morning tea|snacks?|starters?|antipasti|mains?|main course|desserts?|pudding|sweets?|sides?|to start|to follow|to finish|first course|second course|third course|amuse(?:\s*bouche)?|palate cleanser|petit fours|canapes|canapés|welcome drink|welcome|opening|closing|banquet|feast|course\s*([0-9]+|[ivxlcdm]+))$/i.test(name);
+}
+function groupMenuDishes(dishes){
+  const groups=[];
+  let cur={title:"",items:[]};
+  for(const d of dishes||[]){
+    if(isSectionHeading(d)){
+      if(cur.title || cur.items.length) groups.push(cur);
+      cur={title:d.name, items:[]};
+    } else cur.items.push(d);
+  }
+  if(cur.title || cur.items.length) groups.push(cur);
+  return groups;
+}
+function dishesMarkup(dishes){
+  if(!dishes.length) return `<div class="empty-note">No dishes yet — add one on the left, or click “Load sample”.</div>`;
+  const groups = groupMenuDishes(dishes);
+  const hasSections = groups.some(g=>g.title);
+  if(!hasSections){
+    return dishes.map((d,i)=>dishCardHTML(d, i<dishes.length-1)).join("");
+  }
+  return groups.map(g=>`
+      <section class="menu-section">
+        ${g.title?`<h3 class="section-title">${esc(g.title)}</h3>`:""}
+        ${g.items.length?g.items.map((d,i)=>dishCardHTML(d, i<g.items.length-1)).join(""):""}
+      </section>`).join("");
+}
+
+function pageHTML(m){
+  const groups = groupMenuDishes(m.dishes||[]);
+  const hasSections = (m.dishes||[]).length && groups.some(g=>g.title);
+  const dishes = dishesMarkup(m.dishes||[]);
   const infoBody = (data.infoText||"").split(/\n{2,}/).map(p=>`<p>${esc(p).replace(/\n/g,"<br>")}</p>`).join("");
   const items = (data.infoAllergens||"").split(",").map(s=>s.trim()).filter(Boolean);
   const infoList = items.length? `<div class="info-list">${items.map(i=>`<span>${esc(i)}</span>`).join("")}</div>` : "";
   return `
-    <div class="dishes-wrap">${dishes}</div>
+    <div class="dishes-wrap${hasSections?' has-sections':''}">${dishes}</div>
     <div class="info-block">
       <h2 class="info-title">Allergen Information</h2>
       <div class="info-sub">Allergen &amp; Dietary Information</div>
       <div class="info-body">${infoBody}</div>
       ${infoList}
-      ${qrHTML(menuQrUrl())}
+      ${qrHTML()}
     </div>`;
 }
 
 function render(){
+  (data.menus||[]).forEach(m=>{ m.dishes = repairDishList(m.dishes); });
   renderTabs();
 
   // editor logo preview (shared)
-  $("logoPrev").innerHTML = data.logoImg ? `<img src="${data.logoImg}">` : (data.logoText? esc(data.logoText): "No logo");
+  const logoSrc = effectiveLogoSrc();
+  $("logoPrev").innerHTML = logoSrc ? `<img src="${logoSrc}" alt="The Vedanta">` : (data.logoText? esc(data.logoText): "No logo");
 
   // preview: one page per day
   const pages = $("pagesOut");
   pages.innerHTML = data.menus.map(m=>
-    `<section class="page${tplClass()} type-${data.typeScale||'standard'}${m.id===data.currentId?' current':''}" data-id="${m.id}">
+    `<section class="page${tplClass()}${m.id===data.currentId?' current':''}" data-id="${m.id}">
        ${menuHeaderHTML(m)}
        <div class="page-inner">${pageHTML(m)}</div>
-       <div class="page-foot">${esc(data.logoText || m.title || "")}</div>
+       ${pageFootHTML(m)}
      </section>`
   ).join("");
   pages.querySelectorAll(".page").forEach(el=> el.onclick=()=>{ if(el.dataset.id!==data.currentId) switchDay(el.dataset.id); });
+  applyDomCasing(pages);
   fitPages();
   pages.querySelectorAll("img").forEach(img=>{ img.onload=fitPages; });
 
@@ -2237,7 +2511,7 @@ function render(){
   const list = $("dishList");
   list.innerHTML = m.dishes.length? m.dishes.map((d,i)=>`
       <div class="dish-card">
-        <h4>${esc(formatDishName(d.name))}</h4>
+        <h4>${esc(d.name)}</h4>
         <div class="meta">${esc(containsLine(d.allergens)||"No allergens set")}${d.diet&&d.diet.length?" · "+esc(dietLine(d.diet)):""}</div>
         <div class="dish-actions">
           <button class="btn btn-ghost btn-sm" onclick="editDish(${i})">Edit</button>
@@ -2254,13 +2528,7 @@ function syncInputs(){
   $("logoText").value=state.logoText||"";
   $("infoText").value=state.infoText||"";
   $("infoAllergens").value=state.infoAllergens||"";
-}
-function buildTypeScale(){
-  const wrap=$("typeScale"); if(!wrap) return;
-  wrap.querySelectorAll(".type-btn").forEach(btn=>{
-    btn.classList.toggle("on", btn.dataset.scale===(data.typeScale||"standard"));
-    btn.onclick=()=>{ data.typeScale=btn.dataset.scale; save(); buildTypeScale(); render(); };
-  });
+  if($("datePos")) $("datePos").value=data.datePos||"bottom";
 }
 function buildTplGrid(){
   const g=$("tplGrid"); if(!g) return;
@@ -2285,8 +2553,9 @@ function buildSlides(){
 }
 
 function ebCoverHTML(){
-  const logo = state.logoImg
-    ? `<img class="ec-logo" src="${state.logoImg}" alt="logo">`
+  const src = effectiveLogoSrc();
+  const logo = src
+    ? `<img class="ec-logo" src="${src}" alt="The Vedanta">`
     : (state.logoText? `<div class="ec-logo-text">${esc(state.logoText)}</div>` : "");
   const title = esc(current().title || "MENU");
   const sub = data.menus.length>1 ? (data.menus.length+" Daily Menus") : esc(current().sub||"");
@@ -2306,11 +2575,11 @@ function makePageEl(slide, anim){
     el.style.width="794px"; el.style.height="1123px";
     el.innerHTML=ebCoverHTML();
   } else {
-    el.className="page ebook-page"+tplClass()+" type-"+(data.typeScale||"standard");
+    el.className="page ebook-page"+tplClass();
     el.style.cursor="default";
     el.innerHTML=`${menuHeaderHTML(slide.m)}
                   <div class="page-inner">${pageHTML(slide.m)}</div>
-                  <div class="page-foot">${esc(data.logoText || slide.m.title || "")}</div>`;
+                  ${pageFootHTML(slide.m)}`;
   }
   if(anim) el.classList.add("enter");
   return el;
@@ -2347,7 +2616,11 @@ function showSlide(anim){
   const slide=ebSlides[ebIndex];
   const el=makePageEl(slide, anim);
   ebBook.appendChild(el);
-  if(slide.type==="page"){ fitEbookInner(el); el.querySelectorAll("img").forEach(img=>{ img.onload=()=>{fitEbookInner(el);fitBook();}; }); }
+  if(slide.type==="page"){
+    applyDomCasing(el);
+    fitEbookInner(el);
+    el.querySelectorAll("img").forEach(img=>{ img.onload=()=>{fitEbookInner(el);fitBook();}; });
+  }
   fitBook();
   updateEbChrome();
 }
@@ -2378,7 +2651,7 @@ $("ebookBtn").onclick=openEbook;
 $("ebookClose").onclick=closeEbook;
 $("ebookPrev").onclick=()=>turnPage(-1);
 $("ebookNext").onclick=()=>turnPage(1);
-$("ebookPrint").onclick=()=>window.print();
+$("ebookPrint").onclick=()=>{ preparePrint(); window.print(); };
 ebStage.onclick=(e)=>{
   if(ebAnimating) return;
   const r=ebStage.getBoundingClientRect();
@@ -2481,29 +2754,65 @@ window.addEventListener("appinstalled", () => {
   installBtn.classList.add("hidden");
 });
 
-if("serviceWorker" in navigator && !isFileProtocol){
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/"}).catch(() => {});
-  });
+window.addEventListener("load", () => { bootAppBuild(); });
+
+async function clearAppCaches(){
+  if(window.caches){
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
+  if(navigator.serviceWorker){
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  }
+}
+
+async function bootAppBuild(){
+  const stamp = $("buildStamp");
+  if(stamp) stamp.textContent = APP_BUILD;
+  const prev = localStorage.getItem("menuCreatorBuild");
+  const banner = $("updateBanner");
+  const refreshBtn = $("forceRefreshBtn");
+  if(refreshBtn){
+    refreshBtn.onclick = async ()=>{
+      try{ await clearAppCaches(); }catch(e){}
+      localStorage.setItem("menuCreatorBuild", APP_BUILD);
+      location.reload();
+    };
+  }
+  let hadWorker = false;
+  try{
+    if(navigator.serviceWorker){
+      hadWorker = (await navigator.serviceWorker.getRegistrations()).length > 0;
+    }
+  }catch(e){}
+  if(prev !== APP_BUILD){
+    try{ await clearAppCaches(); }catch(e){}
+    localStorage.setItem("menuCreatorBuild", APP_BUILD);
+    if(banner) banner.classList.add("show");
+    if((prev || hadWorker) && !sessionStorage.getItem("menuCreatorReloaded_"+APP_BUILD)){
+      sessionStorage.setItem("menuCreatorReloaded_"+APP_BUILD, "1");
+      location.reload();
+      return;
+    }
+  }
+  if("serviceWorker" in navigator && !isFileProtocol){
+    navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/",updateViaCache:"none"})
+      .then(reg => {
+        if(reg.waiting) reg.waiting.postMessage({type:"SKIP_WAITING"});
+        return reg.update();
+      })
+      .catch(()=>{});
+  }
 }
 
 /* ---------------- Init ---------------- */
-try{
-  (data.menus||[]).forEach(m=>{
-    m.dishes=(m.dishes||[]).map(d=>{ try{ return normalizeDish(d); }catch(e){ return d; } });
-  });
-}catch(e){}
 buildChips();
 buildTplGrid();
-buildTypeScale();
 syncInputs();
+preloadDefaultLogo();
 render();
-detectArchiveStorage().then(async ()=>{
-  loadMenuBank();
-  const el=$("archiveStatus");
-  if(el && menuBank.length) el.textContent=menuBank.length+" menus ready — Browse all → All menus";
-  return refreshArchiveIndex();
-}).catch(()=>{
+detectArchiveStorage().then(()=>refreshArchiveIndex()).catch(()=>{
   updateArchiveStatus();
   showArchiveOffer();
 });
