@@ -6,7 +6,7 @@
 <meta name="description" content="Menu Creator — design printable restaurant menus offline. Paste menus, save to library, print or export to Word." />
 <meta name="application-name" content="Menu Creator" />
 <meta name="theme-color" content="#2f6b4f" />
-<meta name="menu-creator-build" content="v11" />
+<meta name="menu-creator-build" content="v13" />
 <link rel="preload" as="image" href="assets/vedanta-logo.png" />
 <meta http-equiv="Cache-Control" content="no-store" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -30,7 +30,8 @@
     --danger:#c0492f;
     --radius:14px;
     --shadow:0 10px 30px rgba(31,42,36,.08);
-    --serif:"Georgia","Times New Roman",serif;
+    /* Classic book serif matched to The Vedānta wordmark (assets/vedanta-logo.png). */
+    --serif:"Palatino Linotype",Palatino,"Iowan Old Style","Book Antiqua","TeX Gyre Pagella",Georgia,"Liberation Serif","Times New Roman",serif;
     --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -148,6 +149,7 @@
     position:relative;
     border:1px solid #ece7da;
     overflow:hidden;
+    font-family:var(--serif);
   }
   /* ---------- Template: Classic Gold (default) ---------- */
   .page.tpl-classic::before{
@@ -162,15 +164,15 @@
   .page.tpl-modern{background:#fafafa;padding:52px 64px;}
   .page.tpl-modern::before{display:none;}
   .page.tpl-modern .menu-head{border-bottom:1px solid #111;text-align:left;padding-bottom:10px;}
-  .page.tpl-modern .menu-title{font-family:var(--sans);font-size:28px;letter-spacing:.22em;font-weight:300;}
-  .page.tpl-modern .menu-logo-text{font-family:var(--sans);color:#111;font-weight:700;letter-spacing:.12em;}
+  .page.tpl-modern .menu-title{font-family:var(--serif);font-size:28px;letter-spacing:.22em;font-weight:400;}
+  .page.tpl-modern .menu-logo-text{font-family:var(--serif);color:#111;font-weight:700;letter-spacing:.12em;}
   .page.tpl-modern .dish{text-align:left;margin-bottom:18px;padding-left:14px;border-left:3px solid #111;}
   .page.tpl-modern .dish-desc{margin:0;max-width:none;font-style:normal;color:#444;text-transform:none;}
-  .page.tpl-modern .dish-contains{color:#111;}
-  .page.tpl-modern .dish-diet{color:#555;}
+  .page.tpl-modern .dish-contains{color:#111;text-transform:none;}
+  .page.tpl-modern .dish-diet{color:#555;text-transform:none;}
   .page.tpl-modern .dish-sep{display:none;}
   .page.tpl-modern .info-block{border-top:1px solid #111;}
-  .page.tpl-modern .info-title{font-family:var(--sans);color:#111;letter-spacing:.18em;}
+  .page.tpl-modern .info-title{font-family:var(--serif);color:#111;letter-spacing:.18em;}
   .page.tpl-modern .info-list{background:#eee;border-radius:0;}
 
   /* ---------- Template: Luxury Dark ---------- */
@@ -187,9 +189,9 @@
   .page.tpl-luxury .menu-logo-text{color:#c9a84c;}
   .page.tpl-luxury .menu-sub{color:#a89878;}
   .page.tpl-luxury .dish-name{color:#f5e6c8;}
-  .page.tpl-luxury .dish-desc{color:#c4b89a;}
-  .page.tpl-luxury .dish-contains{color:#c9a84c;}
-  .page.tpl-luxury .dish-diet{color:#8fbc8f;}
+  .page.tpl-luxury .dish-desc{color:#c4b89a;text-transform:none;}
+  .page.tpl-luxury .dish-contains{color:#c9a84c;text-transform:none;}
+  .page.tpl-luxury .dish-diet{color:#8fbc8f;text-transform:none;}
   .page.tpl-luxury .dish-sep{background:#c9a84c;opacity:.4;}
   .page.tpl-luxury .info-block{border-top:1px solid #c9a84c;}
   .page.tpl-luxury .info-title{color:#c9a84c;}
@@ -214,8 +216,9 @@
   .page.tpl-botanical .menu-title{color:#3d5c3d;font-size:26px;}
   .page.tpl-botanical .menu-title::after{content:"";display:block;width:80px;height:2px;background:#5a7d5a;margin:8px auto 0;}
   .page.tpl-botanical .menu-logo-text{color:#5a7d5a;}
-  .page.tpl-botanical .dish-contains{color:#5a7d5a;}
-  .page.tpl-botanical .dish-diet{color:#3d5c3d;}
+  .page.tpl-botanical .dish-desc{text-transform:none;}
+  .page.tpl-botanical .dish-contains{color:#5a7d5a;text-transform:none;}
+  .page.tpl-botanical .dish-diet{color:#3d5c3d;text-transform:none;}
   .page.tpl-botanical .info-block{border-top:none;background:#eef3ea;padding:14px 18px;border-radius:12px;margin-top:18px;}
   .page.tpl-botanical .info-title{color:#3d5c3d;}
   .page.tpl-botanical .info-list{background:#fff;}
@@ -234,8 +237,9 @@
   .page.tpl-artdeco .menu-title{font-size:32px;letter-spacing:.28em;color:#1a1a1a;font-weight:700;}
   .page.tpl-artdeco .menu-logo-text{color:#1a1a1a;letter-spacing:.2em;font-weight:700;}
   .page.tpl-artdeco .dish-name{letter-spacing:.14em;font-size:15px;}
-  .page.tpl-artdeco .dish-contains{color:#1a1a1a;font-weight:700;}
-  .page.tpl-artdeco .dish-diet{color:#8b4513;}
+  .page.tpl-artdeco .dish-desc{text-transform:none;}
+  .page.tpl-artdeco .dish-contains{color:#1a1a1a;font-weight:700;text-transform:none;}
+  .page.tpl-artdeco .dish-diet{color:#8b4513;text-transform:none;}
   .page.tpl-artdeco .dish-sep{width:100%;max-width:120px;height:2px;background:#1a1a1a;margin:14px auto 0;}
   .page.tpl-artdeco .info-block{border-top:4px double #1a1a1a;}
   .page.tpl-artdeco .info-title{color:#1a1a1a;letter-spacing:.2em;}
@@ -250,15 +254,15 @@
     pointer-events:none;z-index:0;
   }
   .page.tpl-rustic .menu-head{border-bottom:2px wavy #8b5a2b;padding-bottom:12px;}
-  .page.tpl-rustic .menu-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;letter-spacing:.1em;}
-  .page.tpl-rustic .menu-logo-text{color:#8b5a2b;font-family:"Palatino Linotype",Palatino,serif;}
-  .page.tpl-rustic .dish-name{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;letter-spacing:.02em;}
+  .page.tpl-rustic .menu-title{color:#5c3d1e;font-family:var(--serif);letter-spacing:.1em;}
+  .page.tpl-rustic .menu-logo-text{color:#8b5a2b;font-family:var(--serif);}
+  .page.tpl-rustic .dish-name{color:#5c3d1e;font-family:var(--serif);letter-spacing:.02em;}
   .page.tpl-rustic .dish-desc{color:#6b5344;text-transform:none;}
-  .page.tpl-rustic .dish-contains{color:#8b5a2b;}
-  .page.tpl-rustic .dish-diet{color:#5c7a3a;}
+  .page.tpl-rustic .dish-contains{color:#8b5a2b;text-transform:none;}
+  .page.tpl-rustic .dish-diet{color:#5c7a3a;text-transform:none;}
   .page.tpl-rustic .dish-sep{width:60px;height:2px;background:#d4b896;margin:12px auto 0;border-radius:2px;}
   .page.tpl-rustic .info-block{border-top:2px wavy #8b5a2b;background:#fff9f2;padding:12px 16px;border-radius:8px;}
-  .page.tpl-rustic .info-title{color:#5c3d1e;font-family:"Palatino Linotype",Palatino,serif;}
+  .page.tpl-rustic .info-title{color:#5c3d1e;font-family:var(--serif);}
   .page.tpl-rustic .info-list{background:#f5ebe0;}
 
   /* Course / meal headings (Breakfast, Lunch, Starter…) when pasted as their own line */
@@ -282,26 +286,26 @@
   }
   .page.tpl-wellness .menu-head{border-bottom:none;padding-bottom:6px;margin-bottom:32px;}
   .page.tpl-wellness .menu-title{
-    font-family:var(--sans);font-weight:300;letter-spacing:.28em;font-size:24px;color:#3d534e;
+    font-family:var(--serif);font-weight:400;letter-spacing:.28em;font-size:24px;color:#3d534e;
   }
   .page.tpl-wellness .menu-title::after{
     content:"";display:block;width:9px;height:9px;margin:14px auto 0;
     border:1px solid #5e8078;border-radius:50%;
   }
-  .page.tpl-wellness .menu-logo-text{font-family:var(--sans);color:#5e8078;letter-spacing:.18em;font-size:13px;font-weight:600;}
+  .page.tpl-wellness .menu-logo-text{font-family:var(--serif);color:#5e8078;letter-spacing:.18em;font-size:13px;font-weight:600;}
   .page.tpl-wellness .menu-sub{color:#7a8883;letter-spacing:.2em;}
   .page.tpl-wellness .dish{margin-bottom:22px;}
   .page.tpl-wellness .dish-name{
-    font-family:var(--sans);font-size:13.5px;font-weight:600;letter-spacing:.16em;color:#2c3936;
+    font-family:var(--serif);font-size:13.5px;font-weight:700;letter-spacing:.16em;color:#2c3936;
   }
-  .page.tpl-wellness .dish-desc{font-style:normal;color:#5c6b66;max-width:520px;}
-  .page.tpl-wellness .dish-contains{color:#5e8078;}
-  .page.tpl-wellness .dish-diet{color:#3d534e;}
+  .page.tpl-wellness .dish-desc{font-style:normal;color:#5c6b66;max-width:520px;text-transform:none;}
+  .page.tpl-wellness .dish-contains{color:#5e8078;text-transform:none;}
+  .page.tpl-wellness .dish-diet{color:#3d534e;text-transform:none;}
   .page.tpl-wellness .dish-sep{width:22px;background:#c5d4ce;}
   .page.tpl-wellness .info-block{border-top:1px solid #c5d4ce;padding-top:16px;}
-  .page.tpl-wellness .info-title{font-family:var(--sans);font-weight:500;letter-spacing:.18em;color:#3d534e;font-size:13px;}
+  .page.tpl-wellness .info-title{font-family:var(--serif);font-weight:600;letter-spacing:.18em;color:#3d534e;font-size:13px;}
   .page.tpl-wellness .info-list{background:#eef2ef;border-radius:0;}
-  .page.tpl-wellness .section-title{font-family:var(--sans);letter-spacing:.22em;color:#5e8078;font-weight:600;}
+  .page.tpl-wellness .section-title{font-family:var(--serif);letter-spacing:.22em;color:#5e8078;font-weight:600;}
   .page.tpl-wellness .menu-qr-caption{color:#7a8883;}
   .page.tpl-wellness .page-foot{bottom:32px;}
 
@@ -337,9 +341,9 @@
     padding-top:3px;
   }
   .page.tpl-tasting .dish-name{grid-column:2;font-size:15px;letter-spacing:.12em;color:#1c1917;}
-  .page.tpl-tasting .dish-desc{grid-column:2;margin:0;max-width:none;font-style:italic;color:#5a5148;}
-  .page.tpl-tasting .dish-contains{grid-column:2;color:#8c3a32;}
-  .page.tpl-tasting .dish-diet{grid-column:2;color:#5a5148;}
+  .page.tpl-tasting .dish-desc{grid-column:2;margin:0;max-width:none;font-style:italic;color:#5a5148;text-transform:none;}
+  .page.tpl-tasting .dish-contains{grid-column:2;color:#8c3a32;text-transform:none;}
+  .page.tpl-tasting .dish-diet{grid-column:2;color:#5a5148;text-transform:none;}
   .page.tpl-tasting .dish-sep{display:none;}
   .page.tpl-tasting .section-title{
     text-align:left;color:#8c3a32;letter-spacing:.22em;font-size:11px;
@@ -359,10 +363,10 @@
     padding:16px 20px;border-radius:14px;margin-bottom:22px;
   }
   .page.tpl-brunch .menu-title{
-    font-family:"Palatino Linotype",Palatino,serif;color:#fff8ee;
+    font-family:var(--serif);color:#fff8ee;
     letter-spacing:.08em;font-size:26px;
   }
-  .page.tpl-brunch .menu-logo-text{color:#f0c9a0;font-family:"Palatino Linotype",Palatino,serif;}
+  .page.tpl-brunch .menu-logo-text{color:#f0c9a0;font-family:var(--serif);}
   .page.tpl-brunch .menu-sub,.page.tpl-brunch .menu-head .menu-sub{color:#f0c9a0 !important;}
   .page.tpl-brunch .dishes-wrap{column-count:2;column-gap:28px;}
   .page.tpl-brunch .dishes-wrap.has-sections{
@@ -374,18 +378,18 @@
     border-bottom:1px dotted #e0c8b0;
   }
   .page.tpl-brunch .dish-name{
-    font-family:"Palatino Linotype",Palatino,serif;font-size:14px;letter-spacing:.04em;color:#5c3a27;
+    font-family:var(--serif);font-size:14px;letter-spacing:.04em;color:#5c3a27;
   }
-  .page.tpl-brunch .dish-desc{margin:0;max-width:none;font-style:normal;color:#6b5344;font-size:12px;}
-  .page.tpl-brunch .dish-contains{color:#c46a3a;}
-  .page.tpl-brunch .dish-diet{color:#5c7a3a;}
+  .page.tpl-brunch .dish-desc{margin:0;max-width:none;font-style:normal;color:#6b5344;font-size:12px;text-transform:none;}
+  .page.tpl-brunch .dish-contains{color:#c46a3a;text-transform:none;}
+  .page.tpl-brunch .dish-diet{color:#5c7a3a;text-transform:none;}
   .page.tpl-brunch .dish-sep{display:none;}
   .page.tpl-brunch .section-title{
     text-align:left;color:#c46a3a;letter-spacing:.14em;font-size:11.5px;
-    font-family:"Palatino Linotype",Palatino,serif;margin:0 0 8px;
+    font-family:var(--serif);margin:0 0 8px;
   }
   .page.tpl-brunch .info-block{border-top:none;background:#f7eadc;padding:12px 14px;border-radius:12px;}
-  .page.tpl-brunch .info-title{font-family:"Palatino Linotype",Palatino,serif;color:#5c3a27;text-align:left;}
+  .page.tpl-brunch .info-title{font-family:var(--serif);color:#5c3a27;text-align:left;}
   .page.tpl-brunch .info-sub{text-align:left;}
   .page.tpl-brunch .info-list{background:#fff;border-radius:8px;}
 
@@ -415,9 +419,9 @@
   }
   .page.tpl-retreat .dish{text-align:left;margin-bottom:11px;}
   .page.tpl-retreat .dish-name{font-size:12.5px;letter-spacing:.05em;color:#2a3d33;}
-  .page.tpl-retreat .dish-desc{font-size:11px;font-style:normal;margin:0;max-width:none;color:#5a6158;}
-  .page.tpl-retreat .dish-contains{color:#8a6a32;}
-  .page.tpl-retreat .dish-diet{color:#355c4a;}
+  .page.tpl-retreat .dish-desc{font-size:11px;font-style:normal;margin:0;max-width:none;color:#5a6158;text-transform:none;}
+  .page.tpl-retreat .dish-contains{color:#8a6a32;text-transform:none;}
+  .page.tpl-retreat .dish-diet{color:#355c4a;text-transform:none;}
   .page.tpl-retreat .dish-sep{display:none;}
   .page.tpl-retreat .info-block{
     border-top:none;background:#fffdf8;margin:14px 12px 0;padding:12px 14px;border:1px solid #d7c4a3;
@@ -453,9 +457,9 @@
   }
   .page.tpl-banquet .dish{text-align:left;margin-bottom:9px;}
   .page.tpl-banquet .dish-name{font-size:12.5px;letter-spacing:.06em;color:#3a241c;}
-  .page.tpl-banquet .dish-desc{font-size:11px;margin:0;max-width:none;font-style:normal;color:#5c4a3e;line-height:1.35;}
-  .page.tpl-banquet .dish-contains{color:#6e2430;font-size:10px;}
-  .page.tpl-banquet .dish-diet{color:#8a6a32;font-size:10px;}
+  .page.tpl-banquet .dish-desc{font-size:11px;margin:0;max-width:none;font-style:normal;color:#5c4a3e;line-height:1.35;text-transform:none;}
+  .page.tpl-banquet .dish-contains{color:#6e2430;font-size:10px;text-transform:none;}
+  .page.tpl-banquet .dish-diet{color:#8a6a32;font-size:10px;text-transform:none;}
   .page.tpl-banquet .dish-sep{display:none;}
   .page.tpl-banquet .info-block{border-top:2px solid #c4a35a;padding-top:10px;margin-top:14px;}
   .page.tpl-banquet .info-title{color:#6e2430;font-size:15px;}
@@ -512,15 +516,15 @@
     text-transform:none;margin:0 0 3px;color:var(--ink);
   }
   .dish-desc{
-    font-size:12.5px;line-height:1.45;color:#3c463f;max-width:540px;margin:0 auto 3px;font-style:italic;
+    font-family:var(--serif);font-size:12.5px;line-height:1.45;color:#3c463f;max-width:540px;margin:0 auto 3px;font-style:italic;
     text-transform:none;font-weight:400;font-variant:normal;letter-spacing:normal;
   }
   .dish-contains{
-    font-size:11px;letter-spacing:normal;color:var(--gold);
+    font-family:var(--serif);font-size:11px;letter-spacing:normal;color:var(--gold);
     text-transform:none;font-weight:700;font-variant:normal;
   }
   .dish-diet{
-    font-size:10.5px;letter-spacing:normal;color:var(--accent);
+    font-family:var(--serif);font-size:10.5px;letter-spacing:normal;color:var(--accent);
     text-transform:none;font-weight:700;margin-top:1px;font-variant:normal;
   }
   .dish-sep{width:42px;height:1px;background:var(--line);margin:11px auto 0;}
@@ -787,10 +791,11 @@
   .build-stamp{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em;margin-left:8px;text-transform:none;}
   .update-banner{
     display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-    background:#2f6b4f;color:#fff;padding:10px 16px;font-size:13.5px;line-height:1.4;
+    background:#fff3cd;color:#5c4a12;padding:10px 16px;font-size:13.5px;line-height:1.4;
+    border-bottom:1px solid #e8d9a0;
   }
   .update-banner.show{display:flex;}
-  .update-banner .btn{background:#fff;color:#2f6b4f;}
+  .update-banner .btn{background:#5c4a12;color:#fff8e8;}
 
   @media (max-width:900px){
     .app{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
@@ -807,6 +812,41 @@
     .ebook-nav.next{right:8px;}
     .lib-panel{width:100%;max-height:95vh;border-radius:12px 12px 0 0;}
     .lib-overlay{align-items:flex-end;padding:0;}
+  }
+
+  /* Brand type: printed menus always use the same book serif as The Vedānta wordmark.
+     Editor / UI chrome stays sans. */
+  .page,
+  .page .menu-title, .page .menu-sub, .page .menu-logo-text, .page .menu-date,
+  .page .dish, .page .dish-name, .page .dish-desc, .page .dish-contains, .page .dish-diet,
+  .page .section-title, .page .info-title, .page .info-sub, .page .info-body, .page .info-list,
+  .page .page-foot, .page .menu-qr-label, .page .menu-qr-caption, .page .empty-note,
+  .ebook-cover, .ebook-cover .ec-title, .ebook-cover .ec-sub, .ebook-cover .ec-logo-text, .ebook-cover .ec-tag,
+  .page.tpl-modern .menu-title, .page.tpl-modern .menu-logo-text, .page.tpl-modern .info-title, .page.tpl-modern .dish-name,
+  .page.tpl-wellness .menu-title, .page.tpl-wellness .menu-logo-text, .page.tpl-wellness .info-title,
+  .page.tpl-wellness .dish-name, .page.tpl-wellness .section-title{
+    font-family:var(--serif) !important;
+  }
+
+  /* HARD RULE: dish body text is never CSS-transformed. Chrome/Skia print-to-PDF
+     serializes text-transform into extracted characters and can leak uppercase
+     from titles onto descriptions and Contains lines. Casing is baked into the
+     text nodes instead. */
+  .dish-desc, .dish-contains, .dish-diet,
+  .page .dish-desc, .page .dish-contains, .page .dish-diet,
+  .page.tpl-classic .dish-desc, .page.tpl-classic .dish-contains, .page.tpl-classic .dish-diet,
+  .page.tpl-modern .dish-desc, .page.tpl-modern .dish-contains, .page.tpl-modern .dish-diet,
+  .page.tpl-luxury .dish-desc, .page.tpl-luxury .dish-contains, .page.tpl-luxury .dish-diet,
+  .page.tpl-botanical .dish-desc, .page.tpl-botanical .dish-contains, .page.tpl-botanical .dish-diet,
+  .page.tpl-artdeco .dish-desc, .page.tpl-artdeco .dish-contains, .page.tpl-artdeco .dish-diet,
+  .page.tpl-rustic .dish-desc, .page.tpl-rustic .dish-contains, .page.tpl-rustic .dish-diet,
+  .page.tpl-wellness .dish-desc, .page.tpl-wellness .dish-contains, .page.tpl-wellness .dish-diet,
+  .page.tpl-tasting .dish-desc, .page.tpl-tasting .dish-contains, .page.tpl-tasting .dish-diet,
+  .page.tpl-brunch .dish-desc, .page.tpl-brunch .dish-contains, .page.tpl-brunch .dish-diet,
+  .page.tpl-retreat .dish-desc, .page.tpl-retreat .dish-contains, .page.tpl-retreat .dish-diet,
+  .page.tpl-banquet .dish-desc, .page.tpl-banquet .dish-contains, .page.tpl-banquet .dish-diet{
+    text-transform:none !important;
+    font-variant:normal !important;
   }
 
   @media print{
@@ -1002,17 +1042,37 @@
     .menu-qr-wrap img{max-width:none !important;background:#fff !important;}
     .page-foot{position:absolute !important;bottom:22px;left:0;right:0;}
     /* Print/PDF: never transform dish text — the three roles are already cased in the DOM. */
-    .dish,.dish-name,.dish-desc,.dish-contains,.dish-diet{
+    .dish,.dish-name,.dish-desc,.dish-contains,.dish-diet,
+    .page .dish-desc, .page .dish-contains, .page .dish-diet,
+    .page.tpl-classic .dish-desc, .page.tpl-classic .dish-contains, .page.tpl-classic .dish-diet,
+    .page.tpl-modern .dish-desc, .page.tpl-modern .dish-contains, .page.tpl-modern .dish-diet,
+    .page.tpl-luxury .dish-desc, .page.tpl-luxury .dish-contains, .page.tpl-luxury .dish-diet,
+    .page.tpl-botanical .dish-desc, .page.tpl-botanical .dish-contains, .page.tpl-botanical .dish-diet,
+    .page.tpl-artdeco .dish-desc, .page.tpl-artdeco .dish-contains, .page.tpl-artdeco .dish-diet,
+    .page.tpl-rustic .dish-desc, .page.tpl-rustic .dish-contains, .page.tpl-rustic .dish-diet,
+    .page.tpl-wellness .dish-desc, .page.tpl-wellness .dish-contains, .page.tpl-wellness .dish-diet,
+    .page.tpl-tasting .dish-desc, .page.tpl-tasting .dish-contains, .page.tpl-tasting .dish-diet,
+    .page.tpl-brunch .dish-desc, .page.tpl-brunch .dish-contains, .page.tpl-brunch .dish-diet,
+    .page.tpl-retreat .dish-desc, .page.tpl-retreat .dish-contains, .page.tpl-retreat .dish-diet,
+    .page.tpl-banquet .dish-desc, .page.tpl-banquet .dish-contains, .page.tpl-banquet .dish-diet{
       text-transform:none !important;
+      font-variant:normal !important;
     }
     .dish-desc{font-weight:400 !important;}
     .dish-contains,.dish-diet{font-weight:700 !important;}
+    .page,
+    .page .menu-title, .page .menu-sub, .page .menu-logo-text, .page .menu-date,
+    .page .dish-name, .page .dish-desc, .page .dish-contains, .page .dish-diet,
+    .page .section-title, .page .info-title, .page .info-sub, .page .info-body,
+    .page .page-foot, .page .menu-qr-label, .page .menu-qr-caption{
+      font-family:var(--serif) !important;
+    }
   }
 </style>
 </head>
 <body>
 <div class="update-banner" id="updateBanner">
-  <span><strong>Menu Creator was updated (build v11).</strong> If the Vedanta wordmark, date, or second QR is missing, this window is an old cached copy — click to reload a fresh page.</span>
+  <span><strong>Menu Creator was updated (build v13).</strong> If the Vedanta wordmark font, descriptions, or Contains lines look wrong, this window is an old cached copy — click to reload a fresh page.</span>
   <button type="button" class="btn" id="forceRefreshBtn">Refresh &amp; clear cache</button>
 </div>
 <div class="file-warn" id="fileWarn">
@@ -1029,7 +1089,7 @@
 <div class="app">
   <!-- ===================== EDITOR ===================== -->
   <aside class="editor">
-    <div class="brand"><span class="dot"></span> Menu Creator <small class="build-stamp" id="buildStamp">v11</small></div>
+    <div class="brand"><span class="dot"></span> Menu Creator <small class="build-stamp" id="buildStamp">v13</small></div>
     <p class="sub">Add dishes, set allergens, then print or save as PDF. For Vedanta layouts, open the <a href="vedanta-menu-creator.html">Vedanta Menu Creator</a>.</p>
 
     <div class="group archive-box">
@@ -1227,7 +1287,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 /* ---------------- Data ---------------- */
 const ALLERGENS = ["Gluten","Dairy","Celery","Soy","Nuts","Peanuts","Sesame","Eggs","Fish","Crustaceans","Molluscs","Mustard","Lupin","Sulphur Dioxide","None"];
 const DIETS = ["Vegan","Vegetarian","Gluten-Free","Dairy-Free","Halal","Nut-Free"];
-const APP_BUILD = "v11";
+const APP_BUILD = "v13";
 
 const DEFAULT_LOGO_SRC = "assets/vedanta-logo.png";
 const MENU_QR_URL = "https://pureprasadkitchen.com";
@@ -1836,7 +1896,7 @@ $("saveDish").onclick = ()=>{
   const custom = $("dCustom").value.split(",").map(s=>s.trim()).filter(Boolean);
   const all = [...allergens.filter(a=>a!=="None"), ...custom];
   const finalAllergens = all.length ? all : (selectedAllergens.has("None") ? ["None"] : []);
-  const dish = { name, desc:$("dDesc").value.trim(), allergens:finalAllergens, diet:[...selectedDiets] };
+  const dish = { name, desc:sentenceCase($("dDesc").value.trim()), allergens:finalAllergens, diet:[...selectedDiets] };
   if(editIndex>=0) state.dishes[editIndex]=dish; else state.dishes.push(dish);
   resetForm(); save(); render();
 };
@@ -2097,11 +2157,6 @@ function parseBulk(text){
     // menu title (first MENU line at the very top)
     if(/menu\s*$/i.test(raw) && !title && !dishes.length && !cur){ title = raw; continue; }
 
-    const looksLikeDescription = s => {
-      const words = s.split(/\s+/).filter(Boolean);
-      return /[.!?]$/.test(s) || words.length >= 8 || s.length >= 60;
-    };
-
     // Short ALL-CAPS lines start a new dish when menus have no blank lines.
     // Sentence-like ALL-CAPS lines are descriptions, not extra titles.
     if(isCaps(raw) && cur && cur.name && !expectName){
@@ -2147,25 +2202,32 @@ $("appendBtn").onclick = ()=>{
 };
 
 /* ---------------- Word export styles per template ---------------- */
+const BRAND_SERIF_WORD = "'Palatino Linotype',Palatino,'Iowan Old Style','Book Antiqua','TeX Gyre Pagella',Georgia,'Liberation Serif','Times New Roman',serif";
+function wordBrandFont(style){
+  return String(style||"").replace(/font-family\s*:\s*[^;]+;?/gi,"") + "font-family:"+BRAND_SERIF_WORD+";";
+}
 function wordTpl(tpl){
   const t=tpl||data.template||"classic";
   const map={
-    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#2f6b4f;text-transform:lowercase;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
-    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:14pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-size:9.5pt;color:#444;padding-left:11pt;text-transform:none;",allg:"font-size:8pt;color:#111;text-transform:lowercase;font-weight:bold;padding-left:11pt;",diet:"font-size:8pt;color:#555;text-transform:lowercase;font-weight:bold;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
-    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:15pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#c4b89a;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#c9a84c;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8fbc8f;text-transform:lowercase;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
-    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:19pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:15pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#4a6048;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5a7d5a;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d5c3d;text-transform:lowercase;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
-    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:15pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-size:9.5pt;color:#333;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#1a1a1a;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8b4513;text-transform:lowercase;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
-    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:19pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:15pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#6b5344;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#8b5a2b;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#5c7a3a;text-transform:lowercase;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"},
-    wellness:{wrap:"border:1px solid #5e8078;padding:24pt 22pt;background:#f7f5f0;",bg:"",title:"text-align:center;font-family:Arial,sans-serif;font-size:16pt;letter-spacing:6px;font-weight:300;text-transform:uppercase;color:#3d534e;",logo:"font-family:Arial,sans-serif;font-size:11pt;color:#5e8078;text-align:center;letter-spacing:3px;",dish:"text-align:center;font-family:Arial,sans-serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#2c3936;",desc:"text-align:center;font-style:normal;font-size:9.5pt;color:#5c6b66;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5e8078;text-transform:lowercase;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d534e;text-transform:lowercase;font-weight:bold;",info:"color:#3d534e;",rule:"border-top:1px solid #c5d4ce;",section:"text-align:center;font-family:Arial,sans-serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#5e8078;font-weight:bold;"},
-    tasting:{wrap:"border:1px solid #8c3a32;padding:22pt 20pt;background:#fbf8f2;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:18pt;letter-spacing:7px;text-transform:uppercase;color:#1c1917;border-bottom:1px solid #8c3a32;",logo:"font-family:Georgia,serif;font-size:13pt;color:#8c3a32;text-align:center;",dish:"font-family:Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1c1917;",desc:"font-style:italic;font-size:9.5pt;color:#5a5148;text-transform:none;",allg:"font-size:8pt;color:#8c3a32;text-transform:lowercase;font-weight:bold;",diet:"font-size:8pt;color:#5a5148;text-transform:lowercase;font-weight:bold;",info:"color:#8c3a32;",rule:"border-top:1px solid #8c3a32;",section:"font-family:Georgia,serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#8c3a32;border-bottom:1px solid #e6dccb;padding-bottom:3pt;"},
-    brunch:{wrap:"padding:0;background:#fff8ee;",bg:"",title:"font-family:Palatino,Georgia,serif;font-size:18pt;color:#fff8ee;background:#5c3a27;padding:10pt 12pt;text-transform:uppercase;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#f0c9a0;background:#5c3a27;padding:8pt 12pt 0;",dish:"font-family:Palatino,Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;color:#5c3a27;",desc:"font-size:9pt;color:#6b5344;text-transform:none;",allg:"font-size:8pt;color:#c46a3a;text-transform:lowercase;font-weight:bold;",diet:"font-size:8pt;color:#5c7a3a;text-transform:lowercase;font-weight:bold;",info:"color:#5c3a27;",rule:"background:#f7eadc;padding:10pt;",section:"font-family:Palatino,Georgia,serif;font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#c46a3a;"},
-    retreat:{wrap:"border:6pt solid #355c4a;padding:16pt 14pt;background:#f4efe6;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;color:#f4efe6;background:#355c4a;padding:8pt;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#e8d5a3;text-align:center;background:#355c4a;padding:6pt 8pt 0;",dish:"font-family:Georgia,serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;color:#2a3d33;",desc:"font-size:9pt;color:#5a6158;text-transform:none;",allg:"font-size:8pt;color:#8a6a32;text-transform:lowercase;font-weight:bold;",diet:"font-size:8pt;color:#355c4a;text-transform:lowercase;font-weight:bold;",info:"color:#355c4a;",rule:"border:1px solid #d7c4a3;background:#fffdf8;padding:8pt;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#355c4a;background:#e8d5a3;padding:4pt;"},
-    banquet:{wrap:"border-top:8pt solid #6e2430;border-bottom:8pt solid #c4a35a;padding:16pt 14pt;background:#fffaf3;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:4px;text-transform:uppercase;color:#6e2430;border-bottom:2px solid #c4a35a;",logo:"font-family:Georgia,serif;font-size:13pt;color:#6e2430;text-align:center;",dish:"font-family:Georgia,serif;font-size:10pt;font-weight:bold;text-transform:uppercase;color:#3a241c;",desc:"font-size:8.5pt;color:#5c4a3e;text-transform:none;",allg:"font-size:7.5pt;color:#6e2430;text-transform:lowercase;font-weight:bold;",diet:"font-size:7.5pt;color:#8a6a32;text-transform:lowercase;font-weight:bold;",info:"color:#6e2430;",rule:"border-top:2px solid #c4a35a;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#fffaf3;background:#6e2430;padding:4pt;"}
+    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#2f6b4f;text-transform:none;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
+    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:14pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-size:9.5pt;color:#444;padding-left:11pt;text-transform:none;",allg:"font-size:8pt;color:#111;text-transform:none;font-weight:bold;padding-left:11pt;",diet:"font-size:8pt;color:#555;text-transform:none;font-weight:bold;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
+    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:15pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#c4b89a;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#c9a84c;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8fbc8f;text-transform:none;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
+    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:19pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:15pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#4a6048;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5a7d5a;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d5c3d;text-transform:none;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
+    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:15pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-size:9.5pt;color:#333;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#1a1a1a;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8b4513;text-transform:none;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
+    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:19pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:15pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#6b5344;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#8b5a2b;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#5c7a3a;text-transform:none;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"},
+    wellness:{wrap:"border:1px solid #5e8078;padding:24pt 22pt;background:#f7f5f0;",bg:"",title:"text-align:center;font-family:Arial,sans-serif;font-size:16pt;letter-spacing:6px;font-weight:300;text-transform:uppercase;color:#3d534e;",logo:"font-family:Arial,sans-serif;font-size:11pt;color:#5e8078;text-align:center;letter-spacing:3px;",dish:"text-align:center;font-family:Arial,sans-serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#2c3936;",desc:"text-align:center;font-style:normal;font-size:9.5pt;color:#5c6b66;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5e8078;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d534e;text-transform:none;font-weight:bold;",info:"color:#3d534e;",rule:"border-top:1px solid #c5d4ce;",section:"text-align:center;font-family:Arial,sans-serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#5e8078;font-weight:bold;"},
+    tasting:{wrap:"border:1px solid #8c3a32;padding:22pt 20pt;background:#fbf8f2;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:18pt;letter-spacing:7px;text-transform:uppercase;color:#1c1917;border-bottom:1px solid #8c3a32;",logo:"font-family:Georgia,serif;font-size:13pt;color:#8c3a32;text-align:center;",dish:"font-family:Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1c1917;",desc:"font-style:italic;font-size:9.5pt;color:#5a5148;text-transform:none;",allg:"font-size:8pt;color:#8c3a32;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#5a5148;text-transform:none;font-weight:bold;",info:"color:#8c3a32;",rule:"border-top:1px solid #8c3a32;",section:"font-family:Georgia,serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#8c3a32;border-bottom:1px solid #e6dccb;padding-bottom:3pt;"},
+    brunch:{wrap:"padding:0;background:#fff8ee;",bg:"",title:"font-family:Palatino,Georgia,serif;font-size:18pt;color:#fff8ee;background:#5c3a27;padding:10pt 12pt;text-transform:uppercase;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#f0c9a0;background:#5c3a27;padding:8pt 12pt 0;",dish:"font-family:Palatino,Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;color:#5c3a27;",desc:"font-size:9pt;color:#6b5344;text-transform:none;",allg:"font-size:8pt;color:#c46a3a;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#5c7a3a;text-transform:none;font-weight:bold;",info:"color:#5c3a27;",rule:"background:#f7eadc;padding:10pt;",section:"font-family:Palatino,Georgia,serif;font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#c46a3a;"},
+    retreat:{wrap:"border:6pt solid #355c4a;padding:16pt 14pt;background:#f4efe6;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;color:#f4efe6;background:#355c4a;padding:8pt;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#e8d5a3;text-align:center;background:#355c4a;padding:6pt 8pt 0;",dish:"font-family:Georgia,serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;color:#2a3d33;",desc:"font-size:9pt;color:#5a6158;text-transform:none;",allg:"font-size:8pt;color:#8a6a32;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#355c4a;text-transform:none;font-weight:bold;",info:"color:#355c4a;",rule:"border:1px solid #d7c4a3;background:#fffdf8;padding:8pt;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#355c4a;background:#e8d5a3;padding:4pt;"},
+    banquet:{wrap:"border-top:8pt solid #6e2430;border-bottom:8pt solid #c4a35a;padding:16pt 14pt;background:#fffaf3;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:4px;text-transform:uppercase;color:#6e2430;border-bottom:2px solid #c4a35a;",logo:"font-family:Georgia,serif;font-size:13pt;color:#6e2430;text-align:center;",dish:"font-family:Georgia,serif;font-size:10pt;font-weight:bold;text-transform:uppercase;color:#3a241c;",desc:"font-size:8.5pt;color:#5c4a3e;text-transform:none;",allg:"font-size:7.5pt;color:#6e2430;text-transform:none;font-weight:bold;",diet:"font-size:7.5pt;color:#8a6a32;text-transform:none;font-weight:bold;",info:"color:#6e2430;",rule:"border-top:2px solid #c4a35a;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#fffaf3;background:#6e2430;padding:4pt;"}
   };
-  return map[t]||map.classic;
+  const raw=map[t]||map.classic;
+  const s=Object.assign({}, raw);
+  ["title","logo","dish","desc","allg","diet","section"].forEach(k=>{ if(s[k]!=null) s[k]=wordBrandFont(s[k]); });
+  return s;
 }
 function wordRoleStyle(style){
-  return String(style||"").replace(/text-transform\s*:\s*[^;]+;?/gi,"") + "text-transform:none;";
+  return wordBrandFont(String(style||"").replace(/text-transform\s*:\s*[^;]+;?/gi,"") + "text-transform:none;font-variant:normal;");
 }
 function buildWordPage(m, snap, idx, tpl){
   const s=wordTpl(tpl);
@@ -2178,16 +2240,17 @@ function buildWordPage(m, snap, idx, tpl){
   const logoHead=logoSrc?`<p style="text-align:center;margin:0 0 4pt;"><img src="${logoSrc}" alt="The Vedanta" style="display:block;margin:0 auto;max-height:64px;max-width:260px;"/></p>`
     :(logo.logoText?`<p style="text-align:center;${s.logo}margin:0 0 4pt;">${esc(logo.logoText)}</p>`:"");
   const datePos=logo.datePos||data.datePos||"bottom";
-  const dateLine=`<p style="text-align:center;font-size:9pt;letter-spacing:1.5pt;text-transform:uppercase;color:#6b7770;margin:4pt 0 0;">${esc(formattedMenuDate())}</p>`;
+  const dateLine=`<p style="text-align:center;font-size:9pt;letter-spacing:1.5pt;text-transform:uppercase;color:#6b7770;margin:4pt 0 0;font-family:${BRAND_SERIF_WORD};">${esc(formattedMenuDate())}</p>`;
   const dishes=repairDishList(m.dishes||[]);
   const rom=["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX"];
+  const noTt="text-transform:none;font-variant:normal;";
   const wordDish=(d,prefix)=>`
-    <p style="${wordRoleStyle(s.dish)}margin:9pt 0 2pt;">${esc(displayDishName(prefix?prefix+"  "+d.name:d.name))}</p>
-    ${d.desc?`<p style="${wordRoleStyle(s.desc)}margin:0 0 2pt;">${esc(sentenceCase(d.desc))}</p>`:""}
-    ${d.allergens?.length?`<p style="${wordRoleStyle(s.allg)}margin:0;font-weight:bold;">${esc(containsLine(d.allergens))}</p>`:""}
-    ${d.diet?.length?`<p style="${wordRoleStyle(s.diet)}margin:0;font-weight:bold;">${esc(dietLine(d.diet))}</p>`:""}
+    <p class="w-dish" style="${wordRoleStyle(s.dish)}margin:9pt 0 2pt;">${esc(displayDishName(prefix?prefix+"  "+d.name:d.name))}</p>
+    ${d.desc?`<p class="w-desc" style="${wordRoleStyle(s.desc)}${noTt}margin:0 0 2pt;">${esc(sentenceCase(d.desc))}</p>`:""}
+    ${d.allergens?.length?`<p class="w-allg" style="${wordRoleStyle(s.allg)}${noTt}margin:0;font-weight:bold;">${esc(containsLine(d.allergens))}</p>`:""}
+    ${d.diet?.length?`<p class="w-diet" style="${wordRoleStyle(s.diet)}${noTt}margin:0;font-weight:bold;">${esc(dietLine(d.diet))}</p>`:""}
   `;
-  const sectionStyle=s.section||"text-align:center;font-family:Georgia,serif;font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#2f6b4f;";
+  const sectionStyle=wordBrandFont(s.section||"text-align:center;font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#2f6b4f;");
   const groups=groupMenuDishes(dishes);
   const hasSections=groups.some(g=>g.title);
   const numberCourses=(tpl||data.template)==="tasting";
@@ -2198,13 +2261,13 @@ function buildWordPage(m, snap, idx, tpl){
   return `<div style="${idx?'page-break-before:always;':''}${s.bg||''}">
     <div style="${s.wrap}">
       ${logoHead}
-      <h1 style="${s.title}padding-bottom:6pt;margin:0;">${esc(m.title||"DINNER MENU")}</h1>
+      <h1 style="${wordBrandFont(s.title)}padding-bottom:6pt;margin:0;">${esc(m.title||"DINNER MENU")}</h1>
       ${data.menus.length>1?`<p style="text-align:center;font-size:9pt;color:#6b7770;">${esc(m.label||"")}</p>`:""}
       ${m.sub?`<p style="text-align:center;font-size:9pt;color:#6b7770;">${esc(m.sub)}</p>`:""}
       ${datePos==="top"||datePos==="both"?dateLine:""}
       ${dishesHTML}
       <div style="${s.rule}margin-top:14pt;padding-top:8pt;"></div>
-      <h2 style="text-align:center;font-family:Georgia,serif;${s.info}font-size:13pt;margin:0 0 2pt;">Allergen Information</h2>
+      <h2 style="text-align:center;font-family:${BRAND_SERIF_WORD};${s.info}font-size:13pt;margin:0 0 2pt;">Allergen Information</h2>
       <p style="text-align:center;color:#6b7770;font-size:8pt;margin:0 0 6pt;">Allergen &amp; Dietary Information</p>
       ${infoBody}${listHTML}
       ${qrHTMLWord()}
@@ -2219,7 +2282,11 @@ $("wordBtn").onclick = ()=>{
   const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
   <head><meta charset="utf-8"><title>Menu</title>
   <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
-  <style>@page{size:A4;margin:1.4cm;} body{font-family:'Segoe UI',Arial,sans-serif;}</style></head>
+  <style>
+    @page{size:A4;margin:1.4cm;}
+    body{font-family:${BRAND_SERIF_WORD};}
+    .w-dish,.w-desc,.w-allg,.w-diet{text-transform:none !important;font-variant:normal !important;font-family:${BRAND_SERIF_WORD} !important;}
+  </style></head>
   <body>${pages}</body></html>`;
 
   const blob = new Blob(["\ufeff"+html], {type:"application/msword"});
@@ -2290,7 +2357,7 @@ function qrItemWord(url, label, caption){
   return `<td style="width:50%;text-align:center;vertical-align:top;padding:0 8pt;">
     <p style="font-size:7.5pt;letter-spacing:1.2pt;text-transform:uppercase;font-weight:bold;margin:0 0 4pt;">${esc(label)}</p>
     <img src="${d.src}" width="${d.px}" height="${d.px}" style="display:block;margin:0 auto;background:#fff;" alt="${esc(label)}"/>
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:7.5pt;color:#6b7770;margin:5pt 0 0;font-style:italic;letter-spacing:.03em;line-height:1.4;">${esc(caption)}</p>
+    <p style="font-family:${BRAND_SERIF_WORD};font-size:7.5pt;color:#6b7770;margin:5pt 0 0;font-style:italic;letter-spacing:.03em;line-height:1.4;">${esc(caption)}</p>
   </td>`;
 }
 function qrHTMLWord(){
@@ -2300,27 +2367,46 @@ function qrHTMLWord(){
   return `<table style="width:100%;margin-top:10pt;border-collapse:collapse;"><tr>${a}${b}</tr></table>`;
 }
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+const NO_TT_STYLE = "text-transform:none;font-variant:normal";
+function letterStats(s){
+  let letters=0, upper=0, lower=0;
+  for(const ch of String(s||"")){
+    if(!/\p{L}/u.test(ch)) continue;
+    letters++;
+    if(ch!==ch.toLowerCase() && ch===ch.toUpperCase()) upper++;
+    else if(ch!==ch.toUpperCase() && ch===ch.toLowerCase()) lower++;
+  }
+  return {letters, upper, lower};
+}
 function isAllCapsText(s){
-  const letters = String(s||"").replace(/[^A-Za-z]/g,"");
-  if(letters.length<2) return false;
-  const upper = letters.replace(/[^A-Z]/g,"").length;
-  return upper / letters.length >= 0.85 && /[A-Z]/.test(letters);
+  const t = String(s||"").replace(/\s+/g," ").trim();
+  if(!t) return false;
+  const {letters, upper, lower} = letterStats(t);
+  if(letters<2 || upper===0) return false;
+  if(lower===0) return true;
+  if(t === t.toUpperCase() && t !== t.toLowerCase()) return true;
+  return upper/letters >= 0.6;
 }
 function displayDishName(s){
   return String(s||"").replace(/\s+/g," ").trim().toUpperCase();
 }
+function toSentenceCase(s){
+  s = String(s||"").toLowerCase();
+  return s.replace(/(^|[.!?]\s+)(\p{L})/gu, (m, p, c) => p + c.toUpperCase());
+}
 function sentenceCase(s){
   s = String(s||"").replace(/\s+/g," ").trim();
   if(!s) return "";
-  if(!isAllCapsText(s)) return s;
-  s = s.toLowerCase();
-  return s.replace(/(^|[.!?]\s+)([a-z])/g, (m, p, c) => p + c.toUpperCase());
+  if(isAllCapsText(s)) return toSentenceCase(s);
+  const {lower, upper} = letterStats(s);
+  if(upper>0 && lower===0) return toSentenceCase(s);
+  return s;
 }
 function looksLikeDescription(s){
   const t = String(s||"").replace(/\s+/g," ").trim();
   if(!t) return false;
   const words = t.split(/\s+/).filter(Boolean);
-  return /[.!?]$/.test(t) || words.length >= 8 || t.length >= 60;
+  return /[.!?]$/.test(t) || words.length >= 6 || t.length >= 40;
 }
 function repairDishList(dishes){
   const out = [];
@@ -2339,9 +2425,12 @@ function repairDishList(dishes){
       if(d.diet.length) prev.diet = [...new Set([...(prev.diet||[]), ...d.diet])];
       continue;
     }
-    if(looksLikeDescription(d.name) && !d.desc && out.length && !isSectionHeading({name:d.name, desc:"", allergens:[], diet:[]}) && (isAllCapsText(d.name) || /[.!?]$/.test(d.name))){
+    const orphanCapsDesc = !d.desc && out.length && !isSectionHeading({name:d.name, desc:"", allergens:[], diet:[]}) &&
+      (isAllCapsText(d.name) || /[.!?]$/.test(d.name)) &&
+      (looksLikeDescription(d.name) || d.name.split(/\s+/).length>=5 || d.name.length>=35);
+    if(orphanCapsDesc){
       const prev = out[out.length-1];
-      if(!looksLikeDescription(prev.name)){
+      if(prev && !looksLikeDescription(prev.name)){
         prev.desc = prev.desc ? prev.desc+" "+d.name : d.name;
         if(d.allergens.length) prev.allergens = [...new Set([...(prev.allergens||[]), ...d.allergens])];
         if(d.diet.length) prev.diet = [...new Set([...(prev.diet||[]), ...d.diet])];
@@ -2350,13 +2439,26 @@ function repairDishList(dishes){
     }
     out.push(d);
   }
-  return out.map(d => Object.assign(d, { desc: sentenceCase(d.desc) }));
+  return out.map(d => Object.assign(d, {
+    desc: sentenceCase(d.desc),
+    allergens: (d.allergens||[]).map(a=>String(a||"").trim()).filter(Boolean),
+    diet: (d.diet||[]).map(x=>String(x||"").trim()).filter(Boolean)
+  }));
+}
+function lockBodyCasing(el, kind){
+  if(!el) return;
+  el.style.setProperty("text-transform","none","important");
+  el.style.setProperty("font-variant","normal","important");
+  const raw = String(el.textContent||"");
+  if(kind==="name") el.textContent = displayDishName(raw);
+  else if(kind==="desc") el.textContent = sentenceCase(raw);
+  else el.textContent = raw.toLowerCase();
 }
 function applyDomCasing(root){
   const scope = root || document;
-  scope.querySelectorAll(".dish-name").forEach(el=>{ el.textContent = displayDishName(el.textContent); });
-  scope.querySelectorAll(".dish-desc").forEach(el=>{ el.textContent = sentenceCase(el.textContent); });
-  scope.querySelectorAll(".dish-contains,.dish-diet,.contains").forEach(el=>{ el.textContent = String(el.textContent||"").toLowerCase(); });
+  scope.querySelectorAll(".dish-name").forEach(el=> lockBodyCasing(el, "name"));
+  scope.querySelectorAll(".dish-desc").forEach(el=> lockBodyCasing(el, "desc"));
+  scope.querySelectorAll(".dish-contains,.dish-diet,.contains,.badge").forEach(el=> lockBodyCasing(el, "lower"));
 }
 function containsLine(a){
   if(!a||!a.length) return "";
@@ -2402,6 +2504,10 @@ function preparePrint(){
   (data.menus||[]).forEach(m=>{ m.dishes = repairDishList(m.dishes); });
   render();
   applyDomCasing(document);
+  document.querySelectorAll(".dish-desc,.dish-contains,.dish-diet").forEach(el=>{
+    el.style.setProperty("text-transform","none","important");
+    el.style.setProperty("font-variant","normal","important");
+  });
   fitPages();
   document.querySelectorAll("#pagesOut .menu-logo").forEach(img=>{
     if(img.complete) return;
@@ -2422,11 +2528,11 @@ function renderTabs(){
 }
 
 function dishCardHTML(d, showSep){
-  return `<div class="dish">
-          <div class="dish-name">${esc(displayDishName(d.name))}</div>
-          ${d.desc?`<div class="dish-desc">${esc(sentenceCase(d.desc))}</div>`:""}
-          ${d.allergens&&d.allergens.length?`<div class="dish-contains">${esc(containsLine(d.allergens))}</div>`:""}
-          ${d.diet&&d.diet.length?`<div class="dish-diet">${esc(dietLine(d.diet))}</div>`:""}
+  return `<div class="dish" style="${NO_TT_STYLE}">
+          <div class="dish-name" style="${NO_TT_STYLE}">${esc(displayDishName(d.name))}</div>
+          ${d.desc?`<div class="dish-desc" style="${NO_TT_STYLE}">${esc(sentenceCase(d.desc))}</div>`:""}
+          ${d.allergens&&d.allergens.length?`<div class="dish-contains" style="${NO_TT_STYLE}">${esc(containsLine(d.allergens))}</div>`:""}
+          ${d.diet&&d.diet.length?`<div class="dish-diet" style="${NO_TT_STYLE}">${esc(dietLine(d.diet))}</div>`:""}
           ${showSep?`<div class="dish-sep"></div>`:""}
         </div>`;
 }
@@ -2773,10 +2879,12 @@ async function bootAppBuild(){
   const prev = localStorage.getItem("menuCreatorBuild");
   const banner = $("updateBanner");
   const refreshBtn = $("forceRefreshBtn");
+  const bannerFlag = "menuCreatorShowBanner_"+APP_BUILD;
   if(refreshBtn){
     refreshBtn.onclick = async ()=>{
       try{ await clearAppCaches(); }catch(e){}
       localStorage.setItem("menuCreatorBuild", APP_BUILD);
+      sessionStorage.removeItem(bannerFlag);
       location.reload();
     };
   }
@@ -2789,6 +2897,7 @@ async function bootAppBuild(){
   if(prev !== APP_BUILD){
     try{ await clearAppCaches(); }catch(e){}
     localStorage.setItem("menuCreatorBuild", APP_BUILD);
+    sessionStorage.setItem(bannerFlag, "1");
     if(banner) banner.classList.add("show");
     if((prev || hadWorker) && !sessionStorage.getItem("menuCreatorReloaded_"+APP_BUILD)){
       sessionStorage.setItem("menuCreatorReloaded_"+APP_BUILD, "1");
@@ -2796,6 +2905,7 @@ async function bootAppBuild(){
       return;
     }
   }
+  if(sessionStorage.getItem(bannerFlag) && banner) banner.classList.add("show");
   if("serviceWorker" in navigator && !isFileProtocol){
     navigator.serviceWorker.register("/menu-creator/service-worker.js",{scope:"/menu-creator/",updateViaCache:"none"})
       .then(reg => {
