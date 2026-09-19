@@ -6,7 +6,7 @@
 <meta name="description" content="Menu Creator — design printable restaurant menus offline. Paste menus, save to library, print or export to Word." />
 <meta name="application-name" content="Menu Creator" />
 <meta name="theme-color" content="#2f6b4f" />
-<meta name="menu-creator-build" content="v14" />
+<meta name="menu-creator-build" content="v16" />
 <link rel="preload" as="image" href="assets/vedanta-logo.png" />
 <meta http-equiv="Cache-Control" content="no-store" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -546,12 +546,12 @@
   .info-list span{font-size:10.5px;display:flex;align-items:center;gap:6px;}
   .info-list span::before{content:"•";color:var(--gold);font-size:14px;}
   .page-foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:var(--muted);font-size:10px;letter-spacing:.1em;}
-  .menu-qr-wrap{text-align:center;margin-top:10px;padding-top:8px;}
-  .menu-qr-row{display:flex;justify-content:center;align-items:flex-start;gap:32px;flex-wrap:wrap;}
-  .menu-qr-item{text-align:center;max-width:190px;}
-  .menu-qr-label{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin:0 0 6px;color:var(--ink);}
+  .menu-qr-wrap{text-align:center;margin-top:4px;padding-top:4px;}
+  .menu-qr-row{display:flex;justify-content:center;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+  .menu-qr-item{text-align:center;max-width:148px;}
+  .menu-qr-label{font-size:7px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin:0 0 2px;color:var(--ink);line-height:1.2;}
   .menu-qr-wrap img{display:block;margin:0 auto;background:#fff;}
-  .menu-qr-caption{font-family:var(--serif);font-size:9px;text-align:center;color:var(--muted);margin:6px 0 0;letter-spacing:.04em;font-style:italic;line-height:1.45;}
+  .menu-qr-caption{font-family:var(--serif);font-size:7.5px;text-align:center;color:var(--muted);margin:2px 0 0;letter-spacing:.03em;font-style:italic;line-height:1.25;}
   .page.tpl-luxury .menu-qr-caption{color:#c4b89a;}
   .page.tpl-luxury .menu-qr-label{color:#f5e6c8;}
   .page.tpl-brunch .menu-qr-label{color:#5c3a27;}
@@ -814,17 +814,23 @@
     .lib-overlay{align-items:flex-end;padding:0;}
   }
 
-  /* Brand type: printed menus always use the same book serif as The Vedānta wordmark.
-     Editor / UI chrome stays sans. */
+  /* HARD LOCK: printed menus always use The Vedānta wordmark book serif
+     (Palatino Linotype / Palatino / Iowan / Book Antiqua / Pagella / Georgia).
+     Templates must not switch titles, dishes, descriptions, or contains/diet
+     to Arial or any other UI face. Editor / UI chrome stays sans. */
   .page,
+  .page h1, .page h2, .page h3,
   .page .menu-title, .page .menu-sub, .page .menu-logo-text, .page .menu-date,
   .page .dish, .page .dish-name, .page .dish-desc, .page .dish-contains, .page .dish-diet,
   .page .section-title, .page .info-title, .page .info-sub, .page .info-body, .page .info-list,
-  .page .page-foot, .page .menu-qr-label, .page .menu-qr-caption, .page .empty-note,
+  .page .info-list span, .page .page-foot, .page .menu-qr-label, .page .menu-qr-caption, .page .empty-note,
   .ebook-cover, .ebook-cover .ec-title, .ebook-cover .ec-sub, .ebook-cover .ec-logo-text, .ebook-cover .ec-tag,
-  .page.tpl-modern .menu-title, .page.tpl-modern .menu-logo-text, .page.tpl-modern .info-title, .page.tpl-modern .dish-name,
-  .page.tpl-wellness .menu-title, .page.tpl-wellness .menu-logo-text, .page.tpl-wellness .info-title,
-  .page.tpl-wellness .dish-name, .page.tpl-wellness .section-title{
+  .page[class*="tpl-"] .menu-title, .page[class*="tpl-"] .menu-sub, .page[class*="tpl-"] .menu-logo-text,
+  .page[class*="tpl-"] .menu-date, .page[class*="tpl-"] .dish, .page[class*="tpl-"] .dish-name,
+  .page[class*="tpl-"] .dish-desc, .page[class*="tpl-"] .dish-contains, .page[class*="tpl-"] .dish-diet,
+  .page[class*="tpl-"] .section-title, .page[class*="tpl-"] .info-title, .page[class*="tpl-"] .info-sub,
+  .page[class*="tpl-"] .info-body, .page[class*="tpl-"] .page-foot, .page[class*="tpl-"] .menu-qr-label,
+  .page[class*="tpl-"] .menu-qr-caption{
     font-family:var(--serif) !important;
   }
 
@@ -1020,8 +1026,11 @@
     }
     .page.tpl-modern .menu-logo{margin-left:0 !important;}
     .menu-date{display:block !important;visibility:visible !important;}
-    .menu-qr-row{display:flex !important;justify-content:center !important;gap:28px !important;}
-    .menu-qr-item{display:block !important;}
+    .menu-qr-wrap{margin-top:4px !important;padding-top:4px !important;}
+    .menu-qr-row{display:flex !important;justify-content:center !important;gap:16px !important;}
+    .menu-qr-item{display:block !important;max-width:148px !important;}
+    .menu-qr-label{font-size:7px !important;margin:0 0 2px !important;line-height:1.2 !important;}
+    .menu-qr-caption{font-size:7.5px !important;margin:2px 0 0 !important;line-height:1.25 !important;}
     .page.tpl-luxury .menu-logo,
     .page.tpl-brunch .menu-logo,
     .page.tpl-retreat .menu-logo{
@@ -1061,10 +1070,15 @@
     .dish-desc{font-weight:400 !important;}
     .dish-contains,.dish-diet{font-weight:700 !important;}
     .page,
+    .page h1, .page h2, .page h3,
     .page .menu-title, .page .menu-sub, .page .menu-logo-text, .page .menu-date,
-    .page .dish-name, .page .dish-desc, .page .dish-contains, .page .dish-diet,
+    .page .dish, .page .dish-name, .page .dish-desc, .page .dish-contains, .page .dish-diet,
     .page .section-title, .page .info-title, .page .info-sub, .page .info-body,
-    .page .page-foot, .page .menu-qr-label, .page .menu-qr-caption{
+    .page .page-foot, .page .menu-qr-label, .page .menu-qr-caption,
+    .page[class*="tpl-"] .menu-title, .page[class*="tpl-"] .dish-name,
+    .page[class*="tpl-"] .dish-desc, .page[class*="tpl-"] .dish-contains,
+    .page[class*="tpl-"] .dish-diet, .page[class*="tpl-"] .section-title,
+    .page[class*="tpl-"] .info-title{
       font-family:var(--serif) !important;
     }
   }
@@ -1072,7 +1086,7 @@
 </head>
 <body>
 <div class="update-banner" id="updateBanner">
-  <span id="updateBannerText"><strong>Menu Creator was updated (build v14).</strong> If dish descriptions are still in ALL CAPS, the Vedanta wordmark font looks wrong, or this banner does not say v14, this window is an old cached copy — click Refresh &amp; clear cache.</span>
+  <span id="updateBannerText"><strong>Menu Creator was updated (build v16).</strong> If the footer QR codes still look large, menu type looks like Arial instead of the Vedānta book serif, or this banner does not say v16, this window is an old cached copy — click Refresh &amp; clear cache.</span>
   <button type="button" class="btn" id="forceRefreshBtn">Refresh &amp; clear cache</button>
 </div>
 <div class="file-warn" id="fileWarn">
@@ -1089,7 +1103,7 @@
 <div class="app">
   <!-- ===================== EDITOR ===================== -->
   <aside class="editor">
-    <div class="brand"><span class="dot"></span> Menu Creator <small class="build-stamp" id="buildStamp">v14</small></div>
+    <div class="brand"><span class="dot"></span> Menu Creator <small class="build-stamp" id="buildStamp">v16</small></div>
     <p class="sub">Add dishes, set allergens, then print or save as PDF. For Vedanta layouts, open the <a href="vedanta-menu-creator.html">Vedanta Menu Creator</a>.</p>
 
     <div class="group archive-box">
@@ -1287,7 +1301,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 /* ---------------- Data ---------------- */
 const ALLERGENS = ["Gluten","Dairy","Celery","Soy","Nuts","Peanuts","Sesame","Eggs","Fish","Crustaceans","Molluscs","Mustard","Lupin","Sulphur Dioxide","None"];
 const DIETS = ["Vegan","Vegetarian","Gluten-Free","Dairy-Free","Halal","Nut-Free"];
-const APP_BUILD = "v14";
+const APP_BUILD = "v16";
 
 const DEFAULT_LOGO_SRC = "assets/vedanta-logo.png";
 const MENU_QR_URL = "https://pureprasadkitchen.com";
@@ -2208,22 +2222,24 @@ function wordBrandFont(style){
 }
 function wordTpl(tpl){
   const t=tpl||data.template||"classic";
+  /* Layout-only. Do not put Arial/Georgia/etc here — wordBrandFont() always
+     applies BRAND_SERIF_WORD (same stack as The Vedānta wordmark). */
   const map={
-    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-family:Georgia,serif;font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#2f6b4f;text-transform:none;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
-    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-family:Arial,sans-serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-family:Arial,sans-serif;font-size:14pt;color:#111;font-weight:bold;",dish:"font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-size:9.5pt;color:#444;padding-left:11pt;text-transform:none;",allg:"font-size:8pt;color:#111;text-transform:none;font-weight:bold;padding-left:11pt;",diet:"font-size:8pt;color:#555;text-transform:none;font-weight:bold;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
-    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-family:Georgia,serif;font-size:20pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-family:Georgia,serif;font-size:15pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#c4b89a;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#c9a84c;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8fbc8f;text-transform:none;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
-    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:19pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:15pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#4a6048;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5a7d5a;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d5c3d;text-transform:none;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
-    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-family:Georgia,serif;font-size:15pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-family:Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-size:9.5pt;color:#333;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#1a1a1a;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8b4513;text-transform:none;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
-    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-family:Palatino,Georgia,serif;font-size:19pt;color:#5c3d1e;",logo:"font-family:Palatino,Georgia,serif;font-size:15pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-family:Palatino,Georgia,serif;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#6b5344;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#8b5a2b;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#5c7a3a;text-transform:none;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"},
-    wellness:{wrap:"border:1px solid #5e8078;padding:24pt 22pt;background:#f7f5f0;",bg:"",title:"text-align:center;font-family:Arial,sans-serif;font-size:16pt;letter-spacing:6px;font-weight:300;text-transform:uppercase;color:#3d534e;",logo:"font-family:Arial,sans-serif;font-size:11pt;color:#5e8078;text-align:center;letter-spacing:3px;",dish:"text-align:center;font-family:Arial,sans-serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#2c3936;",desc:"text-align:center;font-style:normal;font-size:9.5pt;color:#5c6b66;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5e8078;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d534e;text-transform:none;font-weight:bold;",info:"color:#3d534e;",rule:"border-top:1px solid #c5d4ce;",section:"text-align:center;font-family:Arial,sans-serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#5e8078;font-weight:bold;"},
-    tasting:{wrap:"border:1px solid #8c3a32;padding:22pt 20pt;background:#fbf8f2;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:18pt;letter-spacing:7px;text-transform:uppercase;color:#1c1917;border-bottom:1px solid #8c3a32;",logo:"font-family:Georgia,serif;font-size:13pt;color:#8c3a32;text-align:center;",dish:"font-family:Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1c1917;",desc:"font-style:italic;font-size:9.5pt;color:#5a5148;text-transform:none;",allg:"font-size:8pt;color:#8c3a32;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#5a5148;text-transform:none;font-weight:bold;",info:"color:#8c3a32;",rule:"border-top:1px solid #8c3a32;",section:"font-family:Georgia,serif;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#8c3a32;border-bottom:1px solid #e6dccb;padding-bottom:3pt;"},
-    brunch:{wrap:"padding:0;background:#fff8ee;",bg:"",title:"font-family:Palatino,Georgia,serif;font-size:18pt;color:#fff8ee;background:#5c3a27;padding:10pt 12pt;text-transform:uppercase;",logo:"font-family:Palatino,Georgia,serif;font-size:12pt;color:#f0c9a0;background:#5c3a27;padding:8pt 12pt 0;",dish:"font-family:Palatino,Georgia,serif;font-size:11pt;font-weight:bold;text-transform:uppercase;color:#5c3a27;",desc:"font-size:9pt;color:#6b5344;text-transform:none;",allg:"font-size:8pt;color:#c46a3a;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#5c7a3a;text-transform:none;font-weight:bold;",info:"color:#5c3a27;",rule:"background:#f7eadc;padding:10pt;",section:"font-family:Palatino,Georgia,serif;font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#c46a3a;"},
-    retreat:{wrap:"border:6pt solid #355c4a;padding:16pt 14pt;background:#f4efe6;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:16pt;color:#f4efe6;background:#355c4a;padding:8pt;text-transform:uppercase;",logo:"font-family:Georgia,serif;font-size:12pt;color:#e8d5a3;text-align:center;background:#355c4a;padding:6pt 8pt 0;",dish:"font-family:Georgia,serif;font-size:10.5pt;font-weight:bold;text-transform:uppercase;color:#2a3d33;",desc:"font-size:9pt;color:#5a6158;text-transform:none;",allg:"font-size:8pt;color:#8a6a32;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#355c4a;text-transform:none;font-weight:bold;",info:"color:#355c4a;",rule:"border:1px solid #d7c4a3;background:#fffdf8;padding:8pt;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#355c4a;background:#e8d5a3;padding:4pt;"},
-    banquet:{wrap:"border-top:8pt solid #6e2430;border-bottom:8pt solid #c4a35a;padding:16pt 14pt;background:#fffaf3;",bg:"",title:"text-align:center;font-family:Georgia,serif;font-size:17pt;letter-spacing:4px;text-transform:uppercase;color:#6e2430;border-bottom:2px solid #c4a35a;",logo:"font-family:Georgia,serif;font-size:13pt;color:#6e2430;text-align:center;",dish:"font-family:Georgia,serif;font-size:10pt;font-weight:bold;text-transform:uppercase;color:#3a241c;",desc:"font-size:8.5pt;color:#5c4a3e;text-transform:none;",allg:"font-size:7.5pt;color:#6e2430;text-transform:none;font-weight:bold;",diet:"font-size:7.5pt;color:#8a6a32;text-transform:none;font-weight:bold;",info:"color:#6e2430;",rule:"border-top:2px solid #c4a35a;",section:"text-align:center;font-family:Georgia,serif;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#fffaf3;background:#6e2430;padding:4pt;"}
+    classic:{wrap:"border:3px double #b08a3e;padding:20pt 18pt;",bg:"",title:"text-align:center;font-size:20pt;letter-spacing:3px;text-transform:uppercase;border-bottom:2px solid #b08a3e;color:#1f2a24;",logo:"font-size:15pt;color:#2f6b4f;",dish:"text-align:center;font-size:12pt;font-weight:bold;text-transform:uppercase;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#3c463f;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#b08a3e;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#2f6b4f;text-transform:none;font-weight:bold;",info:"color:#2f6b4f;",rule:"border-top:2px solid #b08a3e;"},
+    modern:{wrap:"border-left:4px solid #111;padding:24pt 22pt;background:#fafafa;",bg:"",title:"font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:1px solid #111;color:#111;",logo:"font-size:14pt;color:#111;font-weight:bold;",dish:"font-size:11pt;font-weight:bold;text-transform:uppercase;border-left:3px solid #111;padding-left:8pt;",desc:"font-size:9.5pt;color:#444;padding-left:11pt;text-transform:none;",allg:"font-size:8pt;color:#111;text-transform:none;font-weight:bold;padding-left:11pt;",diet:"font-size:8pt;color:#555;text-transform:none;font-weight:bold;padding-left:11pt;",info:"color:#111;",rule:"border-top:1px solid #111;"},
+    luxury:{wrap:"border:2px solid #c9a84c;padding:22pt 20pt;background:#1a1f2e;",bg:"background:#1a1f2e;",title:"text-align:center;font-size:20pt;letter-spacing:4px;text-transform:uppercase;border-bottom:1px solid #c9a84c;color:#f5e6c8;",logo:"font-size:15pt;color:#c9a84c;text-align:center;",dish:"text-align:center;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#f5e6c8;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#c4b89a;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#c9a84c;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8fbc8f;text-transform:none;font-weight:bold;",info:"color:#c9a84c;",rule:"border-top:1px solid #c9a84c;",body:"color:#c4b89a;"},
+    botanical:{wrap:"border:2px solid #5a7d5a;padding:20pt 18pt;background:#f7f9f4;",bg:"",title:"text-align:center;font-size:19pt;color:#3d5c3d;text-transform:uppercase;",logo:"font-size:15pt;color:#5a7d5a;text-align:center;",dish:"text-align:center;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#3d5c3d;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#4a6048;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5a7d5a;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d5c3d;text-transform:none;font-weight:bold;",info:"color:#3d5c3d;",rule:"border-top:none;background:#eef3ea;padding:10pt;border-radius:8pt;"},
+    artdeco:{wrap:"border:4px solid #1a1a1a;padding:22pt 20pt;background:#fff8f0;",bg:"",title:"text-align:center;font-size:22pt;letter-spacing:6px;text-transform:uppercase;border-bottom:4px double #1a1a1a;color:#1a1a1a;font-weight:bold;",logo:"font-size:15pt;color:#1a1a1a;text-align:center;font-weight:bold;",dish:"text-align:center;font-size:12pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;",desc:"text-align:center;font-size:9.5pt;color:#333;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#1a1a1a;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#8b4513;text-transform:none;font-weight:bold;",info:"color:#1a1a1a;",rule:"border-top:4px double #1a1a1a;"},
+    rustic:{wrap:"border:2px dashed #8b5a2b;padding:20pt 18pt;background:#faf6f0;",bg:"",title:"text-align:center;font-size:19pt;color:#5c3d1e;",logo:"font-size:15pt;color:#8b5a2b;text-align:center;",dish:"text-align:center;font-size:12pt;font-weight:bold;text-transform:uppercase;color:#5c3d1e;",desc:"text-align:center;font-style:italic;font-size:9.5pt;color:#6b5344;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#8b5a2b;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#5c7a3a;text-transform:none;font-weight:bold;",info:"color:#5c3d1e;",rule:"border-top:2px solid #8b5a2b;background:#fff9f2;padding:10pt;"},
+    wellness:{wrap:"border:1px solid #5e8078;padding:24pt 22pt;background:#f7f5f0;",bg:"",title:"text-align:center;font-size:16pt;letter-spacing:6px;font-weight:300;text-transform:uppercase;color:#3d534e;",logo:"font-size:11pt;color:#5e8078;text-align:center;letter-spacing:3px;",dish:"text-align:center;font-size:10.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#2c3936;",desc:"text-align:center;font-style:normal;font-size:9.5pt;color:#5c6b66;text-transform:none;",allg:"text-align:center;font-size:8pt;color:#5e8078;text-transform:none;font-weight:bold;",diet:"text-align:center;font-size:8pt;color:#3d534e;text-transform:none;font-weight:bold;",info:"color:#3d534e;",rule:"border-top:1px solid #c5d4ce;",section:"text-align:center;font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#5e8078;font-weight:bold;"},
+    tasting:{wrap:"border:1px solid #8c3a32;padding:22pt 20pt;background:#fbf8f2;",bg:"",title:"text-align:center;font-size:18pt;letter-spacing:7px;text-transform:uppercase;color:#1c1917;border-bottom:1px solid #8c3a32;",logo:"font-size:13pt;color:#8c3a32;text-align:center;",dish:"font-size:11pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#1c1917;",desc:"font-style:italic;font-size:9.5pt;color:#5a5148;text-transform:none;",allg:"font-size:8pt;color:#8c3a32;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#5a5148;text-transform:none;font-weight:bold;",info:"color:#8c3a32;",rule:"border-top:1px solid #8c3a32;",section:"font-size:9pt;letter-spacing:3px;text-transform:uppercase;color:#8c3a32;border-bottom:1px solid #e6dccb;padding-bottom:3pt;"},
+    brunch:{wrap:"padding:0;background:#fff8ee;",bg:"",title:"font-size:18pt;color:#fff8ee;background:#5c3a27;padding:10pt 12pt;text-transform:uppercase;",logo:"font-size:12pt;color:#f0c9a0;background:#5c3a27;padding:8pt 12pt 0;",dish:"font-size:11pt;font-weight:bold;text-transform:uppercase;color:#5c3a27;",desc:"font-size:9pt;color:#6b5344;text-transform:none;",allg:"font-size:8pt;color:#c46a3a;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#5c7a3a;text-transform:none;font-weight:bold;",info:"color:#5c3a27;",rule:"background:#f7eadc;padding:10pt;",section:"font-size:10pt;letter-spacing:2px;text-transform:uppercase;color:#c46a3a;"},
+    retreat:{wrap:"border:6pt solid #355c4a;padding:16pt 14pt;background:#f4efe6;",bg:"",title:"text-align:center;font-size:16pt;color:#f4efe6;background:#355c4a;padding:8pt;text-transform:uppercase;",logo:"font-size:12pt;color:#e8d5a3;text-align:center;background:#355c4a;padding:6pt 8pt 0;",dish:"font-size:10.5pt;font-weight:bold;text-transform:uppercase;color:#2a3d33;",desc:"font-size:9pt;color:#5a6158;text-transform:none;",allg:"font-size:8pt;color:#8a6a32;text-transform:none;font-weight:bold;",diet:"font-size:8pt;color:#355c4a;text-transform:none;font-weight:bold;",info:"color:#355c4a;",rule:"border:1px solid #d7c4a3;background:#fffdf8;padding:8pt;",section:"text-align:center;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#355c4a;background:#e8d5a3;padding:4pt;"},
+    banquet:{wrap:"border-top:8pt solid #6e2430;border-bottom:8pt solid #c4a35a;padding:16pt 14pt;background:#fffaf3;",bg:"",title:"text-align:center;font-size:17pt;letter-spacing:4px;text-transform:uppercase;color:#6e2430;border-bottom:2px solid #c4a35a;",logo:"font-size:13pt;color:#6e2430;text-align:center;",dish:"font-size:10pt;font-weight:bold;text-transform:uppercase;color:#3a241c;",desc:"font-size:8.5pt;color:#5c4a3e;text-transform:none;",allg:"font-size:7.5pt;color:#6e2430;text-transform:none;font-weight:bold;",diet:"font-size:7.5pt;color:#8a6a32;text-transform:none;font-weight:bold;",info:"color:#6e2430;",rule:"border-top:2px solid #c4a35a;",section:"text-align:center;font-size:9pt;letter-spacing:2px;text-transform:uppercase;color:#fffaf3;background:#6e2430;padding:4pt;"}
   };
   const raw=map[t]||map.classic;
   const s=Object.assign({}, raw);
-  ["title","logo","dish","desc","allg","diet","section"].forEach(k=>{ if(s[k]!=null) s[k]=wordBrandFont(s[k]); });
+  ["wrap","title","logo","dish","desc","allg","diet","section","body"].forEach(k=>{ if(s[k]!=null) s[k]=wordBrandFont(s[k]); });
   return s;
 }
 function wordRoleStyle(style){
@@ -2284,7 +2300,7 @@ $("wordBtn").onclick = ()=>{
   <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
   <style>
     @page{size:A4;margin:1.4cm;}
-    body{font-family:${BRAND_SERIF_WORD};}
+    body,h1,h2,h3,p,td,div{font-family:${BRAND_SERIF_WORD} !important;}
     .w-dish,.w-desc,.w-allg,.w-diet{text-transform:none !important;font-variant:normal !important;font-family:${BRAND_SERIF_WORD} !important;}
   </style></head>
   <body>${pages}</body></html>`;
@@ -2320,7 +2336,8 @@ function pageFootHTML(m){
   if(pos.bottom) return `<div class="page-foot menu-date">${esc(formattedMenuDate())}</div>`;
   return `<div class="page-foot">${esc(data.logoText || m.title || "")}</div>`;
 }
-const QR_CELL_PX = 4;
+const QR_CELL_PX = 2;
+const QR_RENDER_CELL_PX = 4;
 const QR_QUIET_MODULES = 4;
 const _qrImgCache = Object.create(null);
 function qrData(url){
@@ -2330,10 +2347,11 @@ function qrData(url){
     const qr=qrcode(0,"M");
     qr.addData(u,"Byte");
     qr.make();
-    const cell=QR_CELL_PX;
-    const margin=QR_QUIET_MODULES*cell;
-    const px=qr.getModuleCount()*cell+margin*2;
-    const data={url:u, src:qr.createDataURL(cell,margin), px};
+    const displayCell=QR_CELL_PX;
+    const renderCell=QR_RENDER_CELL_PX;
+    const margin=QR_QUIET_MODULES*renderCell;
+    const px=qr.getModuleCount()*displayCell+QR_QUIET_MODULES*displayCell*2;
+    const data={url:u, src:qr.createDataURL(renderCell,margin), px};
     _qrImgCache[u]=data;
     return data;
   }catch(e){ return null; }
@@ -2354,17 +2372,18 @@ function qrHTML(){
 }
 function qrItemWord(url, label, caption){
   const d=qrData(url); if(!d) return "";
-  return `<td style="width:50%;text-align:center;vertical-align:top;padding:0 8pt;">
-    <p style="font-size:7.5pt;letter-spacing:1.2pt;text-transform:uppercase;font-weight:bold;margin:0 0 4pt;">${esc(label)}</p>
-    <img src="${d.src}" width="${d.px}" height="${d.px}" style="display:block;margin:0 auto;background:#fff;" alt="${esc(label)}"/>
-    <p style="font-family:${BRAND_SERIF_WORD};font-size:7.5pt;color:#6b7770;margin:5pt 0 0;font-style:italic;letter-spacing:.03em;line-height:1.4;">${esc(caption)}</p>
+  const pt=Math.max(48, Math.round(d.px * 0.75));
+  return `<td style="width:${pt+12}pt;text-align:center;vertical-align:top;padding:0 4pt;">
+    <p style="font-size:6pt;letter-spacing:.8pt;text-transform:uppercase;font-weight:bold;margin:0 0 2pt;">${esc(label)}</p>
+    <img src="${d.src}" width="${d.px}" height="${d.px}" style="display:block;margin:0 auto;background:#fff;width:${pt}pt;height:${pt}pt;" alt="${esc(label)}"/>
+    <p style="font-family:${BRAND_SERIF_WORD};font-size:6pt;color:#6b7770;margin:2pt 0 0;font-style:italic;letter-spacing:.02em;line-height:1.25;">${esc(caption)}</p>
   </td>`;
 }
 function qrHTMLWord(){
   const a=qrItemWord(menuQrUrl(), MENU_QR_LABEL, MENU_QR_CAPTION);
   const b=qrItemWord(vedantaQrUrl(), VEDANTA_QR_LABEL, VEDANTA_QR_CAPTION);
   if(!a && !b) return "";
-  return `<table style="width:100%;margin-top:10pt;border-collapse:collapse;"><tr>${a}${b}</tr></table>`;
+  return `<table style="width:auto;margin:4pt auto 0;border-collapse:collapse;"><tr>${a}${b}</tr></table>`;
 }
 function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 const NO_TT_STYLE = "text-transform:none;font-variant:normal";
