@@ -503,6 +503,26 @@
       { id:uid(), supplier:'Bidfood', site:'site_quay', category:'Ambient', temp:null, target:null, packaging:'Good', dateCheck:'Fail', vehicle:'Clean', by:'u_amy', at:hoursAgo(6), accepted:false, reason:'Two cases past best-before date — rejected those cases, rest accepted.', items:'Canned goods, oils' },
     ];
 
+    const bb = (days) => new Date(Date.now() + days * 864e5).toISOString().slice(0, 10);
+    const inventory = [
+      { id:'inv_chk', name:'Chicken breast', sku:'PRT-CHK', category:'Protein', location:'Walk-in fridge', unit:'kg', qty:6.5, par:12, reorder:4, supplier:'Brakes', unitCost:6.4, bestBefore:bb(2), site:'site_grove', notes:'Rotate oldest packs to the front.', updated:hoursAgo(3) },
+      { id:'inv_crm', name:'Double cream', sku:'DRY-CRM', category:'Dairy', location:'Walk-in fridge', unit:'L', qty:2, par:8, reorder:3, supplier:'Dairy Fresh', unitCost:2.15, bestBefore:bb(1), site:'site_grove', notes:'', updated:hoursAgo(5) },
+      { id:'inv_flr', name:'Plain flour', sku:'DRY-FLR', category:'Dry goods', location:'Dry store', unit:'kg', qty:18, par:20, reorder:6, supplier:'Bidfood', unitCost:0.72, bestBefore:bb(90), site:'site_grove', notes:'', updated:hoursAgo(26) },
+      { id:'inv_pea', name:'Frozen peas', sku:'FRZ-PEA', category:'Frozen', location:'Freezer', unit:'kg', qty:4, par:10, reorder:3, supplier:'Bidfood', unitCost:1.35, bestBefore:bb(120), site:'site_grove', notes:'', updated:hoursAgo(8) },
+      { id:'inv_oil', name:'Olive oil', sku:'DRY-OIL', category:'Dry goods', location:'Dry store', unit:'L', qty:1.2, par:6, reorder:2, supplier:'Fresh Direct', unitCost:4.8, bestBefore:bb(200), site:'site_grove', notes:'', updated:hoursAgo(10) },
+      { id:'inv_sld', name:'Mixed salad leaves', sku:'PRD-SLD', category:'Produce', location:'Walk-in fridge', unit:'kg', qty:0.4, par:3, reorder:1, supplier:'Fresh Direct', unitCost:3.1, bestBefore:bb(0), site:'site_grove', notes:'Use today.', updated:hoursAgo(2) },
+      { id:'inv_btr', name:'Unsalted butter', sku:'DRY-BTR', category:'Dairy', location:'Walk-in fridge', unit:'kg', qty:3.5, par:5, reorder:1.5, supplier:'Dairy Fresh', unitCost:5.2, bestBefore:bb(14), site:'site_grove', notes:'', updated:hoursAgo(12) },
+      { id:'inv_ric', name:'Basmati rice', sku:'DRY-RIC', category:'Dry goods', location:'Dry store', unit:'kg', qty:22, par:25, reorder:8, supplier:'Bidfood', unitCost:1.45, bestBefore:bb(180), site:'site_grove', notes:'', updated:daysAgo(2) },
+      { id:'inv_mlk', name:'Whole milk', sku:'DRY-MLK', category:'Dairy', location:'Walk-in fridge', unit:'L', qty:8, par:20, reorder:6, supplier:'Dairy Fresh', unitCost:0.95, bestBefore:bb(3), site:'site_dock', notes:'', updated:hoursAgo(4) },
+      { id:'inv_brd', name:'Sourdough loaves', sku:'BKY-SRD', category:'Bakery', location:'Ambient', unit:'each', qty:6, par:16, reorder:4, supplier:'Local bakery', unitCost:1.8, bestBefore:bb(1), site:'site_dock', notes:'', updated:hoursAgo(6) },
+    ];
+    const inventoryMoves = [
+      { id:'mv1', itemId:'inv_chk', site:'site_grove', type:'Receive', qty:8, before:0, after:8, note:'Brakes chilled delivery', by:'u_james', at:hoursAgo(6) },
+      { id:'mv2', itemId:'inv_chk', site:'site_grove', type:'Use', qty:1.5, before:8, after:6.5, note:'Lunch service', by:'u_sarah', at:hoursAgo(3) },
+      { id:'mv3', itemId:'inv_oil', site:'site_grove', type:'Use', qty:0.8, before:2, after:1.2, note:'Prep — dressings', by:'u_james', at:hoursAgo(10) },
+      { id:'mv4', itemId:'inv_mlk', site:'site_dock', type:'Count', qty:8, before:11, after:8, note:'Opening stock count', by:'u_lena', at:hoursAgo(4) },
+    ];
+
     // Incidents & corrective actions log
     const incidents = [
       { id:uid(), title:'Walk-in fridge over temperature', type:'Equipment', site:'site_quay', severity:'High', reportedBy:'u_amy', at:hoursAgo(6), status:'In progress', action:'Engineer called; stock moved to spare unit and temperatures logged hourly.' },
@@ -517,6 +537,7 @@
              channels:{ sms:true, email:true, push:true } },
       sites, team, sensors, checklists, records, alerts, menus, labels, waste, recipes, activity, workflows,
       suppliers, training, incidents, maintenance, deliveries,
+      inventory, inventoryMoves,
       assets, batches, cooling, phlogs, holding,
       rotaShifts: [], clockSessions: [], attendanceLog: [],
       allergens: ALLERGENS,
@@ -673,6 +694,8 @@
     const isPrivate = !!(db._tenantPrivate || db._isPrivate);
     const s = seed();
     ['sites','team','sensors','checklists','records','alerts','menus','labels','waste','recipes','activity','workflows','suppliers','training','incidents','maintenance','deliveries','assets','batches','cooling','phlogs','holding','rotaShifts','clockSessions','attendanceLog'].forEach(k => { if (!Array.isArray(db[k])) db[k] = s[k]; });
+    if (!Array.isArray(db.inventory)) db.inventory = isPrivate ? [] : s.inventory;
+    if (!Array.isArray(db.inventoryMoves)) db.inventoryMoves = isPrivate ? [] : s.inventoryMoves;
     if (!db.compliance || typeof db.compliance !== 'object') {
       db.compliance = { hsChecks:[], riskAssessments:[], coshh:[], accidents:[], inductions:[], manualHandling:[], safetyChecks:[], foodComplaints:[], probeCalibration:[], thirdPartyEvents:[], haccpPlans:[], fsmsDocuments:[], equipmentMaintenance:[] };
     }
@@ -736,7 +759,7 @@
             !PILOT_SITE_IDS.every((id) => (serverState.sites || []).some((s) => s.id === id))
             || serverState._pilotPackVersion !== PILOT_PACK_VERSION
           );
-          const missing = !isPrivate && (['suppliers','training','incidents','maintenance','deliveries','recipes','assets','batches','cooling','phlogs','holding','workflows'].some(k => !Array.isArray(serverState[k]))
+          const missing = !isPrivate && (['suppliers','training','incidents','maintenance','deliveries','recipes','assets','batches','cooling','phlogs','holding','workflows','inventory','inventoryMoves'].some(k => !Array.isArray(serverState[k]))
             || (serverState.sites || []).length < 10 || (serverState.sensors || []).length < 20
             || (serverState.workflows || []).length < 90);
           this.db = ensureShape(serverState);

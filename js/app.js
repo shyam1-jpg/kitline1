@@ -27,6 +27,7 @@
     { sep:'Kitchen Compliance', sepKey:'complianceSec' },
     { id:'compliance', label:'Kitchen Compliance', icon:'shield' },
     { id:'deliveries', label:'Deliveries', icon:'truck' },
+    { id:'inventory', label:'Inventory', icon:'box' },
     { id:'records', label:'Records', icon:'records' },
     { id:'cooling', label:'Cooling', icon:'snow' },
     { id:'holding', label:'Hot & Cold Hold', icon:'temp' },

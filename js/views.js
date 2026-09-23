@@ -4236,5 +4236,310 @@
     }};
   }
 
-  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings, clock, rota };
+  /* ---------------- INVENTORY ---------------- */
+  const INV_LOCATIONS = ['Dry store', 'Walk-in fridge', 'Freezer', 'Prep fridge', 'Ambient'];
+  const INV_CATEGORIES = ['Dry goods', 'Dairy', 'Protein', 'Produce', 'Frozen', 'Bakery', 'Beverages', 'Cleaning'];
+  const INV_UNITS = ['kg', 'g', 'L', 'ml', 'each', 'case', 'tray'];
+
+  function inventoryActorId() {
+    try {
+      const me = window.App && window.App.currentUser && window.App.currentUser();
+      if (me && me.email) {
+        const member = (S.db.team || []).find(t => (t.email || '').toLowerCase() === String(me.email).toLowerCase());
+        if (member) return member.id;
+      }
+    } catch (e) {}
+    return (S.db.team[0] && S.db.team[0].id) || 'u_sarah';
+  }
+
+  function inventoryStatus(item) {
+    const qty = Number(item.qty) || 0;
+    const reorder = Number(item.reorder) || 0;
+    if (qty <= 0) return { key: 'out', label: 'Out of stock', badge: 'badge-red' };
+    if (qty <= reorder) return { key: 'low', label: 'Low', badge: 'badge-amber' };
+    return { key: 'ok', label: 'In stock', badge: 'badge-green' };
+  }
+
+  function inventoryExpiry(iso) {
+    if (!iso) return '';
+    const d = Math.round((new Date(iso + 'T12:00:00').getTime() - Date.now()) / 864e5);
+    if (d < 0) return `<span class="badge badge-red">Expired ${Math.abs(d)}d</span>`;
+    if (d <= 3) return `<span class="badge badge-amber">Use in ${d}d</span>`;
+    return `<span class="text-ink-500">${fmt.date(iso + 'T12:00:00')}</span>`;
+  }
+
+  function applyInventoryMove(item, type, amount, note) {
+    const before = Number(item.qty) || 0;
+    let after = before;
+    if (type === 'Count') after = amount;
+    else if (type === 'Receive') after = before + amount;
+    else after = Math.max(0, before - amount);
+    after = +after.toFixed(3);
+    item.qty = after;
+    item.updated = new Date().toISOString();
+    S.db.inventoryMoves.unshift({
+      id: S.uid('mv'),
+      itemId: item.id,
+      site: item.site,
+      type,
+      qty: amount,
+      before,
+      after,
+      note: note || '',
+      by: inventoryActorId(),
+      at: new Date().toISOString(),
+    });
+  }
+
+  function inventory() {
+    if (!Array.isArray(S.db.inventory)) S.db.inventory = [];
+    if (!Array.isArray(S.db.inventoryMoves)) S.db.inventoryMoves = [];
+    const site = S.db.currentSite;
+    const list = S.db.inventory.filter(i => i.site === site).slice().sort((a, b) => a.name.localeCompare(b.name));
+    const moves = S.db.inventoryMoves.filter(m => m.site === site).slice().sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 8);
+    const low = list.filter(i => inventoryStatus(i).key !== 'ok').length;
+    const expiring = list.filter(i => {
+      if (!i.bestBefore) return false;
+      const d = Math.round((new Date(i.bestBefore + 'T12:00:00').getTime() - Date.now()) / 864e5);
+      return d <= 3;
+    }).length;
+    const value = list.reduce((sum, i) => sum + (Number(i.qty) || 0) * (Number(i.unitCost) || 0), 0);
+    const locCounts = {};
+    INV_LOCATIONS.forEach(l => { locCounts[l] = list.filter(i => i.location === l).length; });
+    const qtyText = (n) => {
+      const v = Number(n) || 0;
+      return (Math.round(v * 1000) / 1000).toString();
+    };
+    const rows = list.map(i => {
+      const st = inventoryStatus(i);
+      return `<tr data-loc="${escapeHtml(i.location)}" data-status="${st.key}" data-name="${escapeHtml((i.name + ' ' + (i.sku || '') + ' ' + (i.supplier || '')).toLowerCase())}">
+        <td><div class="font-semibold">${escapeHtml(i.name)}</div><div class="text-xs text-ink-400">${escapeHtml(i.sku || '')}${i.supplier ? ' · ' + escapeHtml(i.supplier) : ''}</div></td>
+        <td>${escapeHtml(i.category || '')}</td>
+        <td>${escapeHtml(i.location || '')}</td>
+        <td class="font-semibold">${qtyText(i.qty)} <span class="text-ink-400 font-normal">${escapeHtml(i.unit || '')}</span></td>
+        <td class="text-ink-500">${qtyText(i.par)} / ${qtyText(i.reorder)}</td>
+        <td>${inventoryExpiry(i.bestBefore)}</td>
+        <td>${fmt.money((Number(i.qty) || 0) * (Number(i.unitCost) || 0), S.db.org && S.db.org.currency)}</td>
+        <td><span class="badge ${st.badge}">${st.label}</span></td>
+        <td class="text-right whitespace-nowrap">
+          <button class="btn btn-ghost btn-sm" data-adjust="${i.id}">Adjust</button>
+          <button class="btn btn-ghost btn-sm" data-edit="${i.id}">Edit</button>
+        </td>
+      </tr>`;
+    }).join('');
+    const moveRows = moves.map(m => {
+      const item = S.db.inventory.find(i => i.id === m.itemId);
+      const delta = m.type === 'Count' ? `set to ${qtyText(m.after)}` : (m.type === 'Receive' ? '+' : '−') + qtyText(m.qty);
+      return `<tr>
+        <td class="font-semibold">${escapeHtml(item ? item.name : 'Removed item')}</td>
+        <td><span class="badge ${m.type === 'Receive' ? 'badge-green' : m.type === 'Waste' ? 'badge-red' : m.type === 'Count' ? 'badge-blue' : 'badge-gray'}">${escapeHtml(m.type)}</span></td>
+        <td>${delta}${item ? ' ' + escapeHtml(item.unit || '') : ''}</td>
+        <td class="text-ink-500">${escapeHtml(m.note || '')}</td>
+        <td>${escapeHtml(S.member(m.by).name)}</td>
+        <td>${fmt.ago(m.at)}</td>
+      </tr>`;
+    }).join('');
+    const html = `
+      ${sectionHeader('Inventory', 'Stock on hand for this kitchen — add items, adjust quantities, or run a stock count.', `
+        <button class="btn btn-ghost btn-sm" data-act="count">${icon('check','ico')} Stock count</button>
+        <button class="btn btn-primary btn-sm" data-act="add">${icon('plus','ico')} Add item</button>`)}
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+        ${kpiCard('Items', list.length, 'box')}
+        ${kpiCard('Low or out', low, 'alert')}
+        ${kpiCard('Use within 3 days', expiring, 'records')}
+        ${kpiCard('Stock value', fmt.money(value, S.db.org && S.db.org.currency), 'labels')}
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <input id="inv-search" class="input !w-56" placeholder="Search name, SKU, supplier">
+        <div class="flex flex-wrap gap-2" id="inv-filters">
+          <button class="btn btn-sm btn-primary" data-loc="all">All (${list.length})</button>
+          ${INV_LOCATIONS.filter(l => locCounts[l]).map(l => `<button class="btn btn-sm btn-ghost" data-loc="${escapeHtml(l)}">${escapeHtml(l)} (${locCounts[l]})</button>`).join('')}
+          <button class="btn btn-sm btn-ghost" data-loc="low">Low / out (${low})</button>
+        </div>
+      </div>
+      <div class="card overflow-hidden mb-5"><table class="table"><thead><tr><th>Item</th><th>Category</th><th>Location</th><th>On hand</th><th>Par / reorder</th><th>Best before</th><th>Value</th><th>Status</th><th></th></tr></thead>
+        <tbody id="inv-rows">${rows || '<tr><td colspan="9" class="text-ink-400 p-4">No stock items for this site yet. Add an item to start the inventory.</td></tr>'}</tbody></table></div>
+      <h2 class="text-lg font-bold mb-2">Recent movements</h2>
+      <div class="card overflow-hidden"><table class="table"><thead><tr><th>Item</th><th>Type</th><th>Change</th><th>Note</th><th>By</th><th>When</th></tr></thead>
+        <tbody>${moveRows || '<tr><td colspan="6" class="text-ink-400 p-4">No stock movements yet.</td></tr>'}</tbody></table></div>`;
+
+    function itemForm(existing) {
+      const i = existing || { category: INV_CATEGORIES[0], location: INV_LOCATIONS[0], unit: 'kg', qty: 0, par: 0, reorder: 0, unitCost: 0, bestBefore: '', supplier: '', sku: '', notes: '', name: '' };
+      const opt = (arr, val) => arr.map(x => `<option ${x === val ? 'selected' : ''}>${escapeHtml(x)}</option>`).join('');
+      modal(existing ? 'Edit stock item' : 'Add stock item', `<div class="space-y-3">
+        <div><label class="label">Item name</label><input id="inv_name" class="input" value="${escapeHtml(i.name)}" placeholder="e.g. Chicken breast"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="label">SKU</label><input id="inv_sku" class="input" value="${escapeHtml(i.sku || '')}" placeholder="Optional"></div>
+          <div><label class="label">Supplier</label><input id="inv_sup" class="input" value="${escapeHtml(i.supplier || '')}" placeholder="e.g. Brakes"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="label">Category</label><select id="inv_cat" class="select">${opt(INV_CATEGORIES, i.category)}</select></div>
+          <div><label class="label">Location</label><select id="inv_loc" class="select">${opt(INV_LOCATIONS, i.location)}</select></div>
+          <div><label class="label">Unit</label><select id="inv_unit" class="select">${opt(INV_UNITS, i.unit)}</select></div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="label">On hand</label><input id="inv_qty" type="number" min="0" step="0.1" class="input" value="${Number(i.qty) || 0}"></div>
+          <div><label class="label">Par level</label><input id="inv_par" type="number" min="0" step="0.1" class="input" value="${Number(i.par) || 0}"></div>
+          <div><label class="label">Reorder at</label><input id="inv_re" type="number" min="0" step="0.1" class="input" value="${Number(i.reorder) || 0}"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="label">Unit cost</label><input id="inv_cost" type="number" min="0" step="0.01" class="input" value="${Number(i.unitCost) || 0}"></div>
+          <div><label class="label">Best before</label><input id="inv_bb" type="date" class="input" value="${escapeHtml(i.bestBefore || '')}"></div>
+        </div>
+        <div><label class="label">Notes</label><textarea id="inv_notes" class="input" rows="2" placeholder="Storage or rotation notes">${escapeHtml(i.notes || '')}</textarea></div>
+        <button class="btn btn-primary w-full" id="inv_save">${existing ? 'Save item' : 'Add item'}</button>
+      </div>`, { wide: true });
+      document.getElementById('inv_save').onclick = () => {
+        const name = document.getElementById('inv_name').value.trim();
+        if (!name) return toast('Enter an item name', 'warn');
+        const qty = Math.max(0, parseFloat(document.getElementById('inv_qty').value) || 0);
+        const par = Math.max(0, parseFloat(document.getElementById('inv_par').value) || 0);
+        const reorder = Math.max(0, parseFloat(document.getElementById('inv_re').value) || 0);
+        const unitCost = Math.max(0, parseFloat(document.getElementById('inv_cost').value) || 0);
+        const payload = {
+          name,
+          sku: document.getElementById('inv_sku').value.trim(),
+          supplier: document.getElementById('inv_sup').value.trim(),
+          category: document.getElementById('inv_cat').value,
+          location: document.getElementById('inv_loc').value,
+          unit: document.getElementById('inv_unit').value,
+          qty: +qty.toFixed(3),
+          par: +par.toFixed(3),
+          reorder: +reorder.toFixed(3),
+          unitCost: +unitCost.toFixed(2),
+          bestBefore: document.getElementById('inv_bb').value,
+          notes: document.getElementById('inv_notes').value.trim(),
+          site,
+          updated: new Date().toISOString(),
+        };
+        if (existing) {
+          const prev = Number(existing.qty) || 0;
+          Object.assign(existing, payload);
+          if (payload.qty !== prev) {
+            S.db.inventoryMoves.unshift({
+              id: S.uid('mv'), itemId: existing.id, site, type: 'Count', qty: payload.qty,
+              before: prev, after: payload.qty, note: 'Quantity updated on the item form', by: inventoryActorId(), at: new Date().toISOString(),
+            });
+          }
+        } else {
+          const created = Object.assign({ id: S.uid('inv') }, payload);
+          S.db.inventory.unshift(created);
+          if (created.qty > 0) {
+            S.db.inventoryMoves.unshift({
+              id: S.uid('mv'), itemId: created.id, site, type: 'Receive', qty: created.qty,
+              before: 0, after: created.qty, note: 'Opening stock', by: inventoryActorId(), at: new Date().toISOString(),
+            });
+          }
+        }
+        S.persist();
+        closeModal();
+        window.App.render();
+        toast(existing ? 'Stock item updated' : 'Stock item added');
+      };
+    }
+
+    function adjustForm(item) {
+      modal('Adjust ' + escapeHtml(item.name), `<div class="space-y-3">
+        <p class="text-sm text-ink-500">On hand now: <b>${qtyText(item.qty)} ${escapeHtml(item.unit || '')}</b></p>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="label">Movement</label>
+            <select id="mv_type" class="select"><option>Receive</option><option>Use</option><option>Waste</option><option>Count</option></select>
+          </div>
+          <div><label class="label" id="mv_qty_label">Quantity</label><input id="mv_qty" type="number" min="0" step="0.1" class="input" value="1"></div>
+        </div>
+        <p id="mv_hint" class="text-sm text-ink-500"></p>
+        <div><label class="label">Note</label><input id="mv_note" class="input" placeholder="Delivery, service, or count note"></div>
+        <button class="btn btn-primary w-full" id="mv_save">Save movement</button>
+      </div>`);
+      const hint = () => {
+        const type = document.getElementById('mv_type').value;
+        document.getElementById('mv_qty_label').textContent = type === 'Count' ? 'Counted quantity' : 'Quantity';
+        const amount = Math.max(0, parseFloat(document.getElementById('mv_qty').value) || 0);
+        const before = Number(item.qty) || 0;
+        let after = before;
+        if (type === 'Count') after = amount;
+        else if (type === 'Receive') after = before + amount;
+        else after = Math.max(0, before - amount);
+        document.getElementById('mv_hint').textContent = 'On hand will be ' + (+after.toFixed(3)) + ' ' + (item.unit || '');
+      };
+      document.getElementById('mv_type').onchange = hint;
+      document.getElementById('mv_qty').oninput = hint;
+      hint();
+      document.getElementById('mv_save').onclick = () => {
+        const type = document.getElementById('mv_type').value;
+        const amount = Math.max(0, parseFloat(document.getElementById('mv_qty').value) || 0);
+        if (type !== 'Count' && amount <= 0) return toast('Enter a quantity', 'warn');
+        applyInventoryMove(item, type, +amount.toFixed(3), document.getElementById('mv_note').value.trim());
+        S.persist();
+        closeModal();
+        window.App.render();
+        toast(type + ' saved');
+      };
+    }
+
+    function countForm() {
+      if (!list.length) return toast('Add stock items before counting', 'warn');
+      modal('Stock count', `<div class="space-y-3">
+        <p class="text-sm text-ink-500">Enter the counted quantity for each item. Blank rows are left unchanged.</p>
+        <div><label class="label">Count note</label><input id="ct_note" class="input" placeholder="e.g. Monday opening count"></div>
+        <div class="space-y-2 max-h-80 overflow-auto pr-1">
+          ${list.map(i => `<div class="grid grid-cols-12 gap-2 items-center">
+            <div class="col-span-7"><div class="font-semibold text-sm">${escapeHtml(i.name)}</div><div class="text-xs text-ink-400">${escapeHtml(i.location)} · book ${qtyText(i.qty)} ${escapeHtml(i.unit || '')}</div></div>
+            <div class="col-span-5"><input class="input inv-count" data-id="${i.id}" type="number" min="0" step="0.1" placeholder="${qtyText(i.qty)}"></div>
+          </div>`).join('')}
+        </div>
+        <button class="btn btn-primary w-full" id="ct_save">Save stock count</button>
+      </div>`, { wide: true });
+      document.getElementById('ct_save').onclick = () => {
+        const note = document.getElementById('ct_note').value.trim() || 'Stock count';
+        let n = 0;
+        document.querySelectorAll('.inv-count').forEach(input => {
+          if (input.value.trim() === '') return;
+          const item = S.db.inventory.find(x => x.id === input.dataset.id);
+          if (!item) return;
+          const counted = Math.max(0, parseFloat(input.value) || 0);
+          const before = Number(item.qty) || 0;
+          if (+counted.toFixed(3) === +before.toFixed(3)) return;
+          applyInventoryMove(item, 'Count', +counted.toFixed(3), note);
+          n++;
+        });
+        if (!n) return toast('Enter at least one changed count', 'warn');
+        S.persist();
+        closeModal();
+        window.App.render();
+        toast('Stock count saved (' + n + ' item' + (n === 1 ? '' : 's') + ')');
+      };
+    }
+
+    return { title: 'Inventory', html, mount() {
+      const chips = document.querySelectorAll('#inv-filters [data-loc]');
+      const applyFilter = () => {
+        const active = document.querySelector('#inv-filters .btn-primary');
+        const loc = active ? active.dataset.loc : 'all';
+        const q = (document.getElementById('inv-search').value || '').trim().toLowerCase();
+        document.querySelectorAll('#inv-rows tr[data-name]').forEach(tr => {
+          const locOk = loc === 'all' || (loc === 'low' ? tr.dataset.status !== 'ok' : tr.dataset.loc === loc);
+          const qOk = !q || (tr.dataset.name || '').includes(q);
+          tr.style.display = locOk && qOk ? '' : 'none';
+        });
+      };
+      chips.forEach(c => c.onclick = () => {
+        chips.forEach(x => { x.classList.toggle('btn-primary', x === c); x.classList.toggle('btn-ghost', x !== c); });
+        applyFilter();
+      });
+      const search = document.getElementById('inv-search');
+      if (search) search.oninput = applyFilter;
+      const addBtn = document.querySelector('[data-act="add"]');
+      if (addBtn) addBtn.onclick = () => itemForm(null);
+      const countBtn = document.querySelector('[data-act="count"]');
+      if (countBtn) countBtn.onclick = countForm;
+      document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => itemForm(S.db.inventory.find(x => x.id === b.dataset.edit)));
+      document.querySelectorAll('[data-adjust]').forEach(b => b.onclick = () => {
+        const item = S.db.inventory.find(x => x.id === b.dataset.adjust);
+        if (item) adjustForm(item);
+      });
+    }};
+  }
+
+  window.Views = { home: hub, hub, wflive, wfdone, wfout, wfod, wfstaff, wfdel, wfprod, wfclean, wfhaccp, wfperf, foodcost, taskoverview, deliveries, dashboard, temps, alerts, haccp, records, sites, reports, team, recipes, suppliers, training, incidents, maintenance, assets, batches, cooling, phlogs, holding, allerq, labels, waste, manual, settings, clock, rota, inventory };
 })();
