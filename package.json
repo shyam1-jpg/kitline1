@@ -10,7 +10,9 @@
     "reset": "node server/reset.js",
     "tunnel": "npx cloudflared tunnel --url http://127.0.0.1:4001",
     "tunnel:lt": "npx localtunnel --port 4001",
-    "sensors:sim": "node server/sensor-sim.js"
+    "sensors:sim": "node server/sensor-sim.js",
+    "whatsapp": "npm start --prefix whatsapp-bot",
+    "whatsapp:test": "npm test --prefix whatsapp-bot"
   },
   "keywords": [
     "haccp",
