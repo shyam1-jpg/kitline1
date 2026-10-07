@@ -37,6 +37,7 @@ The server also listens on **4001** and **4002** so any of those URLs work.
 | `npm start` | Run the app + API server |
 | `npm run dev` | Same as start (handy alias) |
 | `npm run reset` | Wipe `server/data/db.json` so demo data re-seeds |
+| `npm run whatsapp` | WhatsApp Cloud API bot (see [`whatsapp-bot/README.md`](whatsapp-bot/README.md)) |
 
 ### Configuration
 
@@ -105,6 +106,7 @@ mode, the first login for an email auto-creates the account.
 
 ```
 kitchen-os/
+├── whatsapp-bot/       # Meta WhatsApp Cloud API webhook (phone chat)
 ├── index.html          # The app entry point (loads CDNs + scripts below)
 ├── css/
 │   └── styles.css      # Design system (cards, buttons, tables, badges, animations)
@@ -156,6 +158,18 @@ The live Kitchen OS / Food Safe System is a SaaS. A production version of this c
 - **Mobile:** iOS/Android apps hitting the same API (the marketing sites advertise both).
 
 The client-side `startSimulation()` here stands in for the IoT ingestion + rules engine so the app is fully interactive offline.
+
+---
+
+## WhatsApp chatbot
+
+A separate Express webhook talks to Meta’s WhatsApp Cloud API so you can message a starter bot from your personal phone. Full walkthrough (Developer app → test number → public webhook → chat):
+
+**[`whatsapp-bot/README.md`](whatsapp-bot/README.md)**
+
+```bash
+cd whatsapp-bot && cp .env.example .env && npm install && npm start
+```
 
 ---
 
